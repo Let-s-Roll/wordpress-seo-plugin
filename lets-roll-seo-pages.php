@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Let's Roll SEO Pages
  * Description:       Dynamically generates pages for skate locations, skaters, and events.
- * Version:           0.7.0
+ * Version:           0.8.0
  * Author:            Your Name
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -10,6 +10,11 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+// Include our new admin page, but only when in the admin area
+if (is_admin()) {
+    require_once plugin_dir_path(__FILE__) . 'admin/admin-page.php';
+}
 
 // Include the template files which now act as content generators
 require_once plugin_dir_path(__FILE__) . 'templates/template-country-page.php';
@@ -25,11 +30,13 @@ function lr_get_api_access_token() {
     $cached_token = get_transient('lr_api_access_token');
     if ($cached_token) return $cached_token;
 
+    // **MODIFIED**: Get credentials from the database instead of wp-config
+    $options = get_option('lr_options');
+    $email    = $options['api_email'] ?? '';
+    $password = $options['api_pass'] ?? '';
     $auth_url = 'https://beta.web.lets-roll.app/api/auth/signin/email';
-    $email    = defined('LETS_ROLL_API_EMAIL') ? LETS_ROLL_API_EMAIL : '';
-    $password = defined('LETS_ROLL_API_PASS') ? LETS_ROLL_API_PASS : '';
 
-    if (empty($email) || empty($password)) return new WP_Error('no_creds', 'API credentials are not configured.');
+    if (empty($email) || empty($password)) return new WP_Error('no_creds', 'API credentials are not configured in the plugin settings.');
     
     $response = wp_remote_post($auth_url, ['headers' => ['Content-Type' => 'application/json'], 'body' => json_encode(['email' => $email, 'password' => $password])]);
     if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) return new WP_Error('auth_failed', 'Could not retrieve access token.');
@@ -61,12 +68,13 @@ function lr_fetch_api_data($token, $endpoint, $params) {
  * =================================================================================
  */
 function lr_get_location_data() { 
-    static $locations = null; 
-    if($locations === null) {
-        $locations_file = plugin_dir_path(__FILE__) . 'locations.php';
-        $locations = file_exists($locations_file) ? include $locations_file : [];
-    } 
-    return $locations; 
+    // **MODIFIED**: Get location data from the database instead of a file
+    $options = get_option('lr_options');
+    $locations_json = $options['locations_json'] ?? '';
+    
+    // Decode the JSON, returning an empty array on failure
+    $locations = json_decode($locations_json, true);
+    return is_array($locations) ? $locations : [];
 }
 
 function lr_get_country_details($country_slug) { 
@@ -101,59 +109,28 @@ register_activation_hook(__FILE__, 'lr_activate_plugin');
  * Dynamic Page Generation
  * =================================================================================
  */
-
-/**
- * This is the main controller. It runs before the theme loads.
- */
 function lr_page_controller() {
-    // First, check if our main query variable is set. If not, it's not our page, so do nothing.
-    if ( ! get_query_var('lr_country') ) {
-        return;
-    }
-
-    // If it is our page, add the filters that will replace the title and content.
+    if ( ! get_query_var('lr_country') ) return;
     add_filter('the_content', 'lr_generate_dynamic_content');
     add_filter('the_title', 'lr_generate_dynamic_title', 10, 2);
-
-    // This is the crucial part: we create a fake post object.
-    // This tricks the theme into thinking it's displaying a real page,
-    // which makes it load all the correct styles and context.
-    add_action('the_post', function($post) {
-        $post->post_title = lr_generate_dynamic_title(''); // Set the title on the fake post
-        // You could set other properties here if needed, e.g., $post->post_content
-    });
+    add_action('the_post', function($post) { $post->post_title = lr_generate_dynamic_title(''); });
 }
 add_action('template_redirect', 'lr_page_controller');
 
-
-/**
- * Replaces the default page content with our dynamically generated content.
- */
 function lr_generate_dynamic_content($content) {
-    // Since this filter is now added conditionally, we just need to return our content.
     $country_slug = get_query_var('lr_country');
     $city_slug = get_query_var('lr_city');
     $page_type = get_query_var('lr_page_type');
-
-    if ($page_type) {
-        return lr_render_detail_page_content($country_slug, $city_slug, $page_type);
-    } elseif ($city_slug) {
-        return lr_render_city_page_content($country_slug, $city_slug);
-    } else {
-        return lr_render_country_page_content($country_slug);
-    }
+    if ($page_type) return lr_render_detail_page_content($country_slug, $city_slug, $page_type);
+    elseif ($city_slug) return lr_render_city_page_content($country_slug, $city_slug);
+    else return lr_render_country_page_content($country_slug);
 }
 
-/**
- * Replaces the default page title with our dynamic title.
- */
 function lr_generate_dynamic_title($title, $id = null) {
-    // This function is now simpler as well.
     $country_slug = get_query_var('lr_country');
     $city_slug = get_query_var('lr_city');
     $page_type = get_query_var('lr_page_type');
     $new_title = '';
-
     if ($page_type) {
         $city_details = lr_get_city_details($country_slug, $city_slug);
         if ($city_details) $new_title = ucfirst($page_type) . ' in ' . $city_details['name'];
@@ -164,6 +141,5 @@ function lr_generate_dynamic_title($title, $id = null) {
         $country_details = lr_get_country_details($country_slug);
         if ($country_details) $new_title = 'Roller Skating in ' . $country_details['name'];
     }
-
     return $new_title ? $new_title : $title;
 }
