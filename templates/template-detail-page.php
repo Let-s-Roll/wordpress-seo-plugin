@@ -1,16 +1,13 @@
 <?php
 /**
- * Renders the content for a detail page (skatespots, events, skaters).
- * This function is called by the main plugin file.
- *
- * @return string The HTML content for the page.
+ * Renders the content for a detail page (list of spots, events, skaters).
  */
 function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
     $city_details = lr_get_city_details($country_slug, $city_slug);
     if (!$city_details) return '<p>Location not found.</p>';
 
     $access_token = lr_get_api_access_token();
-    $output = ''; // Start with an empty string
+    $output = '';
 
     if ($page_type === 'skatespots') {
         $api_params = ['lat' => $city_details['latitude'], 'lng' => $city_details['longitude'], 'limit' => 10];
@@ -28,7 +25,10 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
                         $spot_info = $spot_details->spotWithAddress;
                         $spot_name = $spot_info->name ?? 'Unnamed Spot';
                         $spot_address = $spot_info->info->address ?? 'No address available';
-                        $output .= '<strong>' . esc_html($spot_name) . '</strong><br>';
+                        
+                        // **MODIFIED**: The spot name is now a link to the single spot page
+                        $spot_url = home_url('/spots/' . $item->_id . '/');
+                        $output .= '<strong><a href="' . esc_url($spot_url) . '">' . esc_html($spot_name) . '</a></strong><br>';
                         $output .= '<span>' . esc_html($spot_address) . '</span>';
                     } else {
                         $output .= '<strong>Spot ID:</strong> ' . esc_html($item->_id) . ' - <em style="color:red;">Could not load details.</em>';
@@ -44,5 +44,5 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         $output .= '<p>API integration for ' . esc_html($page_type) . ' is coming soon.</p>';
     }
 
-    return $output; // Return the generated HTML string
+    return $output;
 }
