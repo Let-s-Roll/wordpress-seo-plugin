@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Let's Roll SEO Pages
  * Description:       Dynamically generates pages for skate locations, skaters, and events.
- * Version:           0.9.1
+ * Version:           0.9.2
  * Author:            Your Name
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -80,7 +80,6 @@ function lr_get_city_details($country_slug, $city_slug) {
     return $country['cities'][$city_slug] ?? null;
 }
 
-
 function lr_custom_rewrite_rules() { 
     add_rewrite_tag('%lr_single_type%', '(spots|events|skaters)');
     add_rewrite_tag('%lr_item_id%', '([^/]+)');
@@ -99,6 +98,29 @@ function lr_activate_plugin() {
     flush_rewrite_rules(); 
 }
 register_activation_hook(__FILE__, 'lr_activate_plugin');
+
+/**
+ * Helper function to calculate a bounding box from a center point and radius.
+ */
+function lr_calculate_bounding_box($lat, $lon, $radius_km) {
+    $earth_radius = 6371; // Earth's radius in kilometers
+    $lat_rad = deg2rad($lat);
+
+    // Calculate latitude bounds
+    $lat_delta = $radius_km / $earth_radius;
+    $min_lat = rad2deg($lat_rad - $lat_delta);
+    $max_lat = rad2deg($lat_rad + $lat_delta);
+
+    // Calculate longitude bounds
+    $lon_delta = asin(sin($lat_delta) / cos($lat_rad));
+    $min_lon = rad2deg($lon - rad2deg($lon_delta));
+    $max_lon = rad2deg($lon + rad2deg($lon_delta));
+
+    return [
+        'sw' => $min_lat . ',' . $min_lon,
+        'ne' => $max_lat . ',' . $max_lon,
+    ];
+}
 
 
 /**
