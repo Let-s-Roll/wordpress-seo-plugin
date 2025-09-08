@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Let's Roll SEO Pages
  * Description:       Dynamically generates pages for skate locations, skaters, and events.
- * Version:           0.9.3
+ * Version:           0.9.6
  * Author:            Your Name
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -80,22 +80,25 @@ function lr_get_city_details($country_slug, $city_slug) {
     return $country['cities'][$city_slug] ?? null;
 }
 
-function lr_custom_rewrite_rules() { 
+function lr_custom_rewrite_rules() {
     add_rewrite_tag('%lr_single_type%', '(spots|events|skaters)');
     add_rewrite_tag('%lr_item_id%', '([^/]+)');
     add_rewrite_tag('%lr_country%','([^/]+)');
     add_rewrite_tag('%lr_city%','([^/]+)');
     add_rewrite_tag('%lr_page_type%','([^/]+)');
+    
+    // Rules must be ordered from most specific to least specific.
     add_rewrite_rule('^(spots|events|skaters)/([^/]+)/?$', 'index.php?lr_single_type=$matches[1]&lr_item_id=$matches[2]', 'top');
     add_rewrite_rule('^([^/]+)/([^/]+)/([^/]+)/?$','index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]','top');
     add_rewrite_rule('^([^/]+)/([^/]+)/?$','index.php?lr_country=$matches[1]&lr_city=$matches[2]','top');
-    add_rewrite_rule('^([^/]+)/?$','index.php?lr_country=$matches[1]','top'); 
+    add_rewrite_rule('^([^/]+)/?$','index.php?lr_country=$matches[1]','top');
 }
 add_action('init', 'lr_custom_rewrite_rules');
 
-function lr_activate_plugin() { 
-    lr_custom_rewrite_rules(); 
-    flush_rewrite_rules(); 
+
+function lr_activate_plugin() {
+    lr_custom_rewrite_rules();
+    flush_rewrite_rules();
 }
 register_activation_hook(__FILE__, 'lr_activate_plugin');
 
@@ -122,33 +125,39 @@ function lr_calculate_bounding_box($lat, $lon, $radius_km) {
     ];
 }
 
-
 /**
  * =================================================================================
  * Dynamic Page Generation
  * =================================================================================
  */
-function lr_page_controller() {
-    if ( get_query_var('lr_country') || get_query_var('lr_single_type') ) {
-        add_filter('the_content', 'lr_generate_dynamic_content');
-        add_filter('the_title', 'lr_generate_dynamic_title', 20, 2);
-        add_action('the_post', function($post) { $post->post_title = lr_generate_dynamic_title(''); });
+function lr_pre_get_posts_controller( $query ) {
+    if ( ! is_admin() && $query->is_main_query() ) {
+        if ( get_query_var('lr_country') || get_query_var('lr_single_type') ) {
+            $query->set('is_page', true);
+            $query->set('is_singular', true);
+            $query->set('is_home', false);
+            $query->set('is_archive', false);
+
+            add_filter('the_content', 'lr_generate_dynamic_content');
+            add_filter('the_title', 'lr_generate_dynamic_title', 20, 2);
+        }
     }
 }
-add_action('template_redirect', 'lr_page_controller');
+add_action( 'pre_get_posts', 'lr_pre_get_posts_controller' );
 
 function lr_generate_dynamic_content($content) {
+    if ( !get_query_var('lr_country') && !get_query_var('lr_single_type') ) {
+        return $content;
+    }
+    
     $single_type = get_query_var('lr_single_type');
     $item_id = get_query_var('lr_item_id');
 
     if ($single_type && $item_id) {
         switch ($single_type) {
-            case 'spots':
-                return lr_render_single_spot_content($item_id);
-            case 'events':
-                return lr_render_single_event_content($item_id);
-            case 'skaters':
-                return lr_render_single_skater_content($item_id);
+            case 'spots':   return lr_render_single_spot_content($item_id);
+            case 'events':  return lr_render_single_event_content($item_id);
+            case 'skaters': return lr_render_single_skater_content($item_id);
         }
     }
 
@@ -163,13 +172,11 @@ function lr_generate_dynamic_content($content) {
 function lr_generate_dynamic_title($title, $id = null) {
     $single_type = get_query_var('lr_single_type');
     $item_id = get_query_var('lr_item_id');
-    $new_title = '';
-
+    
     if ($single_type && $item_id) {
-        // --- MODIFIED: Fetch data to create a meaningful title ---
         $access_token = lr_get_api_access_token();
-        $item_data = null;
-        $prefix = 'Profile';
+        $display_name = '';
+        $prefix = 'Details';
 
         switch ($single_type) {
             case 'skaters':
@@ -178,14 +185,12 @@ function lr_generate_dynamic_title($title, $id = null) {
                 $prefix = 'Rollerskater Profile';
                 break;
             case 'spots':
-                // Note: Untested, based on previous API structure
                 $item_data = lr_fetch_api_data($access_token, 'spots/' . $item_id, []);
                 $display_name = $item_data->spotWithAddress->name ?? '';
                 $prefix = 'Skate Spot';
                 break;
             case 'events':
-                // Add API call for event details here when ready
-                $display_name = ''; // Placeholder
+                $display_name = ''; // Placeholder for event name
                 $prefix = 'Skate Event';
                 break;
         }
@@ -200,16 +205,19 @@ function lr_generate_dynamic_title($title, $id = null) {
     $country_slug = get_query_var('lr_country');
     $city_slug = get_query_var('lr_city');
     $page_type = get_query_var('lr_page_type');
+    $new_title = '';
+
     if ($page_type) {
         $city_details = lr_get_city_details($country_slug, $city_slug);
         if ($city_details) $new_title = ucfirst($page_type) . ' in ' . $city_details['name'];
     } elseif ($city_slug) {
         $city_details = lr_get_city_details($country_slug, $city_slug);
         if ($city_details) $new_title = 'Roller Skating in ' . $city_details['name'];
-    } else {
+    } elseif ($country_slug) {
         $country_details = lr_get_country_details($country_slug);
         if ($country_details) $new_title = 'Roller Skating in ' . $country_details['name'];
     }
+    
     return $new_title ? $new_title : $title;
 }
 
