@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Let's Roll SEO Pages
  * Description:       Dynamically generates pages for skate locations, skaters, and events.
- * Version:           0.9.6
+ * Version:           1.0.0
  * Author:            Your Name
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-// Include admin and template files
+// Include all necessary files
 if (is_admin()) { require_once plugin_dir_path(__FILE__) . 'admin/admin-page.php'; }
 require_once plugin_dir_path(__FILE__) . 'templates/template-country-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-city-page.php';
@@ -22,7 +22,7 @@ require_once plugin_dir_path(__FILE__) . 'templates/template-single-skater.php';
 
 /**
  * =================================================================================
- * Core API Functions
+ * Core API Functions (No Changes)
  * =================================================================================
  */
 function lr_get_api_access_token() {
@@ -53,10 +53,9 @@ function lr_fetch_api_data($token, $endpoint, $params) {
     return json_decode(wp_remote_retrieve_body($response));
 }
 
-
 /**
  * =================================================================================
- * Location Data & WordPress Integration
+ * Location Data (No Changes)
  * =================================================================================
  */
 function lr_get_location_data() {
@@ -80,80 +79,102 @@ function lr_get_city_details($country_slug, $city_slug) {
     return $country['cities'][$city_slug] ?? null;
 }
 
-function lr_custom_rewrite_rules() {
+/**
+ * =================================================================================
+ * REVISED: Precise URL Rewrite Rules
+ * =================================================================================
+ */
+function lr_custom_rewrite_rules() { 
     add_rewrite_tag('%lr_single_type%', '(spots|events|skaters)');
     add_rewrite_tag('%lr_item_id%', '([^/]+)');
     add_rewrite_tag('%lr_country%','([^/]+)');
     add_rewrite_tag('%lr_city%','([^/]+)');
     add_rewrite_tag('%lr_page_type%','([^/]+)');
     
-    // Rules must be ordered from most specific to least specific.
+    // This rule is specific and safe.
     add_rewrite_rule('^(spots|events|skaters)/([^/]+)/?$', 'index.php?lr_single_type=$matches[1]&lr_item_id=$matches[2]', 'top');
-    add_rewrite_rule('^([^/]+)/([^/]+)/([^/]+)/?$','index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]','top');
-    add_rewrite_rule('^([^/]+)/([^/]+)/?$','index.php?lr_country=$matches[1]&lr_city=$matches[2]','top');
-    add_rewrite_rule('^([^/]+)/?$','index.php?lr_country=$matches[1]','top');
+    
+    // Now, let's build precise rules for countries and cities.
+    $locations = lr_get_location_data();
+    if (empty($locations)) return; // Don't create rules if no locations are set.
+
+    $country_slugs = array_keys($locations);
+    $country_regex = implode('|', $country_slugs);
+
+    if ($country_regex) {
+        add_rewrite_rule("^($country_regex)/([^/]+)/([^/]+)/page/([0-9]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]&paged=$matches[4]', 'top');
+        add_rewrite_rule("^($country_regex)/([^/]+)/([^/]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]', 'top');
+        add_rewrite_rule("^($country_regex)/([^/]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]', 'top');
+        add_rewrite_rule("^($country_regex)/?$", 'index.php?lr_country=$matches[1]', 'top');
+    }
 }
 add_action('init', 'lr_custom_rewrite_rules');
 
-
-function lr_activate_plugin() {
-    lr_custom_rewrite_rules();
-    flush_rewrite_rules();
+function lr_activate_plugin() { 
+    lr_custom_rewrite_rules(); 
+    flush_rewrite_rules(); 
 }
 register_activation_hook(__FILE__, 'lr_activate_plugin');
 
-/**
- * Helper function to calculate a bounding box from a center point and radius.
- */
+// Helper function (No Changes)
 function lr_calculate_bounding_box($lat, $lon, $radius_km) {
-    $earth_radius = 6371; // Earth's radius in kilometers
+    $earth_radius = 6371;
     $lat_rad = deg2rad($lat);
-
-    // Calculate latitude bounds
     $lat_delta = $radius_km / $earth_radius;
     $min_lat = $lat - rad2deg($lat_delta);
     $max_lat = $lat + rad2deg($lat_delta);
-
-    // Calculate longitude bounds
     $lon_delta = asin(sin($lat_delta) / cos($lat_rad));
     $min_lon = $lon - rad2deg($lon_delta);
     $max_lon = $lon + rad2deg($lon_delta);
-
-    return [
-        'sw' => $min_lat . ',' . $min_lon,
-        'ne' => $max_lat . ',' . $max_lon,
-    ];
+    return ['sw' => $min_lat . ',' . $min_lon, 'ne' => $max_lat . ',' . $max_lon];
 }
 
 /**
  * =================================================================================
- * Dynamic Page Generation
+ * REVISED: Virtual Page Generation using 'the_posts' filter
  * =================================================================================
  */
-function lr_pre_get_posts_controller( $query ) {
-    if ( ! is_admin() && $query->is_main_query() ) {
-        if ( get_query_var('lr_country') || get_query_var('lr_single_type') ) {
-            $query->set('is_page', true);
-            $query->set('is_singular', true);
-            $query->set('is_home', false);
-            $query->set('is_archive', false);
 
-            add_filter('the_content', 'lr_generate_dynamic_content');
-            add_filter('the_title', 'lr_generate_dynamic_title', 20, 2);
-        }
-    }
-}
-add_action( 'pre_get_posts', 'lr_pre_get_posts_controller' );
+add_filter('the_posts', 'lr_virtual_page_controller', 10, 2);
 
-function lr_generate_dynamic_content($content) {
-    if ( !get_query_var('lr_country') && !get_query_var('lr_single_type') ) {
-        return $content;
+function lr_virtual_page_controller($posts, $query) {
+    // Only run on the front-end, for the main query, and if it's one of our pages.
+    if ( is_admin() || !$query->is_main_query() || (!get_query_var('lr_country') && !get_query_var('lr_single_type')) ) {
+        return $posts;
     }
     
-    $single_type = get_query_var('lr_single_type');
-    $item_id = get_query_var('lr_item_id');
+    // --- Create a single, fake post object ---
+    $post = new stdClass();
+    $post->ID = 0;
+    $post->post_author = 1;
+    $post->post_date = current_time('mysql');
+    $post->post_date_gmt = current_time('mysql', 1);
+    $post->post_type = 'page';
+    $post->post_status = 'publish';
+    $post->comment_status = 'closed';
+    $post->ping_status = 'closed';
+    $post->post_name = ''; // Will be set by the title
+    $post->post_parent = 0;
+    $post->menu_order = 0;
+    $post->comment_count = 0;
+    
+    // --- Generate the title and content ---
+    $post->post_title = lr_generate_dynamic_title(''); // Generate our title
+    $post->post_content = lr_generate_dynamic_content(''); // Generate our content
 
-    if ($single_type && $item_id) {
+    // Set a fake name for the post object for WordPress to use.
+    $post->post_name = sanitize_title($post->post_title);
+
+    // Return an array containing our single, virtual post.
+    return [$post];
+}
+
+
+function lr_generate_dynamic_content($content) {
+    // This function is now just a router, it doesn't need duplication checks.
+    $single_type = get_query_var('lr_single_type');
+    if ($single_type) {
+        $item_id = get_query_var('lr_item_id');
         switch ($single_type) {
             case 'spots':   return lr_render_single_spot_content($item_id);
             case 'events':  return lr_render_single_event_content($item_id);
@@ -166,14 +187,17 @@ function lr_generate_dynamic_content($content) {
     $page_type = get_query_var('lr_page_type');
     if ($page_type) return lr_render_detail_page_content($country_slug, $city_slug, $page_type);
     elseif ($city_slug) return lr_render_city_page_content($country_slug, $city_slug);
-    else return lr_render_country_page_content($country_slug);
+    elseif ($country_slug) return lr_render_country_page_content($country_slug);
+
+    return $content; // Fallback
 }
 
-function lr_generate_dynamic_title($title, $id = null) {
+
+function lr_generate_dynamic_title($title) {
+    // This function now only generates the title string, without filtering.
     $single_type = get_query_var('lr_single_type');
-    $item_id = get_query_var('lr_item_id');
-    
-    if ($single_type && $item_id) {
+    if ($single_type) {
+        $item_id = get_query_var('lr_item_id');
         $access_token = lr_get_api_access_token();
         $display_name = '';
         $prefix = 'Details';
@@ -190,7 +214,7 @@ function lr_generate_dynamic_title($title, $id = null) {
                 $prefix = 'Skate Spot';
                 break;
             case 'events':
-                $display_name = ''; // Placeholder for event name
+                $display_name = ''; // Placeholder
                 $prefix = 'Skate Event';
                 break;
         }
@@ -205,7 +229,7 @@ function lr_generate_dynamic_title($title, $id = null) {
     $country_slug = get_query_var('lr_country');
     $city_slug = get_query_var('lr_city');
     $page_type = get_query_var('lr_page_type');
-    $new_title = '';
+    $new_title = 'Let\'s Roll'; // Default title
 
     if ($page_type) {
         $city_details = lr_get_city_details($country_slug, $city_slug);
@@ -218,6 +242,6 @@ function lr_generate_dynamic_title($title, $id = null) {
         if ($country_details) $new_title = 'Roller Skating in ' . $country_details['name'];
     }
     
-    return $new_title ? $new_title : $title;
+    return $new_title;
 }
 

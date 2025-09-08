@@ -33,10 +33,15 @@ function lr_render_single_skater_content() {
         
         // --- Construct the Avatar URL ---
         $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $user_id . '/avatar/content/processed?width=150&height=150&quality=80';
+        $placeholder_url = 'https://placehold.co/150x150/e0e0e0/757575?text=Skater';
 
         // --- Centered Header with Image and Skatename ---
         $output .= '<div style="text-align: center; margin-bottom: 20px;">';
-        $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" style="border-radius: 50%; width: 150px; height: 150px; margin-bottom: 10px;">';
+        // Add the onerror attribute to fall back to a placeholder if the avatar fails to load.
+        $output .= '<img src="' . esc_url($avatar_url) . '" 
+                         onerror="this.onerror=null;this.src=\'' . esc_url($placeholder_url) . '\';" 
+                         alt="Avatar for ' . esc_attr($display_name) . '" 
+                         style="border-radius: 50%; width: 150px; height: 150px; margin-bottom: 10px; background-color: #f0f0f0;">';
         $output .= '<h2>' . esc_html($display_name) . '</h2>';
         $output .= '</div>';
 
@@ -91,6 +96,7 @@ function lr_render_single_skater_content() {
 
     return $output;
 }
+
 
 
 
