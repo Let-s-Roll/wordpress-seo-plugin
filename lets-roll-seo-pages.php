@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Let's Roll SEO Pages
  * Description:       Dynamically generates pages for skate locations, skaters, and events.
- * Version:           0.9.2
+ * Version:           0.9.3
  * Author:            Your Name
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -108,13 +108,13 @@ function lr_calculate_bounding_box($lat, $lon, $radius_km) {
 
     // Calculate latitude bounds
     $lat_delta = $radius_km / $earth_radius;
-    $min_lat = rad2deg($lat_rad - $lat_delta);
-    $max_lat = rad2deg($lat_rad + $lat_delta);
+    $min_lat = $lat - rad2deg($lat_delta);
+    $max_lat = $lat + rad2deg($lat_delta);
 
     // Calculate longitude bounds
     $lon_delta = asin(sin($lat_delta) / cos($lat_rad));
-    $min_lon = rad2deg($lon - rad2deg($lon_delta));
-    $max_lon = rad2deg($lon + rad2deg($lon_delta));
+    $min_lon = $lon - rad2deg($lon_delta);
+    $max_lon = $lon + rad2deg($lon_delta);
 
     return [
         'sw' => $min_lat . ',' . $min_lon,
@@ -166,8 +166,35 @@ function lr_generate_dynamic_title($title, $id = null) {
     $new_title = '';
 
     if ($single_type && $item_id) {
-        // This is a placeholder. We'll fetch the real name later.
-        return 'Details for ' . ucfirst($single_type) . ' ' . $item_id;
+        // --- MODIFIED: Fetch data to create a meaningful title ---
+        $access_token = lr_get_api_access_token();
+        $item_data = null;
+        $prefix = 'Profile';
+
+        switch ($single_type) {
+            case 'skaters':
+                $item_data = lr_fetch_api_data($access_token, 'user/' . $item_id . '/profile', []);
+                $display_name = $item_data->skateName ?? $item_data->firstName ?? '';
+                $prefix = 'Rollerskater Profile';
+                break;
+            case 'spots':
+                // Note: Untested, based on previous API structure
+                $item_data = lr_fetch_api_data($access_token, 'spots/' . $item_id, []);
+                $display_name = $item_data->spotWithAddress->name ?? '';
+                $prefix = 'Skate Spot';
+                break;
+            case 'events':
+                // Add API call for event details here when ready
+                $display_name = ''; // Placeholder
+                $prefix = 'Skate Event';
+                break;
+        }
+        
+        if (!empty($display_name)) {
+            return $prefix . ': ' . $display_name;
+        } else {
+            return 'Details for ' . ucfirst($single_type);
+        }
     }
     
     $country_slug = get_query_var('lr_country');
@@ -185,3 +212,4 @@ function lr_generate_dynamic_title($title, $id = null) {
     }
     return $new_title ? $new_title : $title;
 }
+

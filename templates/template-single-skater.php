@@ -31,7 +31,14 @@ function lr_render_single_skater_content() {
         // Use skateName if available, otherwise fall back to firstName
         $display_name = !empty($profile_data->skateName) ? $profile_data->skateName : (!empty($profile_data->firstName) ? $profile_data->firstName : 'A Let\'s Roll Skater');
         
+        // --- Construct the Avatar URL ---
+        $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $user_id . '/avatar/content/processed?width=150&height=150&quality=80';
+
+        // --- Centered Header with Image and Skatename ---
+        $output .= '<div style="text-align: center; margin-bottom: 20px;">';
+        $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" style="border-radius: 50%; width: 150px; height: 150px; margin-bottom: 10px;">';
         $output .= '<h2>' . esc_html($display_name) . '</h2>';
+        $output .= '</div>';
 
         // --- Add a sub-heading with first name and gender ---
         $sub_heading_parts = [];
@@ -44,7 +51,6 @@ function lr_render_single_skater_content() {
         if (!empty($sub_heading_parts)) {
             $output .= '<h4>' . implode(' ', $sub_heading_parts) . '</h4>';
         }
-
 
         // Display the public bio if it exists
         if (!empty($profile_data->publicBio)) {
@@ -66,15 +72,8 @@ function lr_render_single_skater_content() {
             $output .= '<p><strong>Follow:</strong> ' . $social_links . '</p>';
         }
 
-        // --- Display Badges ---
-        if (!empty($profile_data->badges) && is_array($profile_data->badges)) {
-            $output .= '<h3>Badges</h3><ul>';
-            foreach ($profile_data->badges as $badge) {
-                $output .= '<li>' . esc_html(ucwords(str_replace('_', ' ', $badge))) . '</li>';
-            }
-            $output .= '</ul>';
-        }
-
+        // --- Display Badges (REMOVED) ---
+        
         // --- Display Last Online Status ---
         if (!empty($profile_data->lastOnline)) {
             try {
@@ -92,6 +91,8 @@ function lr_render_single_skater_content() {
 
     return $output;
 }
+
+
 
 
 
