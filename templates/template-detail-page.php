@@ -41,32 +41,28 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         }
 
     } elseif ($page_type === 'events') {
-        // --- NEW: Logic for Events ---
-        
-        // 1. Calculate the bounding box
+        // --- Logic for Events ---
+        $radius_km = 20; // Using the standard 20km radius
+
         $bounding_box = lr_calculate_bounding_box(
             $city_details['latitude'],
             $city_details['longitude'],
-            $city_details['radius_km']
+            $radius_km
         );
 
-        // 2. Prepare the API parameters
         $api_params = [
             'ne'    => $bounding_box['ne'],
             'sw'    => $bounding_box['sw'],
             'limit' => 10,
         ];
 
-        // 3. Fetch the events
         $events_list = lr_fetch_api_data($access_token, 'skate-events/in-box', $api_params);
 
-        // 4. Display the results (or error)
         if (is_wp_error($events_list)) {
             $output .= '<p><strong>Error:</strong> ' . esc_html($events_list->get_error_message()) . '</p>';
         } elseif (is_array($events_list) && !empty($events_list)) {
             $output .= '<p>Here are the latest events happening in the area:</p><ul>';
             foreach ($events_list as $event) {
-                // This assumes the event object has a 'name' and '_id'. Adjust if needed.
                 if (is_object($event) && isset($event->name) && isset($event->_id)) {
                     $output .= '<li>' . esc_html($event->name) . ' (ID: ' . esc_html($event->_id) . ')</li>';
                 }
@@ -75,11 +71,46 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         } else {
             $output .= '<p>No events found for this location.</p>';
         }
+    } elseif ($page_type === 'skaters') {
+        // --- Logic for Skaters ---
+        $api_params = [
+            'lat'          => $city_details['latitude'],
+            'lng'          => $city_details['longitude'],
+            'minDistance'  => 0,
+            'maxAgeInDays' => 90,
+            'limit'        => 20,
+        ];
 
+        $activity_data = lr_fetch_api_data($access_token, 'nearby-activities/v2/skaters', $api_params);
+
+        if (is_wp_error($activity_data)) {
+            $output .= '<p><strong>Error:</strong> ' . esc_html($activity_data->get_error_message()) . '</p>';
+        } elseif (isset($activity_data->userProfiles) && !empty($activity_data->userProfiles)) {
+            
+            // The userProfiles array is the list we need.
+            $output .= '<p>Here are some of the skaters recently active in the area:</p><ul>';
+            
+            foreach ($activity_data->userProfiles as $profile) {
+                if (is_object($profile) && isset($profile->userId)) {
+                    $user_id = $profile->userId;
+                    // Use skateName if available, otherwise fall back to firstName, otherwise show the ID
+                    $display_name = !empty($profile->skateName) ? $profile->skateName : (!empty($profile->firstName) ? $profile->firstName : 'Skater ' . $user_id);
+                    $skater_url = home_url('/skaters/' . $user_id . '/');
+                    $output .= '<li><a href="'. esc_url($skater_url) .'">' . esc_html($display_name) . '</a></li>';
+                }
+            }
+            
+            $output .= '</ul>';
+
+        } else {
+            $output .= '<p>No recent skater activity found in this area.</p>';
+        }
     } else {
-        // --- Fallback for Skaters, etc. ---
+        // --- Fallback for unknown types ---
         $output .= '<p>API integration for ' . esc_html($page_type) . ' is coming soon.</p>';
     }
 
     return $output;
 }
+
+
