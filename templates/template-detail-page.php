@@ -129,10 +129,8 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         $api_params = [
             'ne'    => $bounding_box['ne'],
             'sw'    => $bounding_box['sw'],
-            // No limit, we get all events in the box.
         ];
 
-        // Use the correct, new endpoint.
         $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $api_params);
 
         if (is_wp_error($events_data)) {
@@ -144,8 +142,10 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
             $past_events = [];
             $now = new DateTime();
 
-            // Separate events into upcoming and past
             foreach ($all_events as $event) {
+                // Cache the full event object for the single event page to use.
+                set_transient('lr_event_data_' . $event->_id, $event, 4 * HOUR_IN_SECONDS);
+
                 if (isset($event->event->endDate)) {
                     $end_date = new DateTime($event->event->endDate);
                     if ($end_date > $now) {
@@ -156,23 +156,21 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
                 }
             }
 
-            // Sort upcoming events chronologically (soonest first)
             usort($upcoming_events, function($a, $b) {
-                $date_a = isset($a->event->startDate) ? strtotime($a->event->startDate) : 0;
-                $date_b = isset($b->event->startDate) ? strtotime($b->event->startDate) : 0;
-                return $date_a <=> $date_b;
+                return strtotime($a->event->startDate ?? 0) <=> strtotime($b->event->startDate ?? 0);
             });
             
-            // Sort past events in reverse chronological order (most recent first)
             usort($past_events, function($a, $b) {
-                $date_a = isset($a->event->startDate) ? strtotime($a->event->startDate) : 0;
-                $date_b = isset($b->event->startDate) ? strtotime($b->event->startDate) : 0;
-                return $date_b <=> $date_a;
+                return strtotime($b->event->startDate ?? 0) <=> strtotime($a->event->startDate ?? 0);
             });
 
-            // Helper function to render an event item
             $render_event = function($event) {
-                $event_url = home_url('/events/' . $event->_id . '/');
+                $base_url = home_url('/events/' . $event->_id . '/');
+                $event_coords = $event->centroid->coordinates ?? null;
+                
+                // Add coordinates to the URL for the fallback mechanism.
+                $event_url = ($event_coords) ? add_query_arg(['lat' => $event_coords[1], 'lng' => $event_coords[0]], $base_url) : $base_url;
+
                 $event_name = $event->name;
                 $date_str = 'Date TBD';
 
@@ -180,16 +178,14 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
                     try {
                         $start = new DateTime($event->event->startDate);
                         $end = new DateTime($event->event->endDate);
-                        // Show date and time if they are different, otherwise just date
                         if ($start->format('Y-m-d') === $end->format('Y-m-d')) {
                              $date_str = $start->format('F j, Y') . ' from ' . $start->format('g:i A') . ' to ' . $end->format('g:i A');
                         } else {
                              $date_str = $start->format('F j, Y, g:i A') . ' to ' . $end->format('F j, Y, g:i A');
                         }
-                    } catch (Exception $e) { /* Invalid date format */ }
+                    } catch (Exception $e) {}
                 }
                 
-                // Truncate the description to 30 words
                 $description_excerpt = wp_trim_words($event->description ?? '', 30, '...');
 
                 $item_html = '<li style="margin-bottom: 1.5em;">';
@@ -202,17 +198,13 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
 
             if (!empty($upcoming_events)) {
                 $output .= '<h3>Upcoming Events</h3><ul>';
-                foreach ($upcoming_events as $event) {
-                    $output .= $render_event($event);
-                }
+                foreach ($upcoming_events as $event) { $output .= $render_event($event); }
                 $output .= '</ul>';
             }
 
             if (!empty($past_events)) {
                 $output .= '<hr style="margin: 20px 0;"><h3>Past Events</h3><ul>';
-                foreach ($past_events as $event) {
-                    $output .= $render_event($event);
-                }
+                foreach ($past_events as $event) { $output .= $render_event($event); }
                 $output .= '</ul>';
             }
 
@@ -221,8 +213,6 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         }
     } elseif ($page_type === 'skaters') {
         // --- REVISED Logic for Skaters with Pagination ---
-        
-        // Get the minimum distance from the URL query string, defaulting to 0 for the first page.
         $min_distance = isset($_GET['lr_page_dist']) ? floatval($_GET['lr_page_dist']) : 0;
 
         $api_params = [
@@ -252,14 +242,9 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
             
             $output .= '</ul>';
 
-            // --- Pagination Link ---
-            // The API response includes the distance of the most distant activity found.
-            // We can use this as the 'minDistance' for the next page.
             $next_min_distance = $activity_data->mostDistantActivity ?? 0;
-
-            // Only show the next page link if the next skater is further away,
-            // but still within the defined radius for the city.
             $city_radius_meters = $city_details['radius_km'] * 1000;
+
             if ($next_min_distance > $min_distance && $next_min_distance < $city_radius_meters) {
                 $next_page_url = add_query_arg('lr_page_dist', $next_min_distance);
                 $output .= '<div class="lr-pagination" style="margin-top: 20px;">';
@@ -275,20 +260,9 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
             }
         }
     } else {
-        // --- Fallback for unknown types ---
         $output .= '<p>API integration for ' . esc_html($page_type) . ' is coming soon.</p>';
     }
 
     return $output;
 }
-
-
-
-
-
-
-
-
-
-
 

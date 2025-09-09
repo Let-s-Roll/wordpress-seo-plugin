@@ -214,7 +214,21 @@ function lr_generate_dynamic_title($title) {
                 $prefix = 'Skate Spot';
                 break;
             case 'events':
-                $display_name = ''; // Placeholder
+                // Use the same cache-first, fallback-to-API logic for the title.
+                $event = get_transient('lr_event_data_' . $item_id);
+                if (false === $event && isset($_GET['lat'], $_GET['lng'])) {
+                    $bounding_box = lr_calculate_bounding_box($_GET['lat'], $_GET['lng'], 1);
+                    $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw']]);
+                     if ($events_data && !is_wp_error($events_data) && !empty($events_data->rollEvents)) {
+                        foreach($events_data->rollEvents as $event_from_list) {
+                            if ($event_from_list->_id === $item_id) {
+                                $event = $event_from_list;
+                                break;
+                            }
+                        }
+                    }
+                }
+                $display_name = $event->name ?? '';
                 $prefix = 'Skate Event';
                 break;
         }
@@ -244,4 +258,6 @@ function lr_generate_dynamic_title($title) {
     
     return $new_title;
 }
+
+
 
