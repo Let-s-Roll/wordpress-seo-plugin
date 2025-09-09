@@ -81,6 +81,23 @@ function lr_render_single_event_content($event_id) {
         if (!empty($event->event->url)) {
             $output .= '<p><strong>Read more:</strong> <a href="' . esc_url($event->event->url) . '" target="_blank" rel="noopener noreferrer">' . esc_url($event->event->url) . '</a></p>';
         }
+        
+        // --- NEW: Fetch and display the event image ---
+        $attachments = lr_fetch_api_data($access_token, 'roll-session/' . $event_id . '/attachments', []);
+        if (!is_wp_error($attachments) && !empty($attachments)) {
+            $first_attachment = $attachments[0];
+            $proxy_url = plugin_dir_url(__FILE__) . '../image-proxy.php';
+            $image_url = add_query_arg([
+                'type'       => 'event_attachment',
+                'id'         => $first_attachment->_id,
+                'session_id' => $event_id
+            ], $proxy_url);
+
+            $output .= '<div style="text-align: center; margin-top: 20px;">';
+            $output .= '<img src="' . esc_url($image_url) . '" alt="Image for ' . esc_attr($event->name) . '" style="max-width: 100%; height: auto;">';
+            $output .= '</div>';
+        }
+
 
         // --- Description ---
         if (!empty($event->description)) {
@@ -107,5 +124,6 @@ function lr_render_single_event_content($event_id) {
         return '<p>Could not find details for this event.</p>';
     }
 }
+
 
 

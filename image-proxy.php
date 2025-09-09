@@ -1,30 +1,69 @@
 <?php
-/**
- * Let's Roll SEO - Image Proxy
- * This script securely fetches an image from a protected API endpoint that redirects to S3.
- * It's loaded directly by the browser from an <img> tag.
- */
+// This script acts as a secure proxy to fetch and serve protected images from the API.
 
-// We need to load the WordPress environment to get access to our functions and settings.
-// This path assumes the proxy is in the root of the plugin folder.
-require_once( dirname( __FILE__ ) . '/../../../wp-load.php' );
-
-// Make sure we have an attachment ID to fetch.
-if ( empty( $_GET['attachment_id'] ) ) {
-    header("HTTP/1.0 400 Bad Request");
-    exit('Error: No attachment ID provided.');
+// Bootstrap WordPress to access its functions
+define('WP_USE_THEMES', false);
+// Traverse up to find wp-load.php
+$wp_load_path = realpath(__DIR__ . '/../../../wp-load.php');
+if ($wp_load_path) {
+    require_once($wp_load_path);
+} else {
+    // Fallback for different directory structures
+    $wp_load_path = realpath(__DIR__ . '/../../../../wp-load.php');
+    if ($wp_load_path) {
+        require_once($wp_load_path);
+    } else {
+        header("HTTP/1.1 500 Internal Server Error");
+        echo "Could not locate WordPress bootstrap file.";
+        exit;
+    }
 }
 
-$attachment_id = sanitize_text_field( $_GET['attachment_id'] );
+
+// --- Get parameters from the URL ---
+$type = $_GET['type'] ?? null;
+$id = $_GET['id'] ?? null;
+$session_id = $_GET['session_id'] ?? null; // Needed for event attachments
+
+if (!$type || !$id) {
+    header("HTTP/1.1 400 Bad Request");
+    echo "Missing required parameters.";
+    exit;
+}
+
+// Get an access token
 $access_token = lr_get_api_access_token();
-
-if ( is_wp_error( $access_token ) ) {
-    header("HTTP/1.0 401 Unauthorized");
-    exit('Error: Could not authenticate.');
+if (is_wp_error($access_token)) {
+    header("HTTP/1.1 401 Unauthorized");
+    echo "API Authentication failed.";
+    exit;
 }
 
-// Construct the initial API URL for the image.
-$initial_image_url = 'https://beta.web.lets-roll.app/api/spots/spot-satellite-attachment/' . $attachment_id . '/content?width=800&quality=80';
+// --- Build the correct API endpoint based on the type ---
+$api_endpoint = '';
+$api_base_url = 'https://beta.web.lets-roll.app/api/';
+
+switch ($type) {
+    case 'spot_satellite':
+        $api_endpoint = 'spots/spot-satellite-attachment/' . $id . '/content?width=800&quality=80';
+        break;
+    
+    case 'event_attachment':
+        if (!$session_id) {
+            header("HTTP/1.1 400 Bad Request");
+            echo "Missing session_id for event attachment.";
+            exit;
+        }
+        $api_endpoint = 'roll-session/' . $session_id . '/attachment/' . $id . '/content';
+        break;
+    
+    default:
+        header("HTTP/1.1 400 Bad Request");
+        echo "Invalid image type specified.";
+        exit;
+}
+
+$initial_image_url = $api_base_url . $api_endpoint;
 
 // --- Step 1: Make the initial request but DON'T follow the redirect ---
 $initial_response = wp_remote_get($initial_image_url, [
@@ -32,33 +71,33 @@ $initial_response = wp_remote_get($initial_image_url, [
     'redirection' => 0 
 ]);
 
-// Check if the first request was a successful redirect.
-if ( !is_wp_error($initial_response) && in_array(wp_remote_retrieve_response_code($initial_response), [301, 302, 307]) ) {
-    
-    // --- Step 2: Get the S3 URL from the 'location' header ---
-    $s3_url = wp_remote_retrieve_header($initial_response, 'location');
-    
-    if ($s3_url) {
-        // --- Step 3: Make a second, clean request to the S3 URL ---
-        $image_response = wp_remote_get($s3_url);
-
-        if (!is_wp_error($image_response) && wp_remote_retrieve_response_code($image_response) === 200) {
-            
-            // --- Step 4: Serve the image directly to the browser ---
-            $image_data = wp_remote_retrieve_body($image_response);
-            $image_mime_type = wp_remote_retrieve_header($image_response, 'content-type');
-            
-            // Set the correct content type header so the browser knows it's an image.
-            header('Content-Type: ' . $image_mime_type);
-            
-            // Output the raw image data.
-            echo $image_data;
-            exit;
-        }
-    }
+if (is_wp_error($initial_response) || !in_array(wp_remote_retrieve_response_code($initial_response), [301, 302, 307])) {
+    header("HTTP/1.1 502 Bad Gateway");
+    echo "Initial API request failed to get redirect.";
+    exit;
 }
 
-// If anything failed, return a 404.
-header("HTTP/1.0 404 Not Found");
-exit('Error: Image could not be loaded.');
+// --- Step 2: Get the S3 URL from the 'location' header ---
+$s3_url = wp_remote_retrieve_header($initial_response, 'location');
+if (!$s3_url) {
+    header("HTTP/1.1 502 Bad Gateway");
+    echo "Could not find S3 location header in API response.";
+    exit;
+}
+
+// --- Step 3: Make a clean request to the S3 URL and serve the image ---
+$image_response = wp_remote_get($s3_url);
+if (!is_wp_error($image_response) && wp_remote_retrieve_response_code($image_response) === 200) {
+    $image_data = wp_remote_retrieve_body($image_response);
+    $image_mime_type = wp_remote_retrieve_header($image_response, 'content-type');
+    
+    header('Content-Type: ' . $image_mime_type);
+    header('Content-Length: ' . strlen($image_data));
+    echo $image_data;
+    exit;
+} else {
+    header("HTTP/1.1 502 Bad Gateway");
+    echo "Failed to fetch image from S3.";
+    exit;
+}
 

@@ -22,13 +22,14 @@ function lr_render_single_spot_content($spot_id) {
         $spot = $spot_data->spotWithAddress;
         $output = '';
 
-        // --- Spot Name (REMOVED as it's now in the page title) ---
-        
         // --- Satellite Image ---
         if (!empty($spot->satelliteAttachment)) {
-            // Construct the URL to our new image proxy script.
+            // Updated to use the new proxy format
             $proxy_url = plugin_dir_url( __FILE__ ) . '../image-proxy.php';
-            $image_url = add_query_arg(['attachment_id' => $spot->satelliteAttachment], $proxy_url);
+            $image_url = add_query_arg([
+                'type' => 'spot_satellite',
+                'id'   => $spot->satelliteAttachment
+            ], $proxy_url);
 
             // Wrap the image in a div for center alignment.
             $output .= '<div style="text-align: center; margin-bottom: 20px;">';
@@ -76,7 +77,6 @@ function lr_render_single_spot_content($spot_id) {
             // --- Display Individual Reviews ---
             $output .= '<h4>Reviews</h4>';
 
-            // Create a map of user profiles for easy lookup
             $user_profiles = [];
             if (!empty($ratings_data->userProfiles)) {
                 foreach ($ratings_data->userProfiles as $profile) {
@@ -111,14 +111,4 @@ function lr_render_single_spot_content($spot_id) {
         return '<p>Could not find details for this skate spot.</p>';
     }
 }
-
-
-
-
-
-
-
-
-
-
 
