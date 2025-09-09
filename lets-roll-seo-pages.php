@@ -99,19 +99,11 @@ function lr_custom_rewrite_rules() {
     add_rewrite_rule('^explore/?$', 'index.php?lr_is_explore_page=1', 'top');
     add_rewrite_rule('^(spots|events|skaters)/([^/]+)/?$', 'index.php?lr_single_type=$matches[1]&lr_item_id=$matches[2]', 'top');
     
-    // Now, let's build precise rules for countries and cities.
-    $locations = lr_get_location_data();
-    if (empty($locations)) return; // Don't create rules if no locations are set.
-
-    $country_slugs = array_keys($locations);
-    $country_regex = implode('|', $country_slugs);
-
-    if ($country_regex) {
-        add_rewrite_rule("^($country_regex)/([^/]+)/([^/]+)/page/([0-9]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]&paged=$matches[4]', 'top');
-        add_rewrite_rule("^($country_regex)/([^/]+)/([^/]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]', 'top');
-        add_rewrite_rule("^($country_regex)/([^/]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]', 'top');
-        add_rewrite_rule("^($country_regex)/?$", 'index.php?lr_country=$matches[1]', 'top');
-    }
+    // REVERTED to a more general rule for scalability. The validation is handled in the controller.
+    add_rewrite_rule('^([^/]+)/([^/]+)/([^/]+)/page/([0-9]+)/?$', 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]&paged=$matches[4]', 'top');
+    add_rewrite_rule('^([^/]+)/([^/]+)/([^/]+)/?$', 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]', 'top');
+    add_rewrite_rule('^([^/]+)/([^/]+)/?$', 'index.php?lr_country=$matches[1]&lr_city=$matches[2]', 'top');
+    add_rewrite_rule('^([^/]+)/?$', 'index.php?lr_country=$matches[1]', 'top');
 }
 add_action('init', 'lr_custom_rewrite_rules');
 
@@ -275,6 +267,7 @@ function lr_generate_dynamic_title($title) {
     
     return $new_title;
 }
+
 
 
 
