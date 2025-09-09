@@ -75,6 +75,21 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
                     $spot_url = home_url('/spots/' . $spot_id . '/');
                     $output .= '<strong><a href="' . esc_url($spot_url) . '">' . esc_html($spot_name) . '</a></strong><br>';
                     $output .= '<span>' . esc_html($spot_address) . '</span>';
+                    
+                    // --- ADDED: Display spot stats ---
+                    $total_skaters = $spot_details->totalSkaters ?? 0;
+                    $total_sessions = $spot_details->totalSessions ?? 0;
+                    $ratings_count = $spot_info->rating->ratingsCount ?? 0;
+                    $total_value = $spot_info->rating->totalValue ?? 0;
+                    $avg_rating = ($ratings_count > 0) ? round($total_value / $ratings_count) : 0;
+                    $stars_html = str_repeat('★', $avg_rating) . str_repeat('☆', 5 - $avg_rating);
+
+                    $output .= '<div style="font-size: 0.9em; color: #555; margin-top: 5px;">';
+                    $output .= '<span>' . $stars_html . '</span> &nbsp;&middot;&nbsp; ';
+                    $output .= '<span>' . esc_html($total_skaters) . ' Skaters</span> &nbsp;&middot;&nbsp; ';
+                    $output .= '<span>' . esc_html($total_sessions) . ' Sessions</span>';
+                    $output .= '</div>';
+
                 } else {
                     $output .= '<strong>Spot ID:</strong> ' . esc_html($spot_id) . ' - <em style="color:red;">Could not load details.</em>';
                 }
@@ -102,7 +117,8 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         }
 
     } elseif ($page_type === 'events') {
-        $radius_km = 200; // DEBUG: Temporarily force a large radius for testing.
+        // --- REVISED Logic for Events ---
+        $radius_km = $city_details['radius_km'];
 
         $bounding_box = lr_calculate_bounding_box(
             $city_details['latitude'],
@@ -113,21 +129,93 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         $api_params = [
             'ne'    => $bounding_box['ne'],
             'sw'    => $bounding_box['sw'],
-            'limit' => 10,
+            // No limit, we get all events in the box.
         ];
 
-        $events_list = lr_fetch_api_data($access_token, 'skate-events/in-box', $api_params);
+        // Use the correct, new endpoint.
+        $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $api_params);
 
-        if (is_wp_error($events_list)) {
-            $output .= '<p><strong>Error:</strong> ' . esc_html($events_list->get_error_message()) . '</p>';
-        } elseif (is_array($events_list) && !empty($events_list)) {
-            $output .= '<p>Here are the latest events happening in the area:</p><ul>';
-            foreach ($events_list as $event) {
-                if (is_object($event) && isset($event->name) && isset($event->_id)) {
-                    $output .= '<li>' . esc_html($event->name) . ' (ID: ' . esc_html($event->_id) . ')</li>';
+        if (is_wp_error($events_data)) {
+            $output .= '<p><strong>Error:</strong> ' . esc_html($events_data->get_error_message()) . '</p>';
+        } elseif (isset($events_data->rollEvents) && !empty($events_data->rollEvents)) {
+            
+            $all_events = $events_data->rollEvents;
+            $upcoming_events = [];
+            $past_events = [];
+            $now = new DateTime();
+
+            // Separate events into upcoming and past
+            foreach ($all_events as $event) {
+                if (isset($event->event->endDate)) {
+                    $end_date = new DateTime($event->event->endDate);
+                    if ($end_date > $now) {
+                        $upcoming_events[] = $event;
+                    } else {
+                        $past_events[] = $event;
+                    }
                 }
             }
-            $output .= '</ul>';
+
+            // Sort upcoming events chronologically (soonest first)
+            usort($upcoming_events, function($a, $b) {
+                $date_a = isset($a->event->startDate) ? strtotime($a->event->startDate) : 0;
+                $date_b = isset($b->event->startDate) ? strtotime($b->event->startDate) : 0;
+                return $date_a <=> $date_b;
+            });
+            
+            // Sort past events in reverse chronological order (most recent first)
+            usort($past_events, function($a, $b) {
+                $date_a = isset($a->event->startDate) ? strtotime($a->event->startDate) : 0;
+                $date_b = isset($b->event->startDate) ? strtotime($b->event->startDate) : 0;
+                return $date_b <=> $date_a;
+            });
+
+            // Helper function to render an event item
+            $render_event = function($event) {
+                $event_url = home_url('/events/' . $event->_id . '/');
+                $event_name = $event->name;
+                $date_str = 'Date TBD';
+
+                if (!empty($event->event->startDate) && !empty($event->event->endDate)) {
+                    try {
+                        $start = new DateTime($event->event->startDate);
+                        $end = new DateTime($event->event->endDate);
+                        // Show date and time if they are different, otherwise just date
+                        if ($start->format('Y-m-d') === $end->format('Y-m-d')) {
+                             $date_str = $start->format('F j, Y') . ' from ' . $start->format('g:i A') . ' to ' . $end->format('g:i A');
+                        } else {
+                             $date_str = $start->format('F j, Y, g:i A') . ' to ' . $end->format('F j, Y, g:i A');
+                        }
+                    } catch (Exception $e) { /* Invalid date format */ }
+                }
+                
+                // Truncate the description to 30 words
+                $description_excerpt = wp_trim_words($event->description ?? '', 30, '...');
+
+                $item_html = '<li style="margin-bottom: 1.5em;">';
+                $item_html .= '<strong><a href="' . esc_url($event_url) . '">' . esc_html($event_name) . '</a></strong><br>';
+                $item_html .= '<small style="color: #555;">' . esc_html($date_str) . '</small><br>';
+                $item_html .= '<p style="margin-top: 5px;">' . esc_html($description_excerpt) . '</p>';
+                $item_html .= '</li>';
+                return $item_html;
+            };
+
+            if (!empty($upcoming_events)) {
+                $output .= '<h3>Upcoming Events</h3><ul>';
+                foreach ($upcoming_events as $event) {
+                    $output .= $render_event($event);
+                }
+                $output .= '</ul>';
+            }
+
+            if (!empty($past_events)) {
+                $output .= '<hr style="margin: 20px 0;"><h3>Past Events</h3><ul>';
+                foreach ($past_events as $event) {
+                    $output .= $render_event($event);
+                }
+                $output .= '</ul>';
+            }
+
         } else {
             $output .= '<p>No events found for this location.</p>';
         }
@@ -193,6 +281,9 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
 
     return $output;
 }
+
+
+
 
 
 
