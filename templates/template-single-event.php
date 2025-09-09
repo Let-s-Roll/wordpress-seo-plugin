@@ -79,7 +79,13 @@ function lr_render_single_event_content($event_id) {
         
         // --- MOVED & REFORMATTED: External URL ---
         if (!empty($event->event->url)) {
-            $output .= '<p><strong>Read more:</strong> <a href="' . esc_url($event->event->url) . '" target="_blank" rel="noopener noreferrer">' . esc_url($event->event->url) . '</a></p>';
+            $full_url = $event->event->url;
+            $display_url = $full_url;
+            // If the URL is long, truncate it for display purposes.
+            if (strlen($display_url) > 60) {
+                $display_url = substr($display_url, 0, 57) . '...';
+            }
+            $output .= '<p><strong>Read more:</strong> <a href="' . esc_url($full_url) . '" target="_blank" rel="noopener noreferrer">' . esc_html($display_url) . '</a></p>';
         }
         
         // --- NEW: Fetch and display the event image ---
@@ -124,6 +130,7 @@ function lr_render_single_event_content($event_id) {
         return '<p>Could not find details for this event.</p>';
     }
 }
+
 
 
 

@@ -19,6 +19,8 @@ require_once plugin_dir_path(__FILE__) . 'templates/template-detail-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-spot.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-event.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-skater.php';
+// --- ADDED: Include the new explore page template ---
+require_once plugin_dir_path(__FILE__) . 'templates/template-explore-page.php';
 
 /**
  * =================================================================================
@@ -90,8 +92,11 @@ function lr_custom_rewrite_rules() {
     add_rewrite_tag('%lr_country%','([^/]+)');
     add_rewrite_tag('%lr_city%','([^/]+)');
     add_rewrite_tag('%lr_page_type%','([^/]+)');
+    // --- ADDED: A query var and rule for our new static "explore" page ---
+    add_rewrite_tag('%lr_is_explore_page%', '([0-9]+)');
     
     // This rule is specific and safe.
+    add_rewrite_rule('^explore/?$', 'index.php?lr_is_explore_page=1', 'top');
     add_rewrite_rule('^(spots|events|skaters)/([^/]+)/?$', 'index.php?lr_single_type=$matches[1]&lr_item_id=$matches[2]', 'top');
     
     // Now, let's build precise rules for countries and cities.
@@ -139,7 +144,7 @@ add_filter('the_posts', 'lr_virtual_page_controller', 10, 2);
 
 function lr_virtual_page_controller($posts, $query) {
     // Only run on the front-end, for the main query, and if it's one of our pages.
-    if ( is_admin() || !$query->is_main_query() || (!get_query_var('lr_country') && !get_query_var('lr_single_type')) ) {
+    if ( is_admin() || !$query->is_main_query() || (!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page')) ) {
         return $posts;
     }
     
@@ -173,6 +178,12 @@ function lr_virtual_page_controller($posts, $query) {
 function lr_generate_dynamic_content($content) {
     // This function is now just a router, it doesn't need duplication checks.
     $single_type = get_query_var('lr_single_type');
+    
+    // --- ADDED: Handle the explore page ---
+    if (get_query_var('lr_is_explore_page')) {
+        return lr_render_explore_page_content();
+    }
+
     if ($single_type) {
         $item_id = get_query_var('lr_item_id');
         switch ($single_type) {
@@ -196,6 +207,12 @@ function lr_generate_dynamic_content($content) {
 function lr_generate_dynamic_title($title) {
     // This function now only generates the title string, without filtering.
     $single_type = get_query_var('lr_single_type');
+
+    // --- ADDED: Handle the explore page title ---
+    if (get_query_var('lr_is_explore_page')) {
+        return 'Explore Skate Spots Worldwide';
+    }
+
     if ($single_type) {
         $item_id = get_query_var('lr_item_id');
         $access_token = lr_get_api_access_token();
@@ -258,6 +275,7 @@ function lr_generate_dynamic_title($title) {
     
     return $new_title;
 }
+
 
 
 
