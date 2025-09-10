@@ -1,22 +1,15 @@
 <?php
 /**
  * Renders the content for the main "Explore" page.
- *
- * @return string The HTML content for the page.
  */
 function lr_render_explore_page_content() {
     $locations = lr_get_location_data();
-    $output = '';
+    if (empty($locations)) return '<p>No locations have been configured yet.</p>';
 
-    if (empty($locations)) {
-        return '<p>No locations have been configured yet.</p>';
-    }
-
-    $output .= '<h2>Explore Skate Scenes Around the World</h2>';
-    $output .= '<p>Select a country below to discover cities, skate spots, local skaters, and events.</p>';
+    $output = '<p>Select a country below to explore local roller skating scenes, spots, and events.</p>';
     $output .= '<ul style="list-style-type: none; padding-left: 0;">';
 
-    // Sort countries alphabetically by name for a better user experience.
+    // Sort countries alphabetically by name
     uasort($locations, function($a, $b) {
         return strcmp($a['name'], $b['name']);
     });
@@ -34,3 +27,4 @@ function lr_render_explore_page_content() {
 
     return $output;
 }
+
