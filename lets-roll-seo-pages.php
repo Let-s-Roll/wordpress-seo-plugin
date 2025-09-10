@@ -89,13 +89,36 @@ function lr_custom_rewrite_rules() {
     add_rewrite_tag('%lr_page_type%','([^/]+)');
     add_rewrite_tag('%lr_is_explore_page%', '([0-9]+)');
     
+    // --- REVISED: Build PRECISE rewrite rules to avoid conflicts ---
+
+    // Static rules are safe and can remain.
     add_rewrite_rule('^explore/?$', 'index.php?lr_is_explore_page=1', 'top');
     add_rewrite_rule('^(spots|events|skaters)/([^/]+)/?$', 'index.php?lr_single_type=$matches[1]&lr_item_id=$matches[2]', 'top');
     
-    add_rewrite_rule('^([^/]+)/([^/]+)/([^/]+)/page/([0-9]+)/?$', 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]&paged=$matches[4]', 'top');
-    add_rewrite_rule('^([^/]+)/([^/]+)/([^/]+)/?$', 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]', 'top');
-    add_rewrite_rule('^([^/]+)/([^/]+)/?$', 'index.php?lr_country=$matches[1]&lr_city=$matches[2]', 'top');
-    add_rewrite_rule('^([^/]+)/?$', 'index.php?lr_country=$matches[1]', 'top');
+    // Dynamically build a regex of all valid country and city slugs.
+    $locations = lr_get_location_data();
+    if (empty($locations)) return;
+
+    $country_slugs = array_map('preg_quote', array_keys($locations));
+    $country_regex = implode('|', $country_slugs);
+
+    if ($country_regex) {
+        $city_slugs = [];
+        foreach ($locations as $country_data) {
+            if (!empty($country_data['cities'])) {
+                $city_slugs = array_merge($city_slugs, array_keys($country_data['cities']));
+            }
+        }
+        $city_slugs = array_unique(array_map('preg_quote', $city_slugs));
+        $city_regex = implode('|', $city_slugs);
+        
+        if ($city_regex) {
+            add_rewrite_rule("^($country_regex)/($city_regex)/([^/]+)/page/([0-9]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]&paged=$matches[4]', 'top');
+            add_rewrite_rule("^($country_regex)/($city_regex)/([^/]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]', 'top');
+            add_rewrite_rule("^($country_regex)/($city_regex)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]', 'top');
+        }
+        add_rewrite_rule("^($country_regex)/?$", 'index.php?lr_country=$matches[1]', 'top');
+    }
 }
 add_action('init', 'lr_custom_rewrite_rules');
 
@@ -125,32 +148,11 @@ function lr_calculate_bounding_box($lat, $lon, $radius_km) {
 add_filter('the_posts', 'lr_virtual_page_controller', 10, 2);
 
 function lr_virtual_page_controller($posts, $query) {
-    // This gatekeeper is the key to preventing conflicts with real pages.
-    if ( is_admin() || !$query->is_main_query() ) {
+    // With precise rules, we no longer need complex validation here.
+    // If our query vars are set, we know it's our page.
+    if ( is_admin() || !$query->is_main_query() || (!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page')) ) {
         return $posts;
     }
-
-    $country_slug = get_query_var('lr_country');
-    $city_slug    = get_query_var('lr_city');
-    $single_type  = get_query_var('lr_single_type');
-    $is_explore   = get_query_var('lr_is_explore_page');
-
-    // If none of our main query vars are set, it's not our page.
-    if ( !$country_slug && !$single_type && !$is_explore ) {
-        return $posts;
-    }
-
-    // --- VALIDATION STEP ---
-    // If a country slug is present, we MUST validate that it's a real country in our data.
-    if ( $country_slug ) {
-        $locations = lr_get_location_data();
-        // If the slug (e.g., 'news') doesn't exist as a country key, this is not our page.
-        if ( !isset($locations[$country_slug]) ) {
-            return $posts; // Exit and let WordPress handle it.
-        }
-    }
-
-    // If we've reached this point, we are confident this is one of our virtual pages.
     
     $post = new stdClass();
     $post->ID = 0;
@@ -316,5 +318,6 @@ function lr_add_mobile_spacing() {
     }
 }
 add_action('wp_head', 'lr_add_mobile_spacing');
+
 
 
