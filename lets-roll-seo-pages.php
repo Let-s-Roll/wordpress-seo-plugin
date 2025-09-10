@@ -125,9 +125,32 @@ function lr_calculate_bounding_box($lat, $lon, $radius_km) {
 add_filter('the_posts', 'lr_virtual_page_controller', 10, 2);
 
 function lr_virtual_page_controller($posts, $query) {
-    if ( is_admin() || !$query->is_main_query() || (!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page')) ) {
+    // This gatekeeper is the key to preventing conflicts with real pages.
+    if ( is_admin() || !$query->is_main_query() ) {
         return $posts;
     }
+
+    $country_slug = get_query_var('lr_country');
+    $city_slug    = get_query_var('lr_city');
+    $single_type  = get_query_var('lr_single_type');
+    $is_explore   = get_query_var('lr_is_explore_page');
+
+    // If none of our main query vars are set, it's not our page.
+    if ( !$country_slug && !$single_type && !$is_explore ) {
+        return $posts;
+    }
+
+    // --- VALIDATION STEP ---
+    // If a country slug is present, we MUST validate that it's a real country in our data.
+    if ( $country_slug ) {
+        $locations = lr_get_location_data();
+        // If the slug (e.g., 'news') doesn't exist as a country key, this is not our page.
+        if ( !isset($locations[$country_slug]) ) {
+            return $posts; // Exit and let WordPress handle it.
+        }
+    }
+
+    // If we've reached this point, we are confident this is one of our virtual pages.
     
     $post = new stdClass();
     $post->ID = 0;
@@ -293,4 +316,5 @@ function lr_add_mobile_spacing() {
     }
 }
 add_action('wp_head', 'lr_add_mobile_spacing');
+
 
