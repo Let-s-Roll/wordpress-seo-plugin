@@ -1,87 +1,139 @@
 <?php
 /**
- * This file contains the functions to create and manage the plugin's admin settings page.
+ * Handles the admin settings page for the Let's Roll SEO Plugin.
  */
-
-// Prevent direct file access
-if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
- * Adds a new menu item under the main "Settings" menu in the WordPress admin.
+ * Handles the sitemap generation form submission.
+ * This is hooked to 'admin_init' to ensure it runs after user permissions are loaded.
  */
-function lr_add_settings_page() {
+function lr_handle_sitemap_generation() {
+    if ( isset( $_POST['lr_action'] ) && $_POST['lr_action'] === 'generate_sitemap_csv' ) {
+        // Security checks
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( 'You do not have sufficient permissions to perform this action.' );
+        }
+        check_admin_referer( 'lr_generate_sitemap' );
+
+        $locations = lr_get_location_data();
+        $urls = [];
+
+        if (!empty($locations)) {
+            $urls[] = home_url('/explore/'); // Add the main explore page
+
+            foreach ($locations as $country_slug => $country_data) {
+                $urls[] = home_url('/' . $country_slug . '/'); // Add Country URL
+
+                if (!empty($country_data['cities'])) {
+                    foreach ($country_data['cities'] as $city_slug => $city_data) {
+                        $urls[] = home_url('/' . $country_slug . '/' . $city_slug . '/'); // Add City URL
+                        // Add the three detail list pages
+                        $urls[] = home_url('/' . $country_slug . '/' . $city_slug . '/skatespots/');
+                        $urls[] = home_url('/' . $country_slug . '/' . $city_slug . '/events/');
+                        $urls[] = home_url('/' . $country_slug . '/' . $city_slug . '/skaters/');
+                    }
+                }
+            }
+        }
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="aioseo-sitemap.csv"');
+        $output = fopen('php://output', 'w');
+        
+        // Add the header row to match the AIOSEO sample format.
+        fputcsv($output, ['Page URL', 'Priority', 'Frequency', 'Last Modified']);
+        $today = date('m/d/Y');
+
+        foreach ($urls as $url) {
+            fputcsv($output, [$url, '0.7', 'weekly', $today]);
+        }
+
+        fclose($output);
+        exit;
+    }
+}
+add_action('admin_init', 'lr_handle_sitemap_generation');
+
+
+/**
+ * Registers the admin menu page.
+ */
+function lr_add_admin_menu() {
     add_options_page(
-        'Let\'s Roll SEO Pages Settings', // Page title
-        'Let\'s Roll SEO',                // Menu title
-        'manage_options',                  // Capability required to see this option
-        'lets-roll-seo-pages',             // Menu slug
-        'lr_render_settings_page'          // Function that renders the page content
+        'Let\'s Roll SEO Settings',
+        'Let\'s Roll SEO',
+        'manage_options',
+        'lets_roll_seo',
+        'lr_options_page_html'
     );
 }
-add_action('admin_menu', 'lr_add_settings_page');
+add_action('admin_menu', 'lr_add_admin_menu');
 
 /**
- * Registers the settings that our page will use.
- * This tells WordPress to handle the saving and security of our options.
+ * Registers the settings fields for the options page.
  */
-function lr_register_settings() {
-    // Register a group of settings
-    register_setting(
-        'lr_settings_group', // A name for the group of settings
-        'lr_options'         // The name of the option that will be saved in the database
-    );
+function lr_settings_init() {
+    register_setting('lr_options_group', 'lr_options');
+
+    add_settings_section('lr_api_section', 'API Credentials', null, 'lr_options_group');
+    add_settings_field('lr_api_email', 'API Email', 'lr_api_email_render', 'lr_options_group', 'lr_api_section');
+    add_settings_field('lr_api_pass', 'API Password', 'lr_api_pass_render', 'lr_options_group', 'lr_api_section');
+
+    add_settings_section('lr_locations_section', 'Location Data', null, 'lr_options_group');
+    add_settings_field('lr_locations_json', 'Locations JSON', 'lr_locations_json_render', 'lr_options_group', 'lr_locations_section');
 }
-add_action('admin_init', 'lr_register_settings');
+add_action('admin_init', 'lr_settings_init');
 
-/**
- * Renders the HTML for the settings page.
- */
-function lr_render_settings_page() {
-    // Get our saved options from the database
+
+// --- Render Functions for Settings Fields ---
+
+function lr_api_email_render() {
     $options = get_option('lr_options');
-    $api_email = $options['api_email'] ?? '';
-    $api_pass = $options['api_pass'] ?? '';
-    $locations_json = $options['locations_json'] ?? '';
+    echo "<input type='text' name='lr_options[api_email]' value='" . esc_attr($options['api_email'] ?? '') . "' style='width: 300px;'>";
+}
+
+function lr_api_pass_render() {
+    $options = get_option('lr_options');
+    echo "<input type='password' name='lr_options[api_pass]' value='" . esc_attr($options['api_pass'] ?? '') . "' style='width: 300px;'>";
+}
+
+function lr_locations_json_render() {
+    $options = get_option('lr_options');
+    echo "<textarea name='lr_options[locations_json]' style='width: 100%; min-height: 400px; font-family: monospace;'>" . esc_textarea($options['locations_json'] ?? '') . "</textarea>";
+    echo '<p class="description">Paste the JSON data for countries and cities here.</p>';
+}
+
+
+/**
+ * Renders the main HTML for the settings page.
+ */
+function lr_options_page_html() {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
     ?>
     <div class="wrap">
-        <h1>Let's Roll SEO Pages Settings</h1>
-        <form method="post" action="options.php">
+        <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+        <p>Manage the settings for the Let's Roll dynamic page generation plugin.</p>
+        
+        <form action="options.php" method="post">
             <?php
-            // WordPress functions to handle security and field registration
-            settings_fields('lr_settings_group');
-            do_settings_sections('lr_settings_group');
+            settings_fields('lr_options_group');
+            do_settings_sections('lr_options_group');
+            submit_button('Save Settings');
             ?>
+        </form>
 
-            <h2>API Credentials</h2>
-            <p>Enter the credentials used to authenticate with the Let's Roll API.</p>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="lr_api_email">API Email</label></th>
-                    <td><input type="text" id="lr_api_email" name="lr_options[api_email]" value="<?php echo esc_attr($api_email); ?>" size="40" /></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row"><label for="lr_api_pass">API Password</label></th>
-                    <td><input type="password" id="lr_api_pass" name="lr_options[api_pass]" value="<?php echo esc_attr($api_pass); ?>" size="40" /></td>
-                </tr>
-            </table>
+        <hr>
 
-            <hr>
-
-            <h2>Location Data</h2>
-            <p>Enter the location data as a JSON object. You can validate the format using an online JSON validator.</p>
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row"><label for="lr_locations_json">Locations JSON</label></th>
-                    <td>
-                        <textarea id="lr_locations_json" name="lr_options[locations_json]" rows="20" cols="80" class="large-text code"><?php echo esc_textarea($locations_json); ?></textarea>
-                        <p class="description">Paste the full JSON structure for countries and cities here.</p>
-                    </td>
-                </tr>
-            </table>
-            
-            <?php submit_button(); ?>
-
+        <h2>Sitemap Generation</h2>
+        <p>Click the button below to generate a CSV file of all dynamic country, city, and detail list pages. You can then import this file into your SEO plugin's sitemap settings.</p>
+        <form action="" method="post">
+            <input type="hidden" name="lr_action" value="generate_sitemap_csv">
+            <?php wp_nonce_field('lr_generate_sitemap'); ?>
+            <?php submit_button('Generate Sitemap CSV'); ?>
         </form>
     </div>
     <?php
 }
+
