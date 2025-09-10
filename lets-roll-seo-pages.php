@@ -19,8 +19,9 @@ require_once plugin_dir_path(__FILE__) . 'templates/template-detail-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-spot.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-event.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-skater.php';
-// --- ADDED: Include the new explore page template ---
 require_once plugin_dir_path(__FILE__) . 'templates/template-explore-page.php';
+// --- ADDED: Include the new CTA banner file ---
+require_once plugin_dir_path(__FILE__) . 'cta-banner.php';
 
 /**
  * =================================================================================
@@ -135,10 +136,17 @@ function lr_calculate_bounding_box($lat, $lon, $radius_km) {
 add_filter('the_posts', 'lr_virtual_page_controller', 10, 2);
 
 function lr_virtual_page_controller($posts, $query) {
-    // Only run on the front-end, for the main query, and if it's one of our pages.
-    if ( is_admin() || !$query->is_main_query() || (!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page')) ) {
+    // --- THE GATEKEEPER ---
+    // Only run on the front-end, for the main query, and ONLY if one of our query variables is set.
+    if ( is_admin() || !$query->is_main_query() || 
+        (!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page')) 
+    ) {
+        // If these conditions aren't met, this is a normal WordPress page.
+        // Return the original posts immediately without touching them.
         return $posts;
     }
+    
+    // If we get this far, it is definitely one of our pages.
     
     // --- Create a single, fake post object ---
     $post = new stdClass();
@@ -269,6 +277,49 @@ function lr_generate_dynamic_title($title) {
 }
 
 
+/**
+ * =================================================================================
+ * NEW: App Install CTA Banner
+ * =================================================================================
+ */
+function lr_display_cta_banner() {
+    // This function decides which text to show based on the current page.
+    $cta_text = '';
+    $city_name = '';
 
+    $country_slug = get_query_var('lr_country');
+    $city_slug = get_query_var('lr_city');
+    $page_type = get_query_var('lr_page_type');
+    $single_type = get_query_var('lr_single_type');
+    $item_id = get_query_var('lr_item_id');
 
+    // Get city name if available
+    if ($country_slug && $city_slug) {
+        $city_details = lr_get_city_details($country_slug, $city_slug);
+        if ($city_details) {
+            $city_name = $city_details['name'];
+        }
+    }
+
+    if ($page_type === 'skatespots' && $city_name) {
+        $cta_text = 'Find even more skate spots and see who\'s rolling in ' . $city_name . '. Install the Let\'s Roll app to explore the full map!';
+    } elseif ($page_type === 'skaters' && $city_name) {
+        $cta_text = 'You\'re seeing just a few of the active skaters in ' . $city_name . '. Join the community and find new friends to skate with on the Let\'s Roll app!';
+    } elseif ($page_type === 'events' && $city_name) {
+        $cta_text = 'Never miss a local skate event in ' . $city_name . ' again! Get notifications and connect with attendees by downloading the Let\'s Roll app.';
+    } elseif ($single_type === 'spots') {
+        $cta_text = 'This is just one of many spots waiting for you. Find your next favorite location with the Let\'s Roll app.';
+    } elseif ($single_type === 'skaters') {
+        $cta_text = 'Connect with this skater and many others from around the world. Share your profile and track your sessions with the Let\'s Roll app!';
+    } elseif ($single_type === 'events') {
+        $cta_text = 'Ready to roll? See who\'s going and coordinate with friends in the Let\'s Roll app. Install now!';
+    } elseif ($city_name) {
+         $cta_text = 'Get the full picture of the ' . $city_name . ' skate scene. Find spots, events, and skaters near you with the Let\'s Roll app!';
+    }
+
+    if ($cta_text) {
+        lr_render_cta_banner($cta_text);
+    }
+}
+add_action('wp_footer', 'lr_display_cta_banner');
 
