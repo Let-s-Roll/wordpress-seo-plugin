@@ -321,5 +321,10 @@ function lr_display_cta_banner() {
         lr_render_cta_banner($cta_text);
     }
 }
+// MODIFIED: Changed the hook back to 'wp_footer', which is more reliable for this simpler approach.
 add_action('wp_footer', 'lr_display_cta_banner');
+
+/**
+ * REMOVED: The AMP component script is no longer needed.
+ */
 
