@@ -276,55 +276,16 @@ function lr_generate_dynamic_title($title) {
     return $new_title;
 }
 
-
 /**
  * =================================================================================
- * NEW: App Install CTA Banner
+ * NEW: Custom Styles
  * =================================================================================
  */
-function lr_display_cta_banner() {
-    // This function decides which text to show based on the current page.
-    $cta_text = '';
-    $city_name = '';
-
-    $country_slug = get_query_var('lr_country');
-    $city_slug = get_query_var('lr_city');
-    $page_type = get_query_var('lr_page_type');
-    $single_type = get_query_var('lr_single_type');
-    $item_id = get_query_var('lr_item_id');
-
-    // Get city name if available
-    if ($country_slug && $city_slug) {
-        $city_details = lr_get_city_details($country_slug, $city_slug);
-        if ($city_details) {
-            $city_name = $city_details['name'];
-        }
-    }
-
-    if ($page_type === 'skatespots' && $city_name) {
-        $cta_text = 'Find even more skate spots and see who\'s rolling in ' . $city_name . '. Install the Let\'s Roll app to explore the full map!';
-    } elseif ($page_type === 'skaters' && $city_name) {
-        $cta_text = 'You\'re seeing just a few of the active skaters in ' . $city_name . '. Join the community and find new friends to skate with on the Let\'s Roll app!';
-    } elseif ($page_type === 'events' && $city_name) {
-        $cta_text = 'Never miss a local skate event in ' . $city_name . ' again! Get notifications and connect with attendees by downloading the Let\'s Roll app.';
-    } elseif ($single_type === 'spots') {
-        $cta_text = 'This is just one of many spots waiting for you. Find your next favorite location with the Let\'s Roll app.';
-    } elseif ($single_type === 'skaters') {
-        $cta_text = 'Connect with this skater and many others from around the world. Share your profile and track your sessions with the Let\'s Roll app!';
-    } elseif ($single_type === 'events') {
-        $cta_text = 'Ready to roll? See who\'s going and coordinate with friends in the Let\'s Roll app. Install now!';
-    } elseif ($city_name) {
-         $cta_text = 'Get the full picture of the ' . $city_name . ' skate scene. Find spots, events, and skaters near you with the Let\'s Roll app!';
-    }
-
-    if ($cta_text) {
-        lr_render_cta_banner($cta_text);
+function lr_add_mobile_spacing() {
+    // On our virtual pages, add some padding on mobile to compensate for themes with no margins.
+    if (get_query_var('lr_country') || get_query_var('lr_single_type') || get_query_var('lr_is_explore_page')) {
+        echo '<style>@media (max-width: 768px) { .entry-content, .post-content, .page-content { padding-left: 15px !important; padding-right: 15px !important; } }</style>';
     }
 }
-// MODIFIED: Changed the hook back to 'wp_footer', which is more reliable for this simpler approach.
-add_action('wp_footer', 'lr_display_cta_banner');
-
-/**
- * REMOVED: The AMP component script is no longer needed.
- */
+add_action('wp_head', 'lr_add_mobile_spacing');
 

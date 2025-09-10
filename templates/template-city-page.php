@@ -99,14 +99,10 @@ function lr_render_city_page_content($country_slug, $city_slug) {
             $spot_details = lr_fetch_api_data($access_token, 'spots/' . $spot->_id, []);
             if ($spot_details && isset($spot_details->spotWithAddress)) {
                 $proxy_url = plugin_dir_url(__FILE__) . '../image-proxy.php';
-                $placeholder_url = 'https://placehold.co/200x120/e0e0e0/757575?text=Spot';
-                $image_url = $placeholder_url; // Default to placeholder
-
-                // Check if a satellite image exists before creating the proxy URL.
+                $image_url = 'https://placehold.co/200x120/e0e0e0/757575?text=Spot'; // Default placeholder
                 if (!empty($spot_details->spotWithAddress->satelliteAttachment)) {
                     $image_url = add_query_arg(['type' => 'spot_satellite', 'id' => $spot_details->spotWithAddress->satelliteAttachment], $proxy_url);
                 }
-                
                 $spot_url = home_url('/spots/' . $spot->_id . '/');
 
                 $output .= '<div class="lr-grid-item">';
@@ -142,7 +138,7 @@ function lr_render_city_page_content($country_slug, $city_slug) {
     if (!is_wp_error($skaters_data) && !empty($skaters_data->userProfiles)) {
         // We still only show the top 3 from the fetched list.
         $top_skaters = array_slice($skaters_data->userProfiles, 0, 3);
-        
+
         $output .= $render_grid_start;
         foreach ($top_skaters as $profile) {
             $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $profile->userId . '/avatar/content/processed?width=150&height=150&quality=80';
@@ -189,7 +185,14 @@ function lr_render_city_page_content($country_slug, $city_slug) {
                     $proxy_url = plugin_dir_url(__FILE__) . '../image-proxy.php';
                     $image_url = add_query_arg(['type' => 'event_attachment', 'id' => $attachments[0]->_id, 'session_id' => $event->_id], $proxy_url);
                 }
+                
+                // --- MODIFIED: Add lat/lng to the event URL for the fallback API call ---
                 $event_url = home_url('/events/' . $event->_id . '/');
+                if (isset($event->event->location->coordinates)) {
+                    $lat = $event->event->location->coordinates[1];
+                    $lng = $event->event->location->coordinates[0];
+                    $event_url = add_query_arg(['lat' => $lat, 'lng' => $lng], $event_url);
+                }
 
                 $output .= '<div class="lr-grid-item">';
                 $output .= '<a href="' . esc_url($event_url) . '">';
@@ -211,6 +214,8 @@ function lr_render_city_page_content($country_slug, $city_slug) {
 
     return $output;
 }
+
+
 
 
 
