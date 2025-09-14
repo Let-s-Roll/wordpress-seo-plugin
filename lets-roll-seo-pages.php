@@ -148,9 +148,30 @@ function lr_calculate_bounding_box($lat, $lon, $radius_km) {
 add_filter('the_posts', 'lr_virtual_page_controller', 10, 2);
 
 function lr_virtual_page_controller($posts, $query) {
+    // --- Handle 301 Redirects for old Skater ID URLs ---
+    if (!$query->is_main_query()) return $posts;
+
+    $single_type = get_query_var('lr_single_type');
+    $item_id = get_query_var('lr_item_id');
+
+    // Check if this is a skater page and if the ID looks like an old 24-char hex ID.
+    if ($single_type === 'skaters' && preg_match('/^[a-f0-9]{24}$/', $item_id)) {
+        $access_token = lr_get_api_access_token();
+        // Use the old ID-based endpoint to find the user's profile.
+        $profile = lr_fetch_api_data($access_token, 'user/' . $item_id . '/profile', []);
+        
+        // If we found a profile and it has a skateName, redirect to the new URL.
+        if (!is_wp_error($profile) && !empty($profile->skateName)) {
+            $new_url = home_url('/skaters/' . $profile->skateName . '/');
+            wp_redirect($new_url, 301);
+            exit;
+        }
+    }
+
+
     // With precise rules, we no longer need complex validation here.
     // If our query vars are set, we know it's our page.
-    if ( is_admin() || !$query->is_main_query() || (!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page')) ) {
+    if ( is_admin() || (!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page')) ) {
         return $posts;
     }
     
@@ -209,14 +230,15 @@ function lr_generate_dynamic_title($title) {
     }
 
     if ($single_type) {
-        $item_id = get_query_var('lr_item_id');
+        $item_id = get_query_var('lr_item_id'); // This is now a username for skaters
         $access_token = lr_get_api_access_token();
         $display_name = '';
         $prefix = 'Details';
 
         switch ($single_type) {
             case 'skaters':
-                $item_data = lr_fetch_api_data($access_token, 'user/' . $item_id . '/profile', []);
+                // MODIFIED: Use the new endpoint with the username.
+                $item_data = lr_fetch_api_data($access_token, 'user/profile/' . $item_id, []);
                 $display_name = $item_data->skateName ?? $item_data->firstName ?? '';
                 $prefix = 'Rollerskater Profile';
                 break;
@@ -318,6 +340,4 @@ function lr_add_mobile_spacing() {
     }
 }
 add_action('wp_head', 'lr_add_mobile_spacing');
-
-
 

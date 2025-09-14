@@ -88,10 +88,11 @@ function lr_render_single_spot_content($spot_id) {
                 $user = $user_profiles[$opinion->userId] ?? null;
                 $output .= '<div style="border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 5px; overflow: hidden;">';
                 
-                if ($user) {
+                // MODIFIED: Use skateName for the URL and ensure it exists.
+                if ($user && !empty($user->skateName)) {
                     $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . esc_attr($user->userId) . '/avatar/content/processed?width=50&height=50&quality=70';
-                    $skater_url = home_url('/skaters/' . esc_attr($user->userId) . '/');
-                    $display_name = !empty($user->skateName) ? $user->skateName : $user->firstName;
+                    $skater_url = home_url('/skaters/' . esc_attr($user->skateName) . '/');
+                    $display_name = $user->skateName;
                     
                     $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" style="float: left; border-radius: 50%; width: 50px; height: 50px; margin-right: 15px;">';
                     $output .= '<h5 style="margin: 0 0 5px 0;"><a href="' . esc_url($skater_url) . '">' . esc_html($display_name) . '</a></h5>';
@@ -111,4 +112,3 @@ function lr_render_single_spot_content($spot_id) {
         return '<p>Could not find details for this skate spot.</p>';
     }
 }
-

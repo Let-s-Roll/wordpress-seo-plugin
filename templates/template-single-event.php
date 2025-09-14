@@ -116,9 +116,10 @@ function lr_render_single_event_content($event_id) {
         $output .= '<hr style="margin: 20px 0;">';
         if (!empty($event->userId)) {
             $organizer_profile = lr_fetch_api_data($access_token, 'user/' . $event->userId . '/profile', []);
-            if ($organizer_profile && !is_wp_error($organizer_profile)) {
-                $organizer_name = $organizer_profile->skateName ?? $organizer_profile->firstName ?? 'the organizer';
-                $organizer_url = home_url('/skaters/' . $event->userId . '/');
+            // MODIFIED: Use skateName for the URL and ensure it exists.
+            if ($organizer_profile && !is_wp_error($organizer_profile) && !empty($organizer_profile->skateName)) {
+                $organizer_name = $organizer_profile->skateName;
+                $organizer_url = home_url('/skaters/' . $organizer_profile->skateName . '/');
                 $output .= '<p><strong>Organizer:</strong> <a href="'.esc_url($organizer_url).'">' . esc_html($organizer_name) . '</a></p>';
             }
         }
@@ -130,7 +131,3 @@ function lr_render_single_event_content($event_id) {
         return '<p>Could not find details for this event.</p>';
     }
 }
-
-
-
-

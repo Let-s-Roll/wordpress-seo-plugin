@@ -3,16 +3,17 @@
  * Renders the content for a single skater's profile page.
  */
 function lr_render_single_skater_content() {
-    $user_id = get_query_var('lr_item_id');
-    if (!$user_id) {
-        return '<p>No skater ID provided.</p>';
+    // The query variable now contains the username.
+    $username = get_query_var('lr_item_id');
+    if (!$username) {
+        return '<p>No skater username provided.</p>';
     }
 
     $access_token = lr_get_api_access_token();
     $output = '';
 
-    // Construct the API endpoint for the specific user
-    $api_endpoint = 'user/' . $user_id . '/profile';
+    // MODIFIED: Use the new endpoint with the username.
+    $api_endpoint = 'user/profile/' . $username;
     $profile_data = lr_fetch_api_data($access_token, $api_endpoint, []);
 
     if (is_wp_error($profile_data)) {
@@ -31,8 +32,9 @@ function lr_render_single_skater_content() {
         // Use skateName if available, otherwise fall back to firstName
         $display_name = !empty($profile_data->skateName) ? $profile_data->skateName : (!empty($profile_data->firstName) ? $profile_data->firstName : 'A Let\'s Roll Skater');
         
-        // --- Construct the Avatar URL ---
-        $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $user_id . '/avatar/content/processed?width=150&height=150&quality=80';
+        // MODIFIED: Construct the Avatar URL using the userId from the API response.
+        $user_id_for_avatar = $profile_data->userId;
+        $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $user_id_for_avatar . '/avatar/content/processed?width=150&height=150&quality=80';
         $placeholder_url = 'https://placehold.co/150x150/e0e0e0/757575?text=Skater';
 
         // --- Centered Header with Image and Skatename ---
@@ -96,10 +98,3 @@ function lr_render_single_skater_content() {
 
     return $output;
 }
-
-
-
-
-
-
-

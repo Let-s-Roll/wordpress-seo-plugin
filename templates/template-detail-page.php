@@ -232,10 +232,10 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
             $output .= '<p>Here are some of the skaters recently active in the area:</p><ul>';
             
             foreach ($activity_data->userProfiles as $profile) {
-                if (is_object($profile) && isset($profile->userId)) {
-                    $user_id = $profile->userId;
-                    $display_name = !empty($profile->skateName) ? $profile->skateName : (!empty($profile->firstName) ? $profile->firstName : 'Skater ' . $user_id);
-                    $skater_url = home_url('/skaters/' . $user_id . '/');
+                // MODIFIED: Use skateName for the URL and ensure it exists.
+                if (is_object($profile) && isset($profile->userId) && !empty($profile->skateName)) {
+                    $display_name = $profile->skateName;
+                    $skater_url = home_url('/skaters/' . $profile->skateName . '/');
                     $output .= '<li><a href="'. esc_url($skater_url) .'">' . esc_html($display_name) . '</a></li>';
                 }
             }
@@ -265,4 +265,3 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
 
     return $output;
 }
-

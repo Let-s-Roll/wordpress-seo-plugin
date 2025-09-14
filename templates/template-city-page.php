@@ -141,17 +141,20 @@ function lr_render_city_page_content($country_slug, $city_slug) {
 
         $output .= $render_grid_start;
         foreach ($top_skaters as $profile) {
-            $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $profile->userId . '/avatar/content/processed?width=150&height=150&quality=80';
-            $placeholder_url = 'https://placehold.co/150x150/e0e0e0/757575?text=Skater';
-            $skater_url = home_url('/skaters/' . $profile->userId . '/');
-            $display_name = !empty($profile->skateName) ? $profile->skateName : $profile->firstName;
+            // MODIFIED: Use skateName for the URL, only create link if skateName exists.
+            if (!empty($profile->skateName)) {
+                $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $profile->userId . '/avatar/content/processed?width=150&height=150&quality=80';
+                $placeholder_url = 'https://placehold.co/150x150/e0e0e0/757575?text=Skater';
+                $skater_url = home_url('/skaters/' . $profile->skateName . '/');
+                $display_name = $profile->skateName;
 
-            $output .= '<div class="lr-grid-item lr-grid-item-skater">';
-            $output .= '<a href="' . esc_url($skater_url) . '">';
-            $output .= '<img src="' . esc_url($avatar_url) . '" onerror="this.onerror=null;this.src=\'' . esc_url($placeholder_url) . '\';" />';
-            $output .= '<div class="lr-grid-item-content">';
-            $output .= '<h4>' . esc_html($display_name) . '</h4>';
-            $output .= '</div></a></div>';
+                $output .= '<div class="lr-grid-item lr-grid-item-skater">';
+                $output .= '<a href="' . esc_url($skater_url) . '">';
+                $output .= '<img src="' . esc_url($avatar_url) . '" onerror="this.onerror=null;this.src=\'' . esc_url($placeholder_url) . '\';" />';
+                $output .= '<div class="lr-grid-item-content">';
+                $output .= '<h4>' . esc_html($display_name) . '</h4>';
+                $output .= '</div></a></div>';
+            }
         }
         $output .= $render_grid_end;
         $output .= $render_view_all(home_url('/' . $country_slug . '/' . $city_slug . '/skaters/'), 'View All Skaters');
@@ -214,12 +217,3 @@ function lr_render_city_page_content($country_slug, $city_slug) {
 
     return $output;
 }
-
-
-
-
-
-
-
-
-
