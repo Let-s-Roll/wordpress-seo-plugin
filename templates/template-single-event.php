@@ -3,28 +3,23 @@
  * Renders the content for a single event page.
  */
 function lr_render_single_event_content($event_id) {
-    // --- MODIFIED: Switch to caching the final HTML output ---
-    $transient_key = 'lr_event_page_html_v2_' . sanitize_key($event_id);
+    // --- Caching ---
+    $transient_key = 'lr_event_page_html_v4_' . sanitize_key($event_id); // v4 to invalidate old cache
     $cached_html = get_transient($transient_key);
     if ($cached_html) {
         return $cached_html;
     }
 
     $access_token = lr_get_api_access_token();
-    if (is_wp_error($access_token)) {
-        return '<p><strong>Error:</strong> Could not authenticate with the API.</p>';
-    }
+    if (is_wp_error($access_token)) { return '<p><strong>Error:</strong> Could not authenticate with the API.</p>'; }
 
-    // Try to get the event data object from its own cache first
     $event = get_transient('lr_event_data_' . $event_id);
-
     if (false === $event) {
         $lat = $_GET['lat'] ?? null;
         $lng = $_GET['lng'] ?? null;
         if ($lat && $lng) {
             $bounding_box = lr_calculate_bounding_box($lat, $lng, 1);
-            $api_params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw']];
-            $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $api_params);
+            $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw']]);
             if ($events_data && !is_wp_error($events_data) && !empty($events_data->rollEvents)) {
                 foreach($events_data->rollEvents as $event_from_list) {
                     if ($event_from_list->_id === $event_id) {
@@ -39,20 +34,24 @@ function lr_render_single_event_content($event_id) {
 
     if ($event) {
         $output = '';
+        $event_name = esc_attr($event->name);
         
+        // --- RESTORED: Date and Time ---
         $date_str = 'Date TBD';
         if (!empty($event->event->startDate) && !empty($event->event->endDate)) {
             try {
-                $start = new DateTime($event->event->startDate); $end = new DateTime($event->event->endDate);
+                $start = new DateTime($event->event->startDate);
+                $end = new DateTime($event->event->endDate);
                 if ($start->format('Y-m-d') === $end->format('Y-m-d')) {
                      $date_str = $start->format('F j, Y') . ' from ' . $start->format('g:i A') . ' to ' . $end->format('g:i A');
                 } else {
                      $date_str = $start->format('F j, Y, g:i A') . ' to ' . $end->format('F j, Y, g:i A');
                 }
-            } catch (Exception $e) {}
+            } catch (Exception $e) { /* Invalid date format */ }
         }
         $output .= '<p><strong>When:</strong> ' . esc_html($date_str) . '</p>';
         
+        // --- RESTORED: Address and Spot Link ---
         $address = 'Location TBD';
         if(!empty($event->event->address)) {
             $address_obj = json_decode($event->event->address);
@@ -69,28 +68,31 @@ function lr_render_single_event_content($event_id) {
              }
         }
         
+        // --- RESTORED: External URL ---
         if (!empty($event->event->url)) {
             $full_url = $event->event->url;
             $display_url = (strlen($full_url) > 60) ? substr($full_url, 0, 57) . '...' : $full_url;
             $output .= '<p><strong>Read more:</strong> <a href="' . esc_url($full_url) . '" target="_blank" rel="noopener noreferrer">' . esc_html($display_url) . '</a></p>';
         }
-        
+
+        // --- Event Image ---
         $attachments = lr_fetch_api_data($access_token, 'roll-session/' . $event_id . '/attachments', []);
         if (!is_wp_error($attachments) && !empty($attachments)) {
-            $first_attachment = $attachments[0];
             $proxy_url = plugin_dir_url(__FILE__) . '../image-proxy.php';
-            $image_url = add_query_arg(['type' => 'event_attachment', 'id' => $first_attachment->_id, 'session_id' => $event_id], $proxy_url);
+            $image_url = add_query_arg(['type' => 'event_attachment', 'id' => $attachments[0]->_id, 'session_id' => $event_id, 'width' => 800, 'quality' => 80], $proxy_url);
             $output .= '<div style="text-align: center; margin-top: 20px;">';
-            $output .= '<img src="' . esc_url($image_url) . '" alt="Image for ' . esc_attr($event->name) . '" style="max-width: 100%; height: auto;">';
+            $output .= '<img src="' . esc_url($image_url) . '" alt="Image for ' . $event_name . '" style="max-width: 100%; height: auto;" width="800">';
             $output .= '</div>';
         }
 
+        // --- RESTORED: Description ---
         if (!empty($event->description)) {
             $output .= '<hr style="margin: 20px 0;">';
             $output .= '<h3>About this Event</h3>';
             $output .= '<p>' . nl2br(esc_html($event->description)) . '</p>';
         }
 
+        // --- RESTORED: Organizer ---
         $output .= '<hr style="margin: 20px 0;">';
         if (!empty($event->userId)) {
             $organizer_profile = lr_fetch_api_data($access_token, 'user/' . $event->userId . '/profile', []);
@@ -101,7 +103,6 @@ function lr_render_single_event_content($event_id) {
             }
         }
         
-        // --- ADDED: Set the transient before returning ---
         set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
         return $output;
 
