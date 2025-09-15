@@ -14,13 +14,14 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         $current_page   = isset($_GET['lr_page']) ? max(1, intval($_GET['lr_page'])) : 1;
         $spots_per_page = 10;
         
-        // MODIFIED: Changed the transient key to _v3_ to invalidate the old, unsorted cache.
         $transient_key = 'lr_spots_list_v3_' . sanitize_key($city_slug);
-        $all_spot_ids = get_transient($transient_key);
+        $all_spot_ids = false;
+        if (!lr_is_testing_mode_enabled()) {
+            $all_spot_ids = get_transient($transient_key);
+        }
 
         if (false === $all_spot_ids) {
             // --- CORRECTED API CALL ---
-            // Use the bounding box to correctly limit the search area.
             $bounding_box = lr_calculate_bounding_box(
                 $city_details['latitude'],
                 $city_details['longitude'],
@@ -32,28 +33,26 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
                 'sw'    => $bounding_box['sw'],
                 'limit' => 1000,
             ];
-            // Use the correct 'inBox' endpoint.
             $spots_list = lr_fetch_api_data($access_token, 'spots/v2/inBox', $api_params);
             
             $all_spot_ids = [];
             if (is_array($spots_list) && !empty($spots_list)) {
                 
-                // --- ADDED: Sort the spots list by sessionsCount before caching ---
                 usort($spots_list, function($a, $b) {
                     $count_a = $a->sessionsCount ?? 0;
                     $count_b = $b->sessionsCount ?? 0;
-                    // Use the spaceship operator for comparison. This sorts descending (highest first).
                     return $count_b <=> $count_a;
                 });
 
-                // Now that the list is sorted, extract the IDs in the new order.
                 foreach ($spots_list as $spot) {
                     if (is_object($spot) && isset($spot->_id)) {
                         $all_spot_ids[] = $spot->_id;
                     }
                 }
             }
-            set_transient($transient_key, $all_spot_ids, 4 * HOUR_IN_SECONDS);
+            if (!lr_is_testing_mode_enabled()) {
+                set_transient($transient_key, $all_spot_ids, 4 * HOUR_IN_SECONDS);
+            }
         }
 
         if (!empty($all_spot_ids)) {
@@ -76,7 +75,6 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
                     $output .= '<strong><a href="' . esc_url($spot_url) . '">' . esc_html($spot_name) . '</a></strong><br>';
                     $output .= '<span>' . esc_html($spot_address) . '</span>';
                     
-                    // --- ADDED: Display spot stats ---
                     $total_skaters = $spot_details->totalSkaters ?? 0;
                     $total_sessions = $spot_details->totalSessions ?? 0;
                     $ratings_count = $spot_info->rating->ratingsCount ?? 0;
@@ -117,7 +115,6 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         }
 
     } elseif ($page_type === 'events') {
-        // --- REVISED Logic for Events ---
         $radius_km = $city_details['radius_km'];
 
         $bounding_box = lr_calculate_bounding_box(
@@ -143,8 +140,9 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
             $now = new DateTime();
 
             foreach ($all_events as $event) {
-                // Cache the full event object for the single event page to use.
-                set_transient('lr_event_data_' . $event->_id, $event, 4 * HOUR_IN_SECONDS);
+                if (!lr_is_testing_mode_enabled()) {
+                    set_transient('lr_event_data_' . $event->_id, $event, 4 * HOUR_IN_SECONDS);
+                }
 
                 if (isset($event->event->endDate)) {
                     $end_date = new DateTime($event->event->endDate);
@@ -168,7 +166,6 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
                 $base_url = home_url('/events/' . $event->_id . '/');
                 $event_coords = $event->centroid->coordinates ?? null;
                 
-                // Add coordinates to the URL for the fallback mechanism.
                 $event_url = ($event_coords) ? add_query_arg(['lat' => $event_coords[1], 'lng' => $event_coords[0]], $base_url) : $base_url;
 
                 $event_name = $event->name;
@@ -232,7 +229,6 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
             $output .= '<p>Here are some of the skaters recently active in the area:</p><ul>';
             
             foreach ($activity_data->userProfiles as $profile) {
-                // MODIFIED: Use skateName for the URL and ensure it exists.
                 if (is_object($profile) && isset($profile->userId) && !empty($profile->skateName)) {
                     $display_name = $profile->skateName;
                     $skater_url = home_url('/skaters/' . $profile->skateName . '/');

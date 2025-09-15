@@ -27,6 +27,16 @@ require_once plugin_dir_path(__FILE__) . 'cta-banner.php';
  * Core API & Location Functions
  * =================================================================================
  */
+
+/**
+ * Checks if Testing Mode is enabled in the plugin settings.
+ * @return bool True if testing mode is on, false otherwise.
+ */
+function lr_is_testing_mode_enabled() {
+    $options = get_option('lr_options');
+    return isset($options['testing_mode']) && $options['testing_mode'] === '1';
+}
+
 function lr_get_api_access_token() {
     $cached_token = get_transient('lr_api_access_token');
     if ($cached_token) return $cached_token;
@@ -435,4 +445,3 @@ function lr_add_mobile_spacing() {
     }
 }
 add_action('wp_head', 'lr_add_mobile_spacing');
-

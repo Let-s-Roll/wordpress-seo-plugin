@@ -5,9 +5,11 @@
 function lr_render_single_spot_content($spot_id) {
     // --- Caching ---
     $transient_key = 'lr_spot_page_html_v3_' . sanitize_key($spot_id);
-    $cached_html = get_transient($transient_key);
-    if ($cached_html) {
-        return $cached_html;
+    if (!lr_is_testing_mode_enabled()) {
+        $cached_html = get_transient($transient_key);
+        if ($cached_html) {
+            return $cached_html;
+        }
     }
 
     $access_token = lr_get_api_access_token();
@@ -72,10 +74,11 @@ function lr_render_single_spot_content($spot_id) {
             }
         }
         
-        set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
+        if (!lr_is_testing_mode_enabled()) {
+            set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
+        }
         return $output;
     } else {
         return '<p>Could not find details for this skate spot.</p>';
     }
 }
-

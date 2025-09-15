@@ -6,10 +6,12 @@ function lr_render_single_skater_content() {
     $username = get_query_var('lr_item_id');
     if (!$username) { return '<p>No skater username provided.</p>'; }
 
-    $transient_key = 'lr_skater_page_html_v4_' . sanitize_key($username); // v4 to invalidate old cache
-    $cached_html = get_transient($transient_key);
-    if ($cached_html) {
-        return $cached_html;
+    $transient_key = 'lr_skater_page_html_v4_' . sanitize_key($username);
+    if (!lr_is_testing_mode_enabled()) {
+        $cached_html = get_transient($transient_key);
+        if ($cached_html) {
+            return $cached_html;
+        }
     }
 
     $access_token = lr_get_api_access_token();
@@ -66,7 +68,8 @@ function lr_render_single_skater_content() {
         $output .= '<h2>Skater Profile</h2><p>Could not retrieve profile information for this skater.</p>';
     }
     
-    set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
+    if (!lr_is_testing_mode_enabled()) {
+        set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
+    }
     return $output;
 }
-

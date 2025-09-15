@@ -3,11 +3,13 @@
  * Renders the content for a city overview page.
  */
 function lr_render_city_page_content($country_slug, $city_slug) {
-    // --- ADDED: Fragment Caching ---
-    $transient_key = 'lr_city_page_html_v3_' . sanitize_key($city_slug); // v3 to invalidate old cache
-    $cached_html = get_transient($transient_key);
-    if ($cached_html) {
-        return $cached_html;
+    // --- Caching ---
+    $transient_key = 'lr_city_page_html_v3_' . sanitize_key($city_slug);
+    if (!lr_is_testing_mode_enabled()) {
+        $cached_html = get_transient($transient_key);
+        if ($cached_html) {
+            return $cached_html;
+        }
     }
 
     $city_details = lr_get_city_details($country_slug, $city_slug);
@@ -162,8 +164,9 @@ function lr_render_city_page_content($country_slug, $city_slug) {
         $output .= '<p>No events found for this location.</p>';
     }
     
-    set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
+    if (!lr_is_testing_mode_enabled()) {
+        set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
+    }
 
     return $output;
 }
-

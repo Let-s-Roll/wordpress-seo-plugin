@@ -5,16 +5,22 @@
 function lr_render_single_event_content($event_id) {
     // --- Caching ---
     $transient_key = 'lr_event_page_html_v3_' . sanitize_key($event_id);
-    $cached_html = get_transient($transient_key);
-    if ($cached_html) {
-        return $cached_html;
+    if (!lr_is_testing_mode_enabled()) {
+        $cached_html = get_transient($transient_key);
+        if ($cached_html) {
+            return $cached_html;
+        }
     }
 
     $access_token = lr_get_api_access_token();
     if (is_wp_error($access_token)) { return '<p><strong>Error:</strong> Could not authenticate with the API.</p>'; }
 
     // --- Data fetching logic (try cache, then fallback to API) ---
-    $event = get_transient('lr_event_data_' . $event_id);
+    $event = false;
+    if (!lr_is_testing_mode_enabled()) {
+        $event = get_transient('lr_event_data_' . $event_id);
+    }
+    
     if (false === $event) {
         $lat = $_GET['lat'] ?? null;
         $lng = $_GET['lng'] ?? null;
@@ -25,7 +31,9 @@ function lr_render_single_event_content($event_id) {
                 foreach($events_data->rollEvents as $event_from_list) {
                     if ($event_from_list->_id === $event_id) {
                         $event = $event_from_list;
-                        set_transient('lr_event_data_' . $event_id, $event, 4 * HOUR_IN_SECONDS);
+                        if (!lr_is_testing_mode_enabled()) {
+                            set_transient('lr_event_data_' . $event_id, $event, 4 * HOUR_IN_SECONDS);
+                        }
                         break;
                     }
                 }
@@ -115,7 +123,9 @@ function lr_render_single_event_content($event_id) {
             }
         }
         
-        set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
+        if (!lr_is_testing_mode_enabled()) {
+            set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
+        }
         return $output;
 
     } else {

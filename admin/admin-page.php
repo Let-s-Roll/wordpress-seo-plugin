@@ -81,6 +81,10 @@ function lr_settings_init() {
 
     add_settings_section('lr_locations_section', 'Location Data', null, 'lr_options_group');
     add_settings_field('lr_locations_json', 'Locations JSON', 'lr_locations_json_render', 'lr_options_group', 'lr_locations_section');
+
+    // New Section for Testing Mode
+    add_settings_section('lr_testing_section', 'Development & Testing', null, 'lr_options_group');
+    add_settings_field('lr_testing_mode', 'Testing Mode', 'lr_testing_mode_render', 'lr_options_group', 'lr_testing_section');
 }
 add_action('admin_init', 'lr_settings_init');
 
@@ -101,6 +105,14 @@ function lr_locations_json_render() {
     $options = get_option('lr_options');
     echo "<textarea name='lr_options[locations_json]' style='width: 100%; min-height: 400px; font-family: monospace;'>" . esc_textarea($options['locations_json'] ?? '') . "</textarea>";
     echo '<p class="description">Paste the JSON data for countries and cities here.</p>';
+}
+
+// New Render Function for the Checkbox
+function lr_testing_mode_render() {
+    $options = get_option('lr_options');
+    $checked = isset($options['testing_mode']) && $options['testing_mode'] === '1' ? 'checked' : '';
+    echo "<input type='checkbox' name='lr_options[testing_mode]' value='1' " . $checked . ">";
+    echo '<p class="description">When checked, the plugin will bypass all caching (transients). This is useful for testing but should be disabled on a live site.</p>';
 }
 
 
@@ -136,4 +148,3 @@ function lr_options_page_html() {
     </div>
     <?php
 }
-
