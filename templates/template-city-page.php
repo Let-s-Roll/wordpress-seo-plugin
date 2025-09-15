@@ -3,13 +3,14 @@
  * Renders the content for a city overview page.
  */
 function lr_render_city_page_content($country_slug, $city_slug) {
-    // --- Caching ---
-    $transient_key = 'lr_city_page_html_v3_' . sanitize_key($city_slug);
-    if (!lr_is_testing_mode_enabled()) {
-        $cached_html = get_transient($transient_key);
-        if ($cached_html) {
-            return $cached_html;
-        }
+    if (lr_is_testing_mode_enabled()) {
+        delete_transient('lr_city_page_html_v3_' . sanitize_key($city_slug));
+    }
+    // --- ADDED: Fragment Caching ---
+    $transient_key = 'lr_city_page_html_v3_' . sanitize_key($city_slug); // v3 to invalidate old cache
+    $cached_html = get_transient($transient_key);
+    if ($cached_html) {
+        return $cached_html;
     }
 
     $city_details = lr_get_city_details($country_slug, $city_slug);
@@ -143,9 +144,6 @@ function lr_render_city_page_content($country_slug, $city_slug) {
                 }
                 
                 $event_url = home_url('/events/' . $event->_id . '/');
-                if (isset($event->event->location->coordinates)) {
-                    $event_url = add_query_arg(['lat' => $event->event->location->coordinates[1], 'lng' => $event->event->location->coordinates[0]], $event_url);
-                }
 
                 $output .= '<div class="lr-grid-item">';
                 $output .= '<a href="' . esc_url($event_url) . '">';
@@ -164,9 +162,8 @@ function lr_render_city_page_content($country_slug, $city_slug) {
         $output .= '<p>No events found for this location.</p>';
     }
     
-    if (!lr_is_testing_mode_enabled()) {
-        set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
-    }
+    set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
 
     return $output;
 }
+

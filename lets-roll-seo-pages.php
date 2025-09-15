@@ -56,6 +56,40 @@ function lr_get_api_access_token() {
     return new WP_Error('token_missing', 'Access token not found.');
 }
 
+/**
+ * Retrieves data for a single event using the /aggregates endpoint.
+ *
+ * @param string $event_id The ID of the event to fetch.
+ * @return object|null The event object or null if not found.
+ */
+function lr_get_single_event_data($event_id) {
+    $event = false;
+    $transient_key = 'lr_event_data_v2_' . $event_id;
+
+    if (!lr_is_testing_mode_enabled()) {
+        $event = get_transient($transient_key);
+        if ($event) return $event;
+    }
+
+    $access_token = lr_get_api_access_token();
+    if (is_wp_error($access_token)) return null;
+
+    $endpoint = 'roll-session/' . $event_id . '/aggregates';
+    $aggregate_data = lr_fetch_api_data($access_token, $endpoint, []);
+
+    if (!is_wp_error($aggregate_data) && isset($aggregate_data->sessions) && !empty($aggregate_data->sessions)) {
+        $event = $aggregate_data->sessions[0];
+        $event->attachments = $aggregate_data->attachments ?? [];
+        
+        if (!lr_is_testing_mode_enabled()) {
+            set_transient($transient_key, $event, 4 * HOUR_IN_SECONDS);
+        }
+    }
+    
+    return $event;
+}
+
+
 function lr_fetch_api_data($token, $endpoint, $params) {
     if (is_wp_error($token)) return $token;
     $api_base_url = 'https://beta.web.lets-roll.app/api/';
@@ -208,16 +242,7 @@ function lr_generate_dynamic_title($title) {
                 $display_name = $item_data->spotWithAddress->name ?? ''; $prefix = 'Skate Spot';
                 break;
             case 'events':
-                $event = get_transient('lr_event_data_' . $item_id);
-                if (false === $event && isset($_GET['lat'], $_GET['lng'])) {
-                    $bounding_box = lr_calculate_bounding_box($_GET['lat'], $_GET['lng'], 1);
-                    $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw']]);
-                     if ($events_data && !is_wp_error($events_data) && !empty($events_data->rollEvents)) {
-                        foreach($events_data->rollEvents as $event_from_list) {
-                            if ($event_from_list->_id === $item_id) { $event = $event_from_list; break; }
-                        }
-                    }
-                }
+                $event = lr_get_single_event_data($item_id);
                 $display_name = $event->name ?? ''; $prefix = 'Skate Event';
                 break;
         }
@@ -322,18 +347,25 @@ function lr_get_current_page_api_data() {
     $single_type = $page_details['type'];
     $item_id = $page_details['id'];
     $transient_key = 'lr_og_data_v4_' . $single_type . '_' . sanitize_key($item_id);
-    $cached_data = get_transient($transient_key);
-    if ($cached_data) { $data = $cached_data; return $data; }
+
+    if (!lr_is_testing_mode_enabled()) {
+        $cached_data = get_transient($transient_key);
+        if ($cached_data) { $data = $cached_data; return $data; }
+    }
 
     $access_token = lr_get_api_access_token();
     $api_data = null;
     switch ($single_type) {
         case 'skaters': $api_data = lr_fetch_api_data($access_token, 'user/profile/' . $item_id, []); break;
         case 'spots': $api_data = lr_fetch_api_data($access_token, 'spots/' . $item_id, []); break;
-        case 'events': $api_data = get_transient('lr_event_data_' . $item_id); break;
+        case 'events': 
+            $api_data = lr_get_single_event_data($item_id);
+            break;
     }
     if ($api_data && !is_wp_error($api_data)) {
-        set_transient($transient_key, $api_data, 10 * MINUTE_IN_SECONDS);
+        if (!lr_is_testing_mode_enabled()) {
+            set_transient($transient_key, $api_data, 10 * MINUTE_IN_SECONDS);
+        }
         $data = $api_data;
         return $data;
     }
@@ -398,10 +430,9 @@ function lr_get_og_image_url($data) {
             }
             break;
         case 'events':
-            $access_token = lr_get_api_access_token();
-            $attachments = lr_fetch_api_data($access_token, 'roll-session/' . $data->_id . '/attachments', []);
-            if (!is_wp_error($attachments) && !empty($attachments)) {
-                return plugin_dir_url(__FILE__) . 'image-proxy.php?type=event_attachment&id=' . $attachments[0]->_id . '&session_id=' . $data->_id . '&width=1200&quality=85';
+            // MODIFIED: Use the attachment data we now have on the event object.
+            if (!empty($data->attachments)) {
+                return plugin_dir_url(__FILE__) . 'image-proxy.php?type=event_attachment&id=' . $data->attachments[0]->_id . '&session_id=' . $data->_id . '&width=1200&quality=85';
             }
             break;
     }
@@ -445,3 +476,4 @@ function lr_add_mobile_spacing() {
     }
 }
 add_action('wp_head', 'lr_add_mobile_spacing');
+

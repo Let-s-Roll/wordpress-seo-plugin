@@ -3,49 +3,16 @@
  * Renders the content for a single event page.
  */
 function lr_render_single_event_content($event_id) {
-    // --- Caching ---
-    $transient_key = 'lr_event_page_html_v3_' . sanitize_key($event_id);
-    if (!lr_is_testing_mode_enabled()) {
-        $cached_html = get_transient($transient_key);
-        if ($cached_html) {
-            return $cached_html;
-        }
-    }
-
     $access_token = lr_get_api_access_token();
     if (is_wp_error($access_token)) { return '<p><strong>Error:</strong> Could not authenticate with the API.</p>'; }
 
-    // --- Data fetching logic (try cache, then fallback to API) ---
-    $event = false;
-    if (!lr_is_testing_mode_enabled()) {
-        $event = get_transient('lr_event_data_' . $event_id);
-    }
-    
-    if (false === $event) {
-        $lat = $_GET['lat'] ?? null;
-        $lng = $_GET['lng'] ?? null;
-        if ($lat && $lng) {
-            $bounding_box = lr_calculate_bounding_box($lat, $lng, 1);
-            $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw']]);
-            if ($events_data && !is_wp_error($events_data) && !empty($events_data->rollEvents)) {
-                foreach($events_data->rollEvents as $event_from_list) {
-                    if ($event_from_list->_id === $event_id) {
-                        $event = $event_from_list;
-                        if (!lr_is_testing_mode_enabled()) {
-                            set_transient('lr_event_data_' . $event_id, $event, 4 * HOUR_IN_SECONDS);
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-    }
+    $event = lr_get_single_event_data($event_id);
+    $output = '';
 
     if ($event) {
-        $output = '';
         $event_name = esc_attr($event->name);
         
-        // --- RESTORED: Date and Time ---
+        // --- Date and Time ---
         $date_str = 'Date TBD';
         if (!empty($event->event->startDate) && !empty($event->event->endDate)) {
             try {
@@ -60,7 +27,7 @@ function lr_render_single_event_content($event_id) {
         }
         $output .= '<p><strong>When:</strong> ' . esc_html($date_str) . '</p>';
 
-        // --- RESTORED: Address and Spot Link ---
+        // --- Address and Spot Link ---
         $address = 'Location TBD';
         if(!empty($event->event->address)) {
             $address_obj = json_decode($event->event->address);
@@ -79,17 +46,16 @@ function lr_render_single_event_content($event_id) {
              }
         }
 
-        // --- RESTORED: External URL ---
+        // --- External URL ---
         if (!empty($event->event->url)) {
             $full_url = $event->event->url;
             $display_url = preg_replace('#^https?://(www\.)?#', '', $full_url);
             $output .= '<p><strong>More Info:</strong> <a href="' . esc_url($full_url) . '" target="_blank" rel="noopener noreferrer">' . esc_html($display_url) . '</a></p>';
         }
 
-        // --- Event Image (Preserving current optimized version) ---
-        $attachments = lr_fetch_api_data($access_token, 'roll-session/' . $event_id . '/attachments', []);
-        if (!is_wp_error($attachments) && !empty($attachments)) {
-            $first_attachment = $attachments[0];
+        // --- MODIFIED: Event Image from the aggregate data, no new API call ---
+        if (!empty($event->attachments)) {
+            $first_attachment = $event->attachments[0];
             $proxy_url = plugin_dir_url(__FILE__) . '../image-proxy.php';
             
             $image_url = add_query_arg([
@@ -105,14 +71,14 @@ function lr_render_single_event_content($event_id) {
             $output .= '</div>';
         }
 
-        // --- RESTORED: Description ---
+        // --- Description ---
         if (!empty($event->description)) {
             $output .= '<hr style="margin: 20px 0;">';
             $output .= '<h3>About this Event</h3>';
             $output .= '<p>' . nl2br(esc_html($event->description)) . '</p>';
         }
 
-        // --- RESTORED: Organizer ---
+        // --- Organizer ---
         if (!empty($event->userId)) {
             $organizer_profile = lr_fetch_api_data($access_token, 'user/' . $event->userId . '/profile', []);
             if ($organizer_profile && !is_wp_error($organizer_profile) && !empty($organizer_profile->skateName)) {
@@ -123,12 +89,11 @@ function lr_render_single_event_content($event_id) {
             }
         }
         
-        if (!lr_is_testing_mode_enabled()) {
-            set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
-        }
         return $output;
 
     } else {
-        return '<p>Could not find details for this event.</p>';
+        $output .= '<p>Could not find details for this event.</p>';
+        return $output;
     }
 }
+
