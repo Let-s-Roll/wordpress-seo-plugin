@@ -91,8 +91,14 @@ if (!is_wp_error($image_response) && wp_remote_retrieve_response_code($image_res
     $image_data = wp_remote_retrieve_body($image_response);
     $image_mime_type = wp_remote_retrieve_header($image_response, 'content-type');
     
+    // --- ADDED: Browser Caching Headers ---
+    $cache_duration_seconds = 2592000; // 30 days
     header('Content-Type: ' . $image_mime_type);
     header('Content-Length: ' . strlen($image_data));
+    header('Cache-Control: public, max-age=' . $cache_duration_seconds);
+    header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $cache_duration_seconds) . ' GMT');
+    header('Pragma: cache');
+
     echo $image_data;
     exit;
 } else {
@@ -100,4 +106,3 @@ if (!is_wp_error($image_response) && wp_remote_retrieve_response_code($image_res
     echo "Failed to fetch image from S3.";
     exit;
 }
-

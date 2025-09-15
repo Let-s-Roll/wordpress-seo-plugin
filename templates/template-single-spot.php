@@ -1,11 +1,15 @@
 <?php
 /**
  * Renders the content for a single spot page.
- *
- * @param string $spot_id The ID of the spot to display.
- * @return string The HTML content for the page.
  */
 function lr_render_single_spot_content($spot_id) {
+    // --- ADDED: Fragment Caching ---
+    $transient_key = 'lr_spot_page_html_v2_' . sanitize_key($spot_id);
+    $cached_html = get_transient($transient_key);
+    if ($cached_html) {
+        return $cached_html;
+    }
+
     $access_token = lr_get_api_access_token();
     if (is_wp_error($access_token)) {
         return '<p><strong>Error:</strong> Could not authenticate with the API.</p>';
@@ -24,14 +28,8 @@ function lr_render_single_spot_content($spot_id) {
 
         // --- Satellite Image ---
         if (!empty($spot->satelliteAttachment)) {
-            // Updated to use the new proxy format
             $proxy_url = plugin_dir_url( __FILE__ ) . '../image-proxy.php';
-            $image_url = add_query_arg([
-                'type' => 'spot_satellite',
-                'id'   => $spot->satelliteAttachment
-            ], $proxy_url);
-
-            // Wrap the image in a div for center alignment.
+            $image_url = add_query_arg(['type' => 'spot_satellite', 'id'   => $spot->satelliteAttachment], $proxy_url);
             $output .= '<div style="text-align: center; margin-bottom: 20px;">';
             $output .= '<img src="' . esc_url($image_url) . '" alt="Satellite view of ' . esc_attr($spot->name) . '" style="max-width: 100%; height: auto;">';
             $output .= '</div>';
@@ -61,54 +59,44 @@ function lr_render_single_spot_content($spot_id) {
         $ratings_data = lr_fetch_api_data($access_token, $ratings_endpoint, ['limit' => 20, 'skip' => 0]);
 
         if ($ratings_data && !is_wp_error($ratings_data) && !empty($ratings_data->ratingsAndOpinions)) {
-            
-            // --- Calculate and Display Average Rating ---
             $total_rating = 0;
             $ratings_count = count($ratings_data->ratingsAndOpinions);
-            foreach ($ratings_data->ratingsAndOpinions as $opinion) {
-                $total_rating += $opinion->rating;
-            }
+            foreach ($ratings_data->ratingsAndOpinions as $opinion) { $total_rating += $opinion->rating; }
             $average_rating = $ratings_count > 0 ? round($total_rating / $ratings_count, 1) : 0;
             $stars_html = str_repeat('★', round($average_rating)) . str_repeat('☆', 5 - round($average_rating));
             
             $output .= '<hr style="margin: 20px 0;">';
             $output .= '<h3>Overall Rating: ' . esc_html($average_rating) . ' / 5 (' . $stars_html . ')</h3>';
-
-            // --- Display Individual Reviews ---
             $output .= '<h4>Reviews</h4>';
 
             $user_profiles = [];
             if (!empty($ratings_data->userProfiles)) {
-                foreach ($ratings_data->userProfiles as $profile) {
-                    $user_profiles[$profile->userId] = $profile;
-                }
+                foreach ($ratings_data->userProfiles as $profile) { $user_profiles[$profile->userId] = $profile; }
             }
 
             foreach ($ratings_data->ratingsAndOpinions as $opinion) {
                 $user = $user_profiles[$opinion->userId] ?? null;
                 $output .= '<div style="border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 5px; overflow: hidden;">';
-                
-                // MODIFIED: Use skateName for the URL and ensure it exists.
                 if ($user && !empty($user->skateName)) {
                     $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . esc_attr($user->userId) . '/avatar/content/processed?width=50&height=50&quality=70';
                     $skater_url = home_url('/skaters/' . esc_attr($user->skateName) . '/');
                     $display_name = $user->skateName;
-                    
                     $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" style="float: left; border-radius: 50%; width: 50px; height: 50px; margin-right: 15px;">';
                     $output .= '<h5 style="margin: 0 0 5px 0;"><a href="' . esc_url($skater_url) . '">' . esc_html($display_name) . '</a></h5>';
                 }
-                
                 $review_stars = str_repeat('★', $opinion->rating) . str_repeat('☆', 5 - $opinion->rating);
                 $output .= '<p style="margin: 0 0 10px 0; color: #666;">Rating: ' . $review_stars . '</p>';
                 $output .= '<p style="margin: 0; font-style: italic;">"' . esc_html($opinion->comment) . '"</p>';
-
                 $output .= '</div>';
             }
         }
-
+        
+        // --- ADDED: Set the transient before returning ---
+        set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
         return $output;
 
     } else {
         return '<p>Could not find details for this skate spot.</p>';
     }
 }
+
