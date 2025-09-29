@@ -189,6 +189,18 @@
       }
     }
   },
+  "ireland": {
+    "name": "Ireland",
+    "cities": {
+      "dublin": {
+        "name": "Dublin",
+        "latitude": 53.3498,
+        "longitude": -6.2603,
+        "radius_km": 25,
+        "description": "The Dublin roller skating scene is a vibrant community with a dedicated indoor roller disco, The Rink at D12, and a strong presence from the Dublin Roller Derby league. The scene is also bolstered by inclusive community groups like 50 First Skates and Skate Revolution, which organize meetups and create safe spaces for skaters of all backgrounds to connect and roll together."
+      }
+    }
+  },
   "italy": {
     "name": "Italy",
     "cities": {
