@@ -141,6 +141,90 @@
                 "longitude": -86.7680,
                 "radius_km": 45,
                 "description": "The Nashville roller skating scene is a mix of classic rink skating and a strong outdoor community. Rinks like Rivergate Skate Center have been local staples for decades, while the Nashville Outdoor Roller Skating Meetup Group takes advantage of the city's many parks and greenways. The scene is also home to the Nashville Roller Derby, adding a competitive edge to the city's vibrant skate culture."
+            },
+            "las-vegas": {
+                "name": "Las Vegas",
+                "latitude": 36.1750,
+                "longitude": -115.1372,
+                "radius_km": 45,
+                "description": "The Las Vegas roller skating scene is a unique blend of classic rink culture and dazzling entertainment. Historic rinks like Skate Rock City operate alongside seasonal pop-ups on the Strip, like the Flipper's Roller Boogie Palace. The city is also home to the Sin City Roller Derby and hosts major events like RollerCon, making it a vibrant destination for skaters of all kinds."
+            },
+            "charlotte": {
+                "name": "Charlotte",
+                "latitude": 35.2271,
+                "longitude": -80.8431,
+                "radius_km": 45,
+                "description": "The Charlotte roller skating scene is a dynamic mix of traditional rinks, such as the long-standing Kate's Skating Rinks, and innovative pop-up events hosted by groups like Rollin' Clt. The community is also served by a strong outdoor skating scene with active groups organizing meetups on the city's greenways, and a competitive spirit fueled by the Charlotte Roller Derby."
+            },
+            "detroit": {
+                "name": "Detroit",
+                "latitude": 42.3314,
+                "longitude": -83.0458,
+                "radius_km": 50,
+                "description": "Detroit's roller skating scene is legendary, with deep roots in the city's musical history. It's home to some of the nation's oldest Black-owned rinks, like the historic RollerCade, which have cultivated a unique 'Detroit style' of skating. The scene is also home to the formidable Detroit Roller Derby league, making it a city with a rich and influential skate culture."
+            },
+            "austin": {
+                "name": "Austin",
+                "latitude": 30.2672,
+                "longitude": -97.7431,
+                "radius_km": 45,
+                "description": "The Austin roller skating scene is a vibrant mix of indoor rinks, extensive outdoor trails, and a world-class roller derby community. The city, often credited with the modern revival of roller derby, is home to the Texas Rollergirls. Skaters can enjoy a classic rink experience or explore numerous trails like the Southern Walnut Creek Trail, supported by a welcoming and active community."
+            },
+            "cleveland": {
+                "name": "Cleveland",
+                "latitude": 41.4995,
+                "longitude": -81.6954,
+                "radius_km": 45,
+                "description": "The Cleveland roller skating scene is built around a strong foundation of classic indoor rinks and a passionate roller derby community. Venues like Zelma Watson George Skating provide a traditional rink experience, while the city is also home to both women's (Burning River Roller Derby) and men's (Cleveland Guardians) competitive flat-track leagues, fostering a diverse and energetic skate culture."
+            },
+            "raleigh": {
+                "name": "Raleigh",
+                "latitude": 35.7721,
+                "longitude": -78.6386,
+                "radius_km": 45,
+                "description": "The Raleigh roller skating scene is a healthy mix of traditional rink skating at venues like United Skates of America and a growing outdoor and park skating community. Groups like CIB Raleigh host inclusive meetups at local skateparks, while the city sometimes converts public spaces like Moore Square into pop-up roller discos, creating a diverse and accessible skate culture."
+            },
+            "indianapolis": {
+                "name": "Indianapolis",
+                "latitude": 39.7684,
+                "longitude": -86.1580,
+                "radius_km": 45,
+                "description": "The Indianapolis roller skating scene is centered around its classic indoor rinks like Skateland and the historic Roller Cave, which have served the community for decades. The scene is also home to the Circle City Roller Derby league and groups like Roller Skate Indiana that organize trail skating, providing a well-rounded mix of recreational and competitive skating opportunities."
+            },
+            "kansas-city": {
+                "name": "Kansas City",
+                "latitude": 39.0997,
+                "longitude": -94.5780,
+                "radius_km": 50,
+                "description": "The Kansas City roller skating scene is rich with history, featuring several long-standing, family-owned rinks like the Northland Rolladium and Winnwood Skate Center. These venues provide a classic skating experience that has been a tradition for generations. The community is also supported by active urban skate groups that organize meetups to explore the city's streets and parks."
+            },
+            "oklahoma-city": {
+                "name": "Oklahoma City",
+                "latitude": 35.4676,
+                "longitude": -97.5164,
+                "radius_km": 50,
+                "description": "The Oklahoma City roller skating scene offers a great mix of indoor and outdoor skating experiences. Classic rinks like Skate Galaxy and Southwestern Skate Center provide year-round fun and host popular adult skate nights. In the warmer months, the seasonal Sky Rink at Scissortail Park becomes a major hub for the community, offering a unique outdoor skating venue in the heart of the city."
+            },
+            "columbus": {
+                "name": "Columbus",
+                "latitude": 39.9612,
+                "longitude": -82.9988,
+                "radius_km": 45,
+                "description": "The Columbus roller skating scene is well-established, with popular rinks like Skate Zone 71 and the long-running Columbus Skateland serving the community. The city is also a hub for competitive roller derby, home to the Ohio Roller Derby league. For outdoor skaters, groups like the Clintonville Roller Club organize meetups on the city's extensive trail network, such as the Olentangy Trail."
+            },
+            "minneapolis": {
+                "name": "Minneapolis",
+                "latitude": 44.9800,
+                "longitude": -93.2600,
+                "radius_km": 45,
+                "description": "The Minneapolis roller skating scene is a vibrant mix of outdoor trail skating and a growing indoor rink culture. The city's famous Chain of Lakes and Midtown Greenway provide miles of scenic paths for skaters. Community hubs like the Twin Cities Skaters Studio and established rinks like Skateville offer year-round opportunities for classes, events, and social skating."
+            },
+            "sacramento": {
+                "name": "Sacramento",
+                "latitude": 38.5758,
+                "longitude": -121.4789,
+                "radius_km": 45,
+                "description": "The Sacramento roller skating scene is anchored by classic indoor rinks like Sunrise Rollerland and King's Skate Country, which have served the community for years. The city also embraces outdoor skating, with a seasonal downtown rink and active groups like SacQuadSquad organizing meetups. The scene is a blend of traditional rink fun and a passionate street skating community."
             }
         }
     },

@@ -29,6 +29,13 @@
         "longitude": -1.5479,
         "radius_km": 20,
         "description": "The Leeds roller skating scene is a vibrant and inclusive community with a strong DIY spirit. The heart of the scene is the Roller Girl Gang, which runs The Skate Sanctuary, a dedicated skate space offering classes and practice sessions. The city also hosts regular roller discos and is home to community groups like the Potternewton Park Rollers, ensuring there are plenty of opportunities to skate, learn, and connect with other skaters."
+      },
+      "birmingham": {
+        "name": "Birmingham",
+        "latitude": 52.4895,
+        "longitude": -1.8986,
+        "radius_km": 25,
+        "description": "The Birmingham roller skating scene is diverse, with modern venues like Roller Jam Digbeth offering a lively, entertainment-focused experience. The city also has a strong competitive side, with the Birmingham Wheels Roller Speed Club training at the iconic Wheels Park. For a more traditional experience, skaters can visit local roller discos or enjoy the outdoors at Cannon Hill Park."
       }
     }
   },
@@ -167,6 +174,18 @@
         "longitude": 12.5683,
         "radius_km": 25,
         "description": "Roller skating in Copenhagen is a dream, thanks to the city's world-class infrastructure. Renowned as one of the most bike-friendly cities on the planet, its vast network of smooth, well-maintained paths and waterfront promenades makes it a paradise for urban cruising and long-distance skating. The vibe is relaxed and fitness-oriented, with skaters sharing the space with cyclists and joggers. While dedicated skateparks exist, the true joy of skating in Copenhagen is the freedom to explore its beautiful, clean, and accessible urban landscape. It's the perfect city for skaters who love to cover ground and enjoy a scenic, seamless roll."
+      }
+    }
+  },
+  "finland": {
+    "name": "Finland",
+    "cities": {
+      "helsinki": {
+        "name": "Helsinki",
+        "latitude": 60.1708,
+        "longitude": 24.9375,
+        "radius_km": 30,
+        "description": "The Helsinki roller skating scene is built on a strong foundation of roller derby and a wealth of public skate parks. Leagues like Helsinki Roller Derby and Kallio Rolling Rainbow are central to the community. The city also provides numerous free-to-use outdoor skateparks and a dedicated roller skating track at Kivikko sports park, making it a fantastic city for both competitive and recreational skaters."
       }
     }
   },
