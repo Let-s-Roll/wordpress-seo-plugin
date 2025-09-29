@@ -491,3 +491,41 @@ function lr_add_mobile_spacing() {
 }
 add_action('wp_head', 'lr_add_mobile_spacing');
 
+/**
+ * =================================================================================
+ * Geolocation AJAX Handling
+ * =================================================================================
+ */
+
+// Enqueue the geolocation script only on the explore page
+function lr_enqueue_geolocation_script() {
+    if (get_query_var('lr_is_explore_page')) {
+        wp_enqueue_script(
+            'lr-geolocation',
+            plugin_dir_url(__FILE__) . 'js/lr-geolocation.js',
+            [], // dependencies
+            '1.0.0', // version
+            true // in footer
+        );
+    }
+}
+add_action('wp_enqueue_scripts', 'lr_enqueue_geolocation_script');
+
+// The AJAX handler function
+function lr_get_nearby_content_ajax_handler() {
+    // Sanitize and validate input
+    $lat = isset($_POST['lat']) ? floatval($_POST['lat']) : 0;
+    $lon = isset($_POST['lon']) ? floatval($_POST['lon']) : 0;
+
+    if ($lat && $lon) {
+        // Use the existing function from the template to get the content
+        echo lr_get_and_render_nearby_content($lat, $lon);
+    } else {
+        echo '<p>Invalid coordinates received.</p>';
+    }
+
+    wp_die(); // This is required to terminate immediately and return a proper response
+}
+add_action('wp_ajax_lr_get_nearby_content', 'lr_get_nearby_content_ajax_handler');
+add_action('wp_ajax_nopriv_lr_get_nearby_content', 'lr_get_nearby_content_ajax_handler');
+
