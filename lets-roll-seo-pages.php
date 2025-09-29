@@ -158,12 +158,22 @@ function lr_custom_rewrite_rules() {
         }
         add_rewrite_rule("^($country_regex)/?$", 'index.php?lr_country=$matches[1]', 'top');
     }
+
+    // Check if the locations file has changed and flush rewrites if necessary.
+    $locations_file = plugin_dir_path(__FILE__) . 'country_data/merged.json';
+    if (file_exists($locations_file)) {
+        $current_hash = md5_file($locations_file);
+        $stored_hash = get_option('lr_locations_hash');
+        if ($current_hash !== $stored_hash) {
+            flush_rewrite_rules();
+            update_option('lr_locations_hash', $current_hash);
+        }
+    }
 }
 add_action('init', 'lr_custom_rewrite_rules');
 
 function lr_activate_plugin() { 
     lr_custom_rewrite_rules(); 
-    flush_rewrite_rules(); 
 }
 register_activation_hook(__FILE__, 'lr_activate_plugin');
 
