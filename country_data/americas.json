@@ -79,6 +79,13 @@
                 "radius_km": 45,
                 "description": "The roller skating scene in Atlanta is a legendary cultural institution and a global destination for skaters seeking the pinnacle of rhythm and style. The vibe is electric, deeply rooted in music, and centered around world-famous rinks like the iconic Cascade Skating, which has cemented Atlanta's status as a mecca for the sport."
             },
+            "orlando": {
+                "name": "Orlando",
+                "latitude": 28.5383,
+                "longitude": -81.3792,
+                "radius_km": 45,
+                "description": "The Orlando roller skating scene is a vibrant mix of classic rink culture and active community groups. Long-standing institutions like Astro Skate and Semoran Skateway serve as local hubs, offering themed nights and lessons for all ages. The scene is also fueled by passionate local groups that organize events and foster a strong sense of community. For those who prefer to skate outdoors, the West Orange Trail provides a popular and scenic route for miles of cruising."
+            },
             "seattle": {
                 "name": "Seattle",
                 "latitude": 47.61,
@@ -113,6 +120,27 @@
                 "longitude": -122.68,
                 "radius_km": 40,
                 "description": "The roller skating scene in Portland, Oregon is a rich and deeply ingrained culture with a history stretching back over a century, revering its institutions. The scene's hub is the iconic Oaks Park Roller Rink, one of the oldest in the country, complemented by a fiercely competitive and inclusive roller derby scene led by the Rose City Rollers."
+            },
+            "phoenix": {
+                "name": "Phoenix",
+                "latitude": 33.4484,
+                "longitude": -112.0740,
+                "radius_km": 50,
+                "description": "The Phoenix roller skating scene thrives in the city's sunny climate, with a strong mix of classic indoor rinks and popular outdoor spots. Rinks like Skateland and Great Skate serve as community hubs, while skaters also flock to scenic outdoor trails at Tempe Town Lake and the Phoenix Mountains Preserve. The scene is supported by a variety of active and welcoming skate groups that host meetups for all skill levels across the valley."
+            },
+            "denver": {
+                "name": "Denver",
+                "latitude": 39.7392,
+                "longitude": -104.9847,
+                "radius_km": 45,
+                "description": "The Denver roller skating scene is a year-round hub of activity, with multiple Skate City locations offering classic indoor rink experiences and seasonal outdoor rinks popping up in the summer. The community is also defined by its highly active street and trail skating culture, with groups like the Denver Urban Skate Troop organizing popular weekly skates that explore the city's extensive network of bike paths, like the Cherry Creek Trail."
+            },
+            "nashville": {
+                "name": "Nashville",
+                "latitude": 36.1745,
+                "longitude": -86.7680,
+                "radius_km": 45,
+                "description": "The Nashville roller skating scene is a mix of classic rink skating and a strong outdoor community. Rinks like Rivergate Skate Center have been local staples for decades, while the Nashville Outdoor Roller Skating Meetup Group takes advantage of the city's many parks and greenways. The scene is also home to the Nashville Roller Derby, adding a competitive edge to the city's vibrant skate culture."
             }
         }
     },

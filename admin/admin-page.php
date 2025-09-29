@@ -79,8 +79,7 @@ function lr_settings_init() {
     add_settings_field('lr_api_email', 'API Email', 'lr_api_email_render', 'lr_options_group', 'lr_api_section');
     add_settings_field('lr_api_pass', 'API Password', 'lr_api_pass_render', 'lr_options_group', 'lr_api_section');
 
-    add_settings_section('lr_locations_section', 'Location Data', null, 'lr_options_group');
-    add_settings_field('lr_locations_json', 'Locations JSON', 'lr_locations_json_render', 'lr_options_group', 'lr_locations_section');
+    
 
     // New Section for Testing Mode
     add_settings_section('lr_testing_section', 'Development & Testing', null, 'lr_options_group');
@@ -101,11 +100,7 @@ function lr_api_pass_render() {
     echo "<input type='password' name='lr_options[api_pass]' value='" . esc_attr($options['api_pass'] ?? '') . "' style='width: 300px;'>";
 }
 
-function lr_locations_json_render() {
-    $options = get_option('lr_options');
-    echo "<textarea name='lr_options[locations_json]' style='width: 100%; min-height: 400px; font-family: monospace;'>" . esc_textarea($options['locations_json'] ?? '') . "</textarea>";
-    echo '<p class="description">Paste the JSON data for countries and cities here.</p>';
-}
+
 
 // New Render Function for the Checkbox
 function lr_testing_mode_render() {
@@ -132,6 +127,13 @@ function lr_options_page_html() {
             <?php
             settings_fields('lr_options_group');
             do_settings_sections('lr_options_group');
+            ?>
+
+            <div style='padding: 10px; background-color: #f0f6fc; border-left: 4px solid #2196F3; margin-bottom: 20px;'>
+                <p><strong>Notice:</strong> Location data is now managed automatically from the <code>country_data/merged.json</code> file within the plugin directory. Changes to this file will be reflected on the site directly.</p>
+            </div>
+
+            <?php
             submit_button('Save Settings');
             ?>
         </form>

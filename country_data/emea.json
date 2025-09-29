@@ -22,6 +22,13 @@
         "longitude": -2.5879,
         "radius_km": 15,
         "description": "Bristol's roller skating scene is as creative and independent as the city itself, with a gritty DIY spirit and a strong sense of community. The legendary Dean Lane Skatepark, known locally as 'the deaner,' is a historic outdoor hub for park skaters. For a truly urban experience, the M32 Skatepark offers a community-built spot right under the motorway. The scene is also anchored by the formidable Bristol Roller Derby league, a cornerstone of the local skate community. Whether you're cruising the scenic Bath to Bristol cycle path or joining a family-friendly session at a community rink, skating in Bristol is an authentic and welcoming adventure."
+      },
+      "leeds": {
+        "name": "Leeds",
+        "latitude": 53.7965,
+        "longitude": -1.5479,
+        "radius_km": 20,
+        "description": "The Leeds roller skating scene is a vibrant and inclusive community with a strong DIY spirit. The heart of the scene is the Roller Girl Gang, which runs The Skate Sanctuary, a dedicated skate space offering classes and practice sessions. The city also hosts regular roller discos and is home to community groups like the Potternewton Park Rollers, ensuring there are plenty of opportunities to skate, learn, and connect with other skaters."
       }
     }
   },

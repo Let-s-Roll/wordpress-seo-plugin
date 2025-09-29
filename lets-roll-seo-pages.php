@@ -102,10 +102,14 @@ function lr_fetch_api_data($token, $endpoint, $params) {
 function lr_get_location_data() {
     static $locations = null;
     if ($locations === null) {
-        $options = get_option('lr_options');
-        $locations_json = $options['locations_json'] ?? '';
-        $locations = json_decode($locations_json, true);
-        $locations = is_array($locations) ? $locations : [];
+        $file_path = plugin_dir_path(__FILE__) . 'country_data/merged.json';
+        if (file_exists($file_path)) {
+            $locations_json = file_get_contents($file_path);
+            $locations = json_decode($locations_json, true);
+            $locations = is_array($locations) ? $locations : [];
+        } else {
+            $locations = [];
+        }
     }
     return $locations;
 }
