@@ -8,8 +8,8 @@
 function lr_render_nearby_grid($items, $type) {
     if (empty($items)) return '';
 
-    $output = '<div class="lr-grid">';
-    foreach (array_slice($items, 0, 3) as $item) {
+    $output = '';
+    foreach (array_slice($items, 0, 4) as $item) {
         $name = '';
         $url = '';
         $image_url = 'https://placehold.co/400x240/e0e0e0/757575?text=' . ucfirst($type);
@@ -17,11 +17,20 @@ function lr_render_nearby_grid($items, $type) {
 
         switch ($type) {
             case 'spots':
-                $name = $item->spotWithAddress->name ?? 'Skate Spot';
-                $url = home_url('/spots/' . $item->spotWithAddress->_id . '/');
+                // Fetch full details for the individual spot
+                $access_token = lr_get_api_access_token();
+                if (is_wp_error($access_token)) continue 2;
+
+                $spot_details = lr_fetch_api_data($access_token, 'spots/' . $item->_id, []);
+                if (!$spot_details || !isset($spot_details->spotWithAddress)) {
+                    continue 2; // Skip this item if details can't be fetched
+                }
+                
+                $name = $spot_details->spotWithAddress->name ?? 'Skate Spot';
+                $url = home_url('/spots/' . $spot_details->spotWithAddress->_id . '/');
                 $alt_text = 'Satellite view of ' . esc_attr($name);
-                if (!empty($item->spotWithAddress->satelliteAttachment)) {
-                    $image_url = plugin_dir_url(__FILE__) . '../image-proxy.php?type=spot_satellite&id=' . $item->spotWithAddress->satelliteAttachment . '&width=400&quality=75';
+                if (!empty($spot_details->spotWithAddress->satelliteAttachment)) {
+                    $image_url = plugin_dir_url(__FILE__) . '../image-proxy.php?type=spot_satellite&id=' . $spot_details->spotWithAddress->satelliteAttachment . '&width=400&quality=75';
                 }
                 break;
             case 'events':
@@ -41,7 +50,7 @@ function lr_render_nearby_grid($items, $type) {
 
                 $output .= '<div class="lr-grid-item lr-grid-item-skater">';
                 $output .= '<a href="' . esc_url($url) . '">';
-                $output .= '<img src="' . esc_url($avatar_url) . '" onerror="this.onerror=null;this.src=\''. esc_url($placeholder_url) .'\''; // Corrected escaping for onerror attribute
+                $output .= '<img src="' . esc_url($avatar_url) . '" onerror="this.onerror=null;this.src=\''. esc_url($placeholder_url) .'\'"';
                 $output .= ' alt="' . $alt_text . '" loading="lazy" width="120" height="120" />';
                 $output .= '<div class="lr-grid-item-content"><h4>' . esc_html($name) . '</h4></div></a></div>';
                 continue 2; // Continue the parent foreach loop
@@ -52,25 +61,33 @@ function lr_render_nearby_grid($items, $type) {
         $output .= '<img src="' . esc_url($image_url) . '" alt="' . $alt_text . '" loading="lazy" width="200" height="120" />';
         $output .= '<div class="lr-grid-item-content"><h4>' . esc_html($name) . '</h4></div></a></div>';
     }
-    $output .= '</div>';
     return $output;
 }
 
 // Function to fetch and render the "Near You" section content
-function lr_get_and_render_nearby_content($lat, $lon) {
+function lr_get_and_render_nearby_content($lat, $lon, $radius_km = 50, $country_slug = null, $city_slug = null) {
     $access_token = lr_get_api_access_token();
     if (is_wp_error($access_token)) return '<p>Could not authenticate with API.</p>';
 
     $output = '';
-    $radius_km = 50; // Default radius
     $bounding_box = lr_calculate_bounding_box($lat, $lon, $radius_km);
 
+    // Helper for "View All" links
+    $render_view_all = function($url, $text) {
+        return '<p style="text-align: right; margin-top: 15px;"><a href="' . esc_url($url) . '">' . esc_html($text) . ' &raquo;</a></p>';
+    };
+
     // Fetch Nearby Spots
-    $spots_params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 3];
+    $spots_params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
     $spots_list = lr_fetch_api_data($access_token, 'spots/v2/inBox', $spots_params);
     if (!is_wp_error($spots_list) && !empty($spots_list)) {
+        usort($spots_list, function($a, $b) { return ($b->sessionsCount ?? 0) <=> ($a->sessionsCount ?? 0); });
+        
         $output .= '<h3>Nearby Skate Spots</h3>';
-        $output .= lr_render_nearby_grid($spots_list, 'spots');
+        $output .= '<div class="lr-grid">' . lr_render_nearby_grid($spots_list, 'spots') . '</div>';
+        if ($country_slug && $city_slug) {
+            $output .= $render_view_all(home_url('/' . $country_slug . '/' . $city_slug . '/skatespots/'), 'View All Skate Spots');
+        }
     }
 
     // Fetch Nearby Events
@@ -85,16 +102,19 @@ function lr_get_and_render_nearby_content($lat, $lon) {
         
         if(!empty($upcoming_events)) {
             $output .= '<hr style="margin: 20px 0;"><h3>Upcoming Events</h3>';
-            $output .= lr_render_nearby_grid($upcoming_events, 'events');
+            $output .= '<div class="lr-grid">' . lr_render_nearby_grid($upcoming_events, 'events') . '</div>';
         }
     }
 
     // Fetch Nearby Skaters
-    $skaters_params = ['lat' => $lat, 'lng' => $lon, 'minDistance' => 0, 'maxAgeInDays' => 90, 'limit' => 3];
+    $skaters_params = ['lat' => $lat, 'lng' => $lon, 'minDistance' => 0, 'maxAgeInDays' => 90, 'limit' => 20];
     $skaters_data = lr_fetch_api_data($access_token, 'nearby-activities/v2/skaters', $skaters_params);
     if (!is_wp_error($skaters_data) && !empty($skaters_data->userProfiles)) {
         $output .= '<hr style="margin: 20px 0;"><h3>Local Skaters</h3>';
-        $output .= lr_render_nearby_grid($skaters_data->userProfiles, 'skaters');
+        $output .= '<div class="lr-grid">' . lr_render_nearby_grid($skaters_data->userProfiles, 'skaters') . '</div>';
+        if ($country_slug && $city_slug) {
+            $output .= $render_view_all(home_url('/' . $country_slug . '/' . $city_slug . '/skaters/'), 'View All Skaters');
+        }
     }
 
     if (empty($output)) {
@@ -108,25 +128,39 @@ function lr_get_and_render_nearby_content($lat, $lon) {
 function lr_render_explore_page_content() {
     $output = '';
     $ip_located_content = '';
+    $location_debug_info = '';
 
-    // Attempt IP Geolocation first
+    // --- REFINED LOCAL DEVELOPMENT & LIVE LOGIC ---
     $ip_address = $_SERVER['REMOTE_ADDR'];
-    // Use a placeholder for local development
     if (in_array($ip_address, ['127.0.0.1', '::1'])) {
-        $ip_address = '8.8.8.8'; // Google's DNS for testing
-    }
-
-    $response = wp_remote_get('http://ip-api.com/json/' . $ip_address);
-    if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
-        $geo_data = json_decode(wp_remote_retrieve_body($response));
-        if ($geo_data && $geo_data->status === 'success') {
-            $ip_located_content = lr_get_and_render_nearby_content($geo_data->lat, $geo_data->lon);
+        // For local dev, directly use the precise coordinates from our data file for consistency
+        $locations = lr_get_location_data();
+        $copenhagen_data = $locations['denmark']['cities']['copenhagen'] ?? null;
+        if ($copenhagen_data) {
+            $lat = $copenhagen_data['latitude'];
+            $lon = $copenhagen_data['longitude'];
+            $radius = $copenhagen_data['radius_km'];
+            $country_slug = 'denmark';
+            $city_slug = 'copenhagen';
+            $ip_located_content = lr_get_and_render_nearby_content($lat, $lon, $radius, $country_slug, $city_slug);
+            $location_debug_info = '<p style="font-size: 0.9em; color: #666;">(Testing with local data for Copenhagen at coordinates ' . esc_html($lat) . ', ' . esc_html($lon) . ')</p>';
+        }
+    } else {
+        // For live environment, use IP Geolocation
+        $response = wp_remote_get('http://ip-api.com/json/' . $ip_address);
+        if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+            $geo_data = json_decode(wp_remote_retrieve_body($response));
+            if ($geo_data && $geo_data->status === 'success') {
+                $ip_located_content = lr_get_and_render_nearby_content($geo_data->lat, $geo_data->lon, 50, null, null);
+                $location_debug_info = '<p style="font-size: 0.9em; color: #666;">(Based on your location in ' . esc_html($geo_data->city) . ', ' . esc_html($geo_data->country) . ' at coordinates ' . esc_html($geo_data->lat) . ', ' . esc_html($geo_data->lon) . ')</p>';
+            }
         }
     }
 
     // Render "Near You" section (either with content or as a placeholder)
     $output .= '<div class="lr-near-you-section">';
     $output .= '<h2>Rollerskating Near You</h2>';
+    $output .= $location_debug_info;
     $output .= '<div id="lr-nearby-content-container">';
     if (!empty($ip_located_content)) {
         $output .= $ip_located_content;
@@ -136,6 +170,29 @@ function lr_render_explore_page_content() {
     }
     $output .= '</div></div><hr style="margin: 30px 0;">';
 
+    // Render Featured Cities Section
+    $output .= '<div class="lr-featured-cities-section">';
+    $output .= '<h2>Featured Cities</h2>';
+    $output .= '<p>Discover some of the most vibrant rollerskating scenes around the globe.</p>';
+    $output .= '<div class="lr-grid">';
+
+    // Hardcoded featured cities
+    $featured_cities = [
+        ['name' => 'Paris', 'url' => home_url('/france/paris/')],
+        ['name' => 'New York City', 'url' => home_url('/united-states/new-york-city/')],
+        ['name' => 'Tokyo', 'url' => home_url('/japan/tokyo/')],
+        ['name' => 'Los Angeles', 'url' => home_url('/united-states/los-angeles/')]
+    ];
+
+    foreach ($featured_cities as $city) {
+        $output .= '<div class="lr-grid-item">';
+        $output .= '<a href="' . esc_url($city['url']) . '">';
+        $output .= '<img src="https://placehold.co/400x240/e0e0e0/757575?text=' . urlencode($city['name']) . '" alt="' . esc_attr($city['name']) . '" />';
+        $output .= '<div class="lr-grid-item-content"><h4>' . esc_html($city['name']) . '</h4></div>';
+        $output .= '</a></div>';
+    }
+
+    $output .= '</div></div><hr style="margin: 30px 0;">';
 
     // Render the main country grid
     $locations = lr_get_location_data();
@@ -144,22 +201,25 @@ function lr_render_explore_page_content() {
         return $output;
     }
 
-    $output .= '<h2>Explore By Country</h2>';
+    $output .= '<h2>Or, Explore the Full Country List</h2>';
     $output .= '<p>Select a country below to explore local roller skating scenes, spots, and events.</p>';
     
     // Grid styles
     $output .= '<style>
-        .lr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 15px; }
+        .lr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 15px; }
         .lr-grid-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; height: 100%; display: flex; flex-direction: column; }
         .lr-grid-item a { text-decoration: none; color: inherit; display: flex; flex-direction: column; height: 100%; }
         .lr-grid-item img { width: 100%; height: 120px; object-fit: cover; background-color: #f0f0f0; }
         .lr-grid-item .lr-grid-item-content { padding: 15px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
         .lr-grid-item .lr-grid-item-content h4 { margin: 0; font-size: 1.2em; }
         .lr-grid-item-skater img { width: 120px; height: 120px; border-radius: 50%; margin: 10px auto 0; }
-        @media (max-width: 768px) { .lr-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } }
+        .lr-country-list { column-count: 4; column-gap: 20px; margin-top: 15px; }
+        .lr-country-list a { display: block; margin-bottom: 10px; text-decoration: none; }
+        @media (max-width: 1024px) { .lr-grid { grid-template-columns: repeat(2, 1fr); } .lr-country-list { column-count: 2; } }
+        @media (max-width: 768px) { .lr-grid { grid-template-columns: 1fr; } }
     </style>';
 
-    $output .= '<div class="lr-grid">';
+    $output .= '<div class="lr-country-list">';
 
     uasort($locations, function($a, $b) {
         return strcmp($a['name'], $b['name']);
@@ -168,13 +228,7 @@ function lr_render_explore_page_content() {
     foreach ($locations as $country_slug => $country_details) {
         $country_name = $country_details['name'] ?? ucfirst(str_replace('-', ' ', $country_slug));
         $country_url = home_url('/' . $country_slug . '/');
-        
-        $output .= '<div class="lr-grid-item">';
-        $output .= '<a href="' . esc_url($country_url) . '">';
-        // For now, we use a placeholder. A future enhancement could be to fetch a representative image.
-        $output .= '<img src="https://placehold.co/400x240/e0e0e0/757575?text=' . urlencode($country_name) . '" alt="' . esc_attr($country_name) . '" />';
-        $output .= '<div class="lr-grid-item-content"><h4>' . esc_html($country_name) . '</h4></div>';
-        $output .= '</a></div>';
+        $output .= '<a href="' . esc_url($country_url) . '">' . esc_html($country_name) . '</a>';
     }
 
     $output .= '</div>';
