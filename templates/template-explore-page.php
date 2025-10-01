@@ -127,48 +127,72 @@ function lr_get_and_render_nearby_content($lat, $lon, $radius_km = 50, $country_
 
 function lr_render_explore_page_content() {
     $output = '';
-    $ip_located_content = '';
-    $location_debug_info = '';
+    $matched_city_html = '';
 
-    // --- REFINED LOCAL DEVELOPMENT & LIVE LOGIC ---
-    $ip_address = $_SERVER['REMOTE_ADDR'];
-    if (in_array($ip_address, ['127.0.0.1', '::1'])) {
-        // For local dev, directly use the precise coordinates from our data file for consistency
-        $locations = lr_get_location_data();
-        $copenhagen_data = $locations['denmark']['cities']['copenhagen'] ?? null;
-        if ($copenhagen_data) {
-            $lat = $copenhagen_data['latitude'];
-            $lon = $copenhagen_data['longitude'];
-            $radius = $copenhagen_data['radius_km'];
-            $country_slug = 'denmark';
-            $city_slug = 'copenhagen';
-            $ip_located_content = lr_get_and_render_nearby_content($lat, $lon, $radius, $country_slug, $city_slug);
-            $location_debug_info = '<p style="font-size: 0.9em; color: #666;">(Testing with local data for Copenhagen at coordinates ' . esc_html($lat) . ', ' . esc_html($lon) . ')</p>';
+    // --- Bot Detection ---
+    $is_bot = false;
+    $bot_user_agents = ['Googlebot', 'Bingbot', 'Slurp', 'DuckDuckBot', 'Baiduspider', 'YandexBot'];
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    foreach ($bot_user_agents as $bot) {
+        if (stripos($user_agent, $bot) !== false) {
+            $is_bot = true;
+            break;
         }
-    } else {
-        // For live environment, use IP Geolocation
+    }
+
+    // --- City Matching Logic ---
+    if (!$is_bot) {
+        $ip_address = $_SERVER['REMOTE_ADDR'];
+        if (in_array($ip_address, ['127.0.0.1', '::1'])) {
+            $ip_address = '89.150.133.1'; // Copenhagen IP for local testing
+        }
+
         $response = wp_remote_get('http://ip-api.com/json/' . $ip_address);
         if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
             $geo_data = json_decode(wp_remote_retrieve_body($response));
             if ($geo_data && $geo_data->status === 'success') {
-                $ip_located_content = lr_get_and_render_nearby_content($geo_data->lat, $geo_data->lon, 50, null, null);
-                $location_debug_info = '<p style="font-size: 0.9em; color: #666;">(Based on your location in ' . esc_html($geo_data->city) . ', ' . esc_html($geo_data->country) . ' at coordinates ' . esc_html($geo_data->lat) . ', ' . esc_html($geo_data->lon) . ')</p>';
+                $user_lat = $geo_data->lat;
+                $user_lon = $geo_data->lon;
+
+                $all_locations = lr_get_location_data();
+                $matched_city = null;
+
+                foreach ($all_locations as $country_slug => $country_details) {
+                    foreach ($country_details['cities'] as $city_slug => $city_details) {
+                        $distance = lr_calculate_distance($user_lat, $user_lon, $city_details['latitude'], $city_details['longitude']);
+                        if ($distance <= $city_details['radius_km']) {
+                            $matched_city = $city_details;
+                            $matched_city['country_slug'] = $country_slug;
+                            $matched_city['city_slug'] = $city_slug;
+                            break 2; // Break both loops
+                        }
+                    }
+                }
+
+                if ($matched_city) {
+                    $nearby_content = lr_get_and_render_nearby_content(
+                        $matched_city['latitude'],
+                        $matched_city['longitude'],
+                        $matched_city['radius_km'],
+                        $matched_city['country_slug'],
+                        $matched_city['city_slug']
+                    );
+
+                    if (!empty($nearby_content)) {
+                        $matched_city_html .= '<div class="lr-near-you-section">';
+                        $matched_city_html .= '<h2>Rollerskating Near You</h2>';
+                        $matched_city_html .= '<p style="font-size: 0.9em; color: #666;">(Based on your location in ' . esc_html($matched_city['name']) . ')</p>';
+                        $matched_city_html .= $nearby_content;
+                        $matched_city_html .= '</div><hr style="margin: 30px 0;">';
+                    }
+                }
             }
         }
     }
 
-    // Render "Near You" section (either with content or as a placeholder)
-    $output .= '<div class="lr-near-you-section">';
-    $output .= '<h2>Rollerskating Near You</h2>';
-    $output .= $location_debug_info;
-    $output .= '<div id="lr-nearby-content-container">';
-    if (!empty($ip_located_content)) {
-        $output .= $ip_located_content;
-    } else {
-        // Placeholder for AJAX
-        $output .= '<p class="lr-loading-message">Attempting to detect your location...</p>';
-    }
-    $output .= '</div></div><hr style="margin: 30px 0;">';
+    $output .= $matched_city_html;
+
+    // --- Render Featured Cities & Country List (always visible) ---
 
     // Render Featured Cities Section
     $output .= '<div class="lr-featured-cities-section">';
@@ -176,7 +200,6 @@ function lr_render_explore_page_content() {
     $output .= '<p>Discover some of the most vibrant rollerskating scenes around the globe.</p>';
     $output .= '<div class="lr-grid">';
 
-    // Hardcoded featured cities
     $featured_cities = [
         ['name' => 'Paris', 'url' => home_url('/france/paris/')],
         ['name' => 'New York City', 'url' => home_url('/united-states/new-york-city/')],
@@ -194,7 +217,7 @@ function lr_render_explore_page_content() {
 
     $output .= '</div></div><hr style="margin: 30px 0;">';
 
-    // Render the main country grid
+    // Render the main country list
     $locations = lr_get_location_data();
     if (empty($locations)) {
         $output .= '<p>No locations have been configured yet.</p>';
@@ -204,7 +227,6 @@ function lr_render_explore_page_content() {
     $output .= '<h2>Or, Explore the Full Country List</h2>';
     $output .= '<p>Select a country below to explore local roller skating scenes, spots, and events.</p>';
     
-    // Grid styles
     $output .= '<style>
         .lr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 15px; }
         .lr-grid-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; height: 100%; display: flex; flex-direction: column; }
