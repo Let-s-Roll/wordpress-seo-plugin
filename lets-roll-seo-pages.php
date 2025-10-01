@@ -500,6 +500,29 @@ add_action('wp_head', 'lr_add_mobile_spacing');
 // --- Existing code continues ---
 
 /**
+ * Get the real user IP address, checking for common proxy headers.
+ * @return string The user's IP address.
+ */
+function lr_get_user_ip_address() {
+    $ip_headers = [
+        'HTTP_CF_CONNECTING_IP', // Cloudflare
+        'HTTP_X_FORWARDED_FOR',  // Standard proxy
+        'HTTP_CLIENT_IP',
+        'HTTP_X_REAL_IP',
+        'REMOTE_ADDR'            // Fallback
+    ];
+
+    foreach ($ip_headers as $header) {
+        if (!empty($_SERVER[$header])) {
+            // HTTP_X_FORWARDED_FOR can be a comma-separated list. The first IP is the client.
+            $ip_list = explode(',', $_SERVER[$header]);
+            return trim($ip_list[0]);
+        }
+    }
+    return '0.0.0.0'; // Should not happen in a real scenario
+}
+
+/**
  * Calculate the distance between two points on Earth (Haversine formula).
  *
  * @param float $lat1 Latitude of point 1.

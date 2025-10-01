@@ -142,48 +142,58 @@ function lr_render_explore_page_content() {
 
     // --- City Matching Logic ---
     if (!$is_bot) {
-        $ip_address = $_SERVER['REMOTE_ADDR'];
+        $ip_address = lr_get_user_ip_address();
+        $output .= "<!-- DEBUG: Detected IP Address: " . esc_html($ip_address) . " -->\n";
+
         if (in_array($ip_address, ['127.0.0.1', '::1'])) {
             $ip_address = '89.150.133.1'; // Copenhagen IP for local testing
+            $output .= "<!-- DEBUG: Local environment detected. Using test IP: " . esc_html($ip_address) . " -->\n";
         }
 
         $response = wp_remote_get('http://ip-api.com/json/' . $ip_address);
-        if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
-            $geo_data = json_decode(wp_remote_retrieve_body($response));
-            if ($geo_data && $geo_data->status === 'success') {
-                $user_lat = $geo_data->lat;
-                $user_lon = $geo_data->lon;
 
-                $all_locations = lr_get_location_data();
-                $matched_city = null;
+        if (is_wp_error($response)) {
+            $output .= "<!-- DEBUG: wp_remote_get failed. Error: " . esc_html($response->get_error_message()) . " -->\n";
+        } else {
+            $response_code = wp_remote_retrieve_response_code($response);
+            $output .= "<!-- DEBUG: ip-api.com response code: " . esc_html($response_code) . " -->\n";
+            if ($response_code === 200) {
+                $geo_data = json_decode(wp_remote_retrieve_body($response));
+                if ($geo_data && $geo_data->status === 'success') {
+                    $user_lat = $geo_data->lat;
+                    $user_lon = $geo_data->lon;
 
-                foreach ($all_locations as $country_slug => $country_details) {
-                    foreach ($country_details['cities'] as $city_slug => $city_details) {
-                        $distance = lr_calculate_distance($user_lat, $user_lon, $city_details['latitude'], $city_details['longitude']);
-                        if ($distance <= $city_details['radius_km']) {
-                            $matched_city = $city_details;
-                            $matched_city['country_slug'] = $country_slug;
-                            $matched_city['city_slug'] = $city_slug;
-                            break 2; // Break both loops
+                    $all_locations = lr_get_location_data();
+                    $matched_city = null;
+
+                    foreach ($all_locations as $country_slug => $country_details) {
+                        foreach ($country_details['cities'] as $city_slug => $city_details) {
+                            $distance = lr_calculate_distance($user_lat, $user_lon, $city_details['latitude'], $city_details['longitude']);
+                            if ($distance <= $city_details['radius_km']) {
+                                $matched_city = $city_details;
+                                $matched_city['country_slug'] = $country_slug;
+                                $matched_city['city_slug'] = $city_slug;
+                                break 2; // Break both loops
+                            }
                         }
                     }
-                }
 
-                if ($matched_city) {
-                    $nearby_content = lr_get_and_render_nearby_content(
-                        $matched_city['latitude'],
-                        $matched_city['longitude'],
-                        $matched_city['radius_km'],
-                        $matched_city['country_slug'],
-                        $matched_city['city_slug']
-                    );
+                    if ($matched_city) {
+                        $nearby_content = lr_get_and_render_nearby_content(
+                            $matched_city['latitude'],
+                            $matched_city['longitude'],
+                            $matched_city['radius_km'],
+                            $matched_city['country_slug'],
+                            $matched_city['city_slug']
+                        );
 
-                    if (!empty($nearby_content)) {
-                        $matched_city_html .= '<div class="lr-near-you-section">';
-                        $matched_city_html .= '<h2>Rollerskating Near You</h2>';
-                        $matched_city_html .= '<p style="font-size: 0.9em; color: #666;">(Based on your location in ' . esc_html($matched_city['name']) . ')</p>';
-                        $matched_city_html .= $nearby_content;
-                        $matched_city_html .= '</div><hr style="margin: 30px 0;">';
+                        if (!empty($nearby_content)) {
+                            $matched_city_html .= '<div class="lr-near-you-section">';
+                            $matched_city_html .= '<h2>Rollerskating Near You</h2>';
+                            $matched_city_html .= '<p style="font-size: 0.9em; color: #666;">(Based on your location in ' . esc_html($matched_city['name']) . ')</p>';
+                            $matched_city_html .= $nearby_content;
+                            $matched_city_html .= '</div><hr style="margin: 30px 0;">';
+                        }
                     }
                 }
             }
