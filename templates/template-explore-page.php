@@ -138,9 +138,11 @@ function lr_render_explore_page_content() {
         }
 
         // --- ADMIN DEBUG: Show the FINAL IP being used ---
-        $output .= '<div style="background-color: #fff8e1; border: 1px solid #ffecb3; padding: 15px; margin-bottom: 20px;">';
-        $output .= '<strong>Admin Debug:</strong> IP address being used for geolocation lookup: <strong>' . esc_html($ip_address) . '</strong>';
-        $output .= '</div>';
+        if (current_user_can('manage_options')) {
+            $output .= '<div style="background-color: #fff8e1; border: 1px solid #ffecb3; padding: 15px; margin-bottom: 20px;">';
+            $output .= '<strong>Admin Debug:</strong> IP address being used for geolocation lookup: <strong>' . esc_html($ip_address) . '</strong>';
+            $output .= '</div>';
+        }
         
         $output .= "<!-- DEBUG: Detected IP Address: " . esc_html($ip_address) . " -->\n";
 
