@@ -129,26 +129,22 @@ function lr_render_explore_page_content() {
     $output = '';
     $matched_city_html = '';
 
-    // --- Bot Detection ---
-    $is_bot = false;
-    $bot_user_agents = ['Googlebot', 'Bingbot', 'Slurp', 'DuckDuckBot', 'Baiduspider', 'YandexBot'];
-    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-    foreach ($bot_user_agents as $bot) {
-        if (stripos($user_agent, $bot) !== false) {
-            $is_bot = true;
-            break;
-        }
-    }
-
     // --- City Matching Logic ---
     if (!$is_bot) {
         $ip_address = lr_get_user_ip_address();
-        $output .= "<!-- DEBUG: Detected IP Address: " . esc_html($ip_address) . " -->\n";
 
         if (in_array($ip_address, ['127.0.0.1', '::1'])) {
             $ip_address = '89.150.133.1'; // Copenhagen IP for local testing
-            $output .= "<!-- DEBUG: Local environment detected. Using test IP: " . esc_html($ip_address) . " -->\n";
         }
+
+        // --- ADMIN DEBUG: Show the FINAL IP being used ---
+        if (current_user_can('manage_options')) {
+            $output .= '<div style="background-color: #fff8e1; border: 1px solid #ffecb3; padding: 15px; margin-bottom: 20px;">';
+            $output .= '<strong>Admin Debug:</strong> IP address being used for geolocation lookup: <strong>' . esc_html($ip_address) . '</strong>';
+            $output .= '</div>';
+        }
+        
+        $output .= "<!-- DEBUG: Detected IP Address: " . esc_html($ip_address) . " -->\n";
 
         $response = wp_remote_get('http://ip-api.com/json/' . $ip_address);
 
