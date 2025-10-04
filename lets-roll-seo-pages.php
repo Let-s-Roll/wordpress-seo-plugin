@@ -11,15 +11,18 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
+define('LR_CACHE_VERSION', 'v2'); // Increment to invalidate all caches
+$lr_debug_messages = []; // Global for cache debugging
+
 // Include all necessary files
 if (is_admin()) { require_once plugin_dir_path(__FILE__) . 'admin/admin-page.php'; }
+require_once plugin_dir_path(__FILE__) . 'templates/template-explore-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-country-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-city-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-detail-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-spot.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-event.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-skater.php';
-require_once plugin_dir_path(__FILE__) . 'templates/template-explore-page.php';
 require_once plugin_dir_path(__FILE__) . 'cta-banner.php';
 
 /**
@@ -37,34 +40,56 @@ function lr_is_testing_mode_enabled() {
     return isset($options['testing_mode']) && $options['testing_mode'] === '1';
 }
 
-function lr_get_api_access_token() {
+function lr_get_api_access_token($force_refresh = false) {
+    if ($force_refresh) {
+        delete_transient('lr_api_access_token');
+    }
     $cached_token = get_transient('lr_api_access_token');
     if ($cached_token) return $cached_token;
+
     $options = get_option('lr_options');
     $email = $options['api_email'] ?? '';
     $password = $options['api_pass'] ?? '';
     $auth_url = 'https://beta.web.lets-roll.app/api/auth/signin/email';
-    if (empty($email) || empty($password)) return new WP_Error('no_creds', 'API credentials are not configured.');
-    $response = wp_remote_post($auth_url, ['headers' => ['Content-Type' => 'application/json'], 'body' => json_encode(['email' => $email, 'password' => $password])]);
-    if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) return new WP_Error('auth_failed', 'Could not retrieve access token.');
+
+    if (empty($email) || empty($password)) {
+        return new WP_Error('no_creds', 'API credentials are not configured.');
+    }
+
+    $response = wp_remote_post($auth_url, [
+        'headers' => ['Content-Type' => 'application/json'],
+        'body'    => json_encode(['email' => $email, 'password' => $password])
+    ]);
+
+    // --- IMPROVED ERROR HANDLING ---
+    if (is_wp_error($response)) {
+        return new WP_Error('auth_wp_error', 'Could not connect to authentication server. WP_Error: ' . $response->get_error_message());
+    }
+
+    $response_code = wp_remote_retrieve_response_code($response);
+    if ($response_code !== 200) {
+        return new WP_Error('auth_failed', 'Could not retrieve access token. The API responded with HTTP code: ' . $response_code);
+    }
+    // --- END IMPROVED ERROR HANDLING ---
+
     $body = json_decode(wp_remote_retrieve_body($response));
     $access_token = $body->tokens->access ?? null;
+
     if ($access_token) {
+        // Remove "Bearer " prefix if it exists
+        if (strpos($access_token, 'Bearer ') === 0) {
+            $access_token = substr($access_token, 7);
+        }
         set_transient('lr_api_access_token', $access_token, 55 * MINUTE_IN_SECONDS);
         return $access_token;
     }
-    return new WP_Error('token_missing', 'Access token not found.');
+
+    return new WP_Error('token_missing', 'Access token not found in API response.');
 }
 
-/**
- * Retrieves data for a single event using the /aggregates endpoint.
- *
- * @param string $event_id The ID of the event to fetch.
- * @return object|null The event object or null if not found.
- */
 function lr_get_single_event_data($event_id) {
     $event = false;
-    $transient_key = 'lr_event_data_v2_' . $event_id;
+    $transient_key = LR_CACHE_VERSION . '_lr_event_data_v2_' . $event_id;
 
     if (!lr_is_testing_mode_enabled()) {
         $event = get_transient($transient_key);
@@ -90,13 +115,74 @@ function lr_get_single_event_data($event_id) {
 }
 
 
-function lr_fetch_api_data($token, $endpoint, $params) {
-    if (is_wp_error($token)) return $token;
-    $api_base_url = 'https://beta.web.lets-roll.app/api/';
-    $full_url = add_query_arg($params, $api_base_url . $endpoint);
-    $response = wp_remote_get($full_url, ['headers' => ['Authorization' => $token]]);
-    if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) return new WP_Error('fetch_failed', 'Failed to fetch API data.');
-    return json_decode(wp_remote_retrieve_body($response));
+function lr_fetch_api_data($access_token, $endpoint, $params) {
+    global $lr_debug_messages;
+    $transient_key = LR_CACHE_VERSION . '_lr_api_cache_' . md5($endpoint . serialize($params));
+
+    // --- Caching Logic ---
+    if (!lr_is_testing_mode_enabled()) {
+        $cached_data = get_transient($transient_key);
+        if (false !== $cached_data) {
+            if (current_user_can('manage_options')) $lr_debug_messages[] = "CACHE HIT: " . $endpoint;
+            return $cached_data;
+        }
+    }
+    if (current_user_can('manage_options')) $lr_debug_messages[] = "CACHE MISS: " . $endpoint;
+
+    // --- API Fetching Logic ---
+    $base_url = 'https://beta.web.lets-roll.app/api/';
+    $url = $base_url . $endpoint;
+    if (!empty($params)) {
+        $url = add_query_arg($params, $url);
+    }
+
+    $args = [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $access_token,
+            'Content-Type'  => 'application/json',
+        ],
+        'timeout' => 20,
+    ];
+
+    $response = wp_remote_get($url, $args);
+    $response_code = wp_remote_retrieve_response_code($response);
+
+    // --- Retry Logic for Expired Token ---
+    if (!is_wp_error($response) && $response_code === 401) {
+        $new_access_token = lr_get_api_access_token(true); // Force refresh
+        if (is_wp_error($new_access_token)) {
+            return new WP_Error('reauth_failed', 'The API token was invalid and an attempt to re-authenticate failed. Please check API credentials in settings.');
+        }
+        
+        // Retry the request with the new token
+        $args['headers']['Authorization'] = 'Bearer ' . $new_access_token;
+        $response = wp_remote_get($url, $args);
+        $response_code = wp_remote_retrieve_response_code($response);
+
+        if ($response_code !== 200) {
+             return new WP_Error('retry_failed', 'Re-authentication was successful, but the subsequent API call failed with code ' . $response_code . '. The API may be temporarily unavailable.');
+        }
+    }
+
+    if (is_wp_error($response)) {
+        return $response;
+    }
+    
+    if ($response_code !== 200) {
+        return new WP_Error('api_error', 'The API returned an unexpected response code: ' . $response_code);
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body);
+
+    // --- Cache the successful result ---
+    if (!empty($data)) {
+        if (!lr_is_testing_mode_enabled()) {
+            set_transient($transient_key, $data, 24 * HOUR_IN_SECONDS);
+        }
+    }
+
+    return $data;
 }
 
 function lr_get_location_data() {

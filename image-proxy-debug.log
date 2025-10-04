@@ -1,0 +1,17 @@
+2025-10-04 12:29:33 - Image proxy script started.
+2025-10-04 12:29:33 - Searching for wp-load.php...
+2025-10-04 12:29:33 - Found wp-load.php at: E:\Local Wordpress Sites\lets-roll-plugin-development-playground\app\public/wp-load.php
+2025-10-04 12:29:33 - Successfully included wp-load.php.
+2025-10-04 12:29:33 - Successfully included wp-load.php.
+2025-10-04 12:29:33 - Successfully included lets-roll-seo-pages.php.
+2025-10-04 12:29:33 - Successfully included lets-roll-seo-pages.php.
+2025-10-04 12:29:33 - Attempting to get access token...
+2025-10-04 12:29:33 - Attempting to get access token...
+2025-10-04 12:29:33 - Successfully retrieved access token.
+2025-10-04 12:29:33 - Successfully retrieved access token.
+2025-10-04 12:29:33 - Constructed API URL: https://beta.web.lets-roll.app/api/attachment/64c6e3ebeb7575f3e1c12f27/content/processed?width=400&height=240&quality=75
+2025-10-04 12:29:33 - Fetching image from API...
+//beta.web.lets-roll.app/api/attachment/64ab47e3a8c9f4e1120c21af/content/processed?width=400&height=240&quality=75
+2025-10-04 12:29:33 - Fetching image from API...
+2025-10-04 12:29:34 - FATAL: Failed to fetch image from API. Error: HTTP Code: 404
+2025-10-04 12:29:34 - FATAL: Failed to fetch image from API. Error: HTTP Code: 404

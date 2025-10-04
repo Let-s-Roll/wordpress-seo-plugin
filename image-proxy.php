@@ -50,7 +50,10 @@ switch ($type) {
 $initial_image_url = add_query_arg($api_params, $api_base_url . $api_endpoint);
 
 // --- (Rest of the script for fetching and serving the image remains the same) ---
-$initial_response = wp_remote_get($initial_image_url, ['headers' => ['Authorization' => $access_token], 'redirection' => 0]);
+$initial_response = wp_remote_get($initial_image_url, [
+    'headers' => ['Authorization' => 'Bearer ' . $access_token],
+    'redirection' => 0
+]);
 if (is_wp_error($initial_response) || !in_array(wp_remote_retrieve_response_code($initial_response), [301, 302, 307])) { header("HTTP/1.1 502"); echo "API redirect failed."; exit; }
 
 $s3_url = wp_remote_retrieve_header($initial_response, 'location');
@@ -73,4 +76,3 @@ if (!is_wp_error($image_response) && wp_remote_retrieve_response_code($image_res
 } else {
     header("HTTP/1.1 502"); echo "Failed to fetch from S3."; exit;
 }
-
