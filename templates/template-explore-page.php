@@ -37,8 +37,13 @@ function lr_render_nearby_grid($items, $type) {
                 $name = $item->name ?? 'Skate Event';
                 $url = home_url('/events/' . $item->_id . '/');
                 $alt_text = 'Image for ' . esc_attr($name);
-                if (!empty($item->attachments)) {
-                     $image_url = plugin_dir_url(__FILE__) . '../image-proxy.php?type=event_attachment&id=' . $item->attachments[0]->_id . '&session_id=' . $item->_id . '&width=400&quality=75';
+                // --- FIX: Fetch attachments separately, like the city page does ---
+                $access_token = lr_get_api_access_token();
+                if (!is_wp_error($access_token)) {
+                    $attachments = lr_fetch_api_data($access_token, 'roll-session/' . $item->_id . '/attachments', []);
+                    if (!is_wp_error($attachments) && !empty($attachments)) {
+                        $image_url = plugin_dir_url(__FILE__) . '../image-proxy.php?type=event_attachment&id=' . $attachments[0]->_id . '&session_id=' . $item->_id . '&width=400&quality=75';
+                    }
                 }
                 break;
             case 'skaters':
