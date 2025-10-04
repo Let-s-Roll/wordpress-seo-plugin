@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.0] - 2025-10-04
+
+### ✨ New Features
+
+*   **Breadcrumb Navigation:** Added breadcrumb navigation to the Explore, Country, City, and Detail pages to improve user experience and SEO. The breadcrumbs are fully AMP-compatible.
+
 ## [1.2.9] - 2025-10-04
 
 ### ⏪ Reverts

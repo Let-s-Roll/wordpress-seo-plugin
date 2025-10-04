@@ -7,7 +7,7 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
     if (!$city_details) return '<p>Location not found.</p>';
 
     $access_token = lr_get_api_access_token();
-    $output = '';
+    $output = lr_get_breadcrumbs();
 
     if ($page_type === 'skatespots') {
         // --- REVISED Logic for Skate Spots with Custom Query Parameter Pagination ---

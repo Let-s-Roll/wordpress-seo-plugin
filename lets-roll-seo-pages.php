@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Let's Roll SEO Pages
  * Description:       Dynamically generates pages for skate locations, skaters, and events.
- * Version:           1.2.9
+ * Version:           1.3.0
  * Author:            Your Name
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -208,6 +208,41 @@ function lr_get_country_details($country_slug) {
 function lr_get_city_details($country_slug, $city_slug) {
     $country = lr_get_country_details($country_slug);
     return $country['cities'][$city_slug] ?? null;
+}
+
+/**
+ * Generates and displays breadcrumb navigation for the SEO pages.
+ *
+ * @return string HTML for the breadcrumbs.
+ */
+function lr_get_breadcrumbs() {
+    $breadcrumbs = '<nav class="lr-breadcrumbs">';
+    $breadcrumbs .= '<a href="' . home_url('/explore/') . '">Explore</a>';
+
+    $country_slug = get_query_var('lr_country');
+    $city_slug = get_query_var('lr_city');
+    $page_type = get_query_var('lr_page_type');
+
+    if ($country_slug) {
+        $country_details = lr_get_country_details($country_slug);
+        if ($country_details) {
+            $breadcrumbs .= ' &gt; <a href="' . home_url('/' . $country_slug . '/') . '">' . esc_html($country_details['name']) . '</a>';
+        }
+    }
+
+    if ($city_slug) {
+        $city_details = lr_get_city_details($country_slug, $city_slug);
+        if ($city_details) {
+            $breadcrumbs .= ' &gt; <a href="' . home_url('/' . $country_slug . '/' . $city_slug . '/') . '">' . esc_html($city_details['name']) . '</a>';
+        }
+    }
+
+    if ($page_type) {
+        $breadcrumbs .= ' &gt; <span>' . esc_html(ucfirst($page_type)) . '</span>';
+    }
+
+    $breadcrumbs .= '</nav>';
+    return $breadcrumbs;
 }
 
 /**
@@ -570,12 +605,31 @@ function lr_display_cta_banner() {
 add_action('wp_footer', 'lr_display_cta_banner');
 add_action('amp_post_template_footer', 'lr_display_cta_banner');
 
-function lr_add_mobile_spacing() {
+function lr_add_custom_styles() {
     if (get_query_var('lr_country') || get_query_var('lr_single_type') || get_query_var('lr_is_explore_page')) {
-        echo '<style>@media (max-width: 768px) { .entry-content, .post-content, .page-content { padding-left: 15px !important; padding-right: 15px !important; } }</style>';
+        echo '<style>
+            @media (max-width: 768px) { 
+                .entry-content, .post-content, .page-content { 
+                    padding-left: 15px !important; 
+                    padding-right: 15px !important; 
+                } 
+            }
+            .lr-breadcrumbs {
+                margin-bottom: 1.5em;
+                font-size: 0.9em;
+                color: #555;
+            }
+            .lr-breadcrumbs a {
+                color: #555;
+                text-decoration: none;
+            }
+            .lr-breadcrumbs a:hover {
+                text-decoration: underline;
+            }
+        </style>';
     }
 }
-add_action('wp_head', 'lr_add_mobile_spacing');
+add_action('wp_head', 'lr_add_custom_styles');
 
 /**
  * =================================================================================

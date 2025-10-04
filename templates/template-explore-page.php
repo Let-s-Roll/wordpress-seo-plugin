@@ -136,7 +136,7 @@ function lr_get_and_render_nearby_content($access_token, $lat, $lon, $radius_km 
 
 
 function lr_render_explore_page_content() {
-    $output = '';
+    $output = lr_get_breadcrumbs();
     $matched_city_html = '';
 
     // --- Primary Authentication & Debugging ---

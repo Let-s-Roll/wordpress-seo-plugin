@@ -17,7 +17,7 @@ function lr_render_city_page_content($country_slug, $city_slug) {
     if (!$city_details) return '<p>City not found.</p>';
 
     $access_token = lr_get_api_access_token();
-    $output = '';
+    $output = lr_get_breadcrumbs();
 
     // --- (CSS remains the same) ---
     $output .= '

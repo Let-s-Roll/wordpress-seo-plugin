@@ -7,7 +7,8 @@ function lr_render_country_page_content($country_slug) {
     $country_details = lr_get_country_details($country_slug);
     if (!$country_details) return '<p>Country not found.</p>';
 
-    $output = '<p>Welcome to the main page for skating in ' . esc_html($country_details['name']) . '.</p>';
+    $output = lr_get_breadcrumbs();
+    $output .= '<p>Welcome to the main page for skating in ' . esc_html($country_details['name']) . '.</p>';
     $output .= '<h2>Cities in ' . esc_html($country_details['name']) . ':</h2>';
     $output .= '<ul>';
     foreach ($country_details['cities'] as $city_slug => $city) {
