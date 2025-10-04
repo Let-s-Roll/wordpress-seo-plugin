@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-define('LR_CACHE_VERSION', 'v2'); // Increment to invalidate all caches
+define('LR_CACHE_VERSION', 'v3'); // Increment to invalidate all caches
 $lr_debug_messages = []; // Global for cache debugging
 
 // Include all necessary files

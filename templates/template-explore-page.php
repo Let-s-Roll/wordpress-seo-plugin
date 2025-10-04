@@ -98,7 +98,7 @@ function lr_get_and_render_nearby_content($access_token, $lat, $lon, $radius_km 
     }
 
     // Fetch Nearby Events
-    $events_params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw']];
+    $events_params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
     $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $events_params);
     if (!is_wp_error($events_data) && !empty($events_data->rollEvents)) {
         $now = new DateTime();
@@ -110,6 +110,9 @@ function lr_get_and_render_nearby_content($access_token, $lat, $lon, $radius_km 
         if(!empty($upcoming_events)) {
             $output .= '<hr style="margin: 20px 0;"><h3>Upcoming Events</h3>';
             $output .= '<div class="lr-grid">' . lr_render_nearby_grid($upcoming_events, 'events') . '</div>';
+            if ($country_slug && $city_slug) {
+                $output .= $render_view_all(home_url('/' . $country_slug . '/' . $city_slug . '/events/'), 'View All Events');
+            }
         }
     }
 
