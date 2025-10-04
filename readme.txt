@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -11,11 +11,13 @@ A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, e
 This plugin was created to solve a key business objective: leveraging the rich, user-generated data within the Let's Roll mobile app to create a vast network of SEO-optimized landing pages on the main WordPress website. The primary goal is to attract organic search traffic from users searching for local roller skating information (e.g., "skate spots in berlin", "rollerskating events near me").
 The plugin does not store content locally. Instead, it acts as a sophisticated rendering engine, creating "virtual pages" on the fly by fetching all necessary data from the Let's Roll API in real-time.
 
+A key feature is the dynamic "Near You" section on the Explore page. This uses a robust, server-side IP geolocation system to identify the user's location and match it to a known city in our database. If a match is found, it displays relevant local content. This section is hidden from search engine bots to ensure clean indexing. The Explore page also includes a curated "Featured Cities" section to highlight major skating hubs.
+
 == Core Architecture ==
 The plugin is built on a "Virtual Post" architecture, which is a robust and standard WordPress development pattern. This was chosen to ensure maximum compatibility with existing themes and plugins, and to solve issues with URL conflicts and content duplication that arise from more basic approaches.
 The core process is as follows:
 Precise URL Rewrites: The plugin programmatically generates a set of highly specific URL rewrite rules based on the locations defined in its settings. This ensures that it only responds to its own URLs (e.g., /germany/berlin/, /spots/{id}) and NEVER interferes with real WordPress pages like /news/ or /about/.
-Virtual Post Injection: When a user visits one of these URLs, the plugin hooks into WordPress's the_posts filter. This happens very early in the page load process. The plugin then creates a single, "fake" post object in memory.
+Virtual Post Injection: When a user visits one of these URLs (including the main /explore/ page), the plugin hooks into WordPress's the_posts filter. This happens very early in the page load process. The plugin then creates a single, "fake" post object in memory.
 Dynamic Content Generation: The plugin generates the title and content for this virtual post by making one or more secure, server-side calls to the Let's Roll API.
 Theme Rendering: The plugin hands this single, complete virtual post back to WordPress. The active theme then renders this post just like it would any normal page, ensuring all theme styling, headers, footers, and other plugins (like AMP) work correctly.
 This architecture is stable, scalable, and avoids the common pitfalls of dynamic page generation in WordPress.
@@ -61,7 +63,7 @@ Navigate to Settings -> Permalinks and click "Save Changes". This is a critical 
 == Key Features ==
 Dynamic Page Hierarchy: Creates pages for countries, cities, and detail lists (spots, skaters, events).
 Individual Item Pages: Creates unique, shareable URLs for every single spot, skater, and event.
-Secure API Handling: All API calls are made on the server-side. The access token is securely cached in a WordPress transient to minimize authentication requests.
+Secure & Robust API Handling: All API calls are made on the server-side. The access token is securely cached, and the system includes self-healing logic to automatically re-authenticate if a token expires. IP detection is hardened to work behind reverse proxies.
 Configurable Locations: All countries, cities, coordinates, and descriptions are managed from a single JSON object on the settings page, making it easy to update and expand.
 
 Sitemap Generation: Includes a utility to generate a CSV sitemap of all primary pages, formatted for import into SEO plugins like AIOSEO.
