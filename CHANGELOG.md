@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.9] - 2025-10-04
+
+### ⏪ Reverts
+
+*   Reverted the changes from version 1.3.0, which introduced significant refactoring and new functions that caused instability. This version restores the previous, stable functionality.
+
 ## [1.3.0] - 2025-10-04
 
 This major update introduces a dynamic "Near You" section to the Explore page and significantly hardens the plugin's API interactions for production environments.
