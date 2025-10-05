@@ -1,6 +1,38 @@
 <?php
 /**
- * Renders a simple, static, dismissible CTA banner using a CSS-only trick for AMP compatibility.
+ * CTA (Call To Action) Banner Component.
+ *
+ * This file is responsible for rendering a persistent, dismissible call-to-action banner
+ * that encourages users to download the mobile app. It is designed to be included in various
+ * page templates across the plugin.
+ *
+ * The banner is AMP-compatible and uses a CSS-only "checkbox hack" to handle the dismiss
+ * functionality without any JavaScript.
+ *
+ * @package    Lets_Roll_SEO_Pages
+ * @subpackage Templates
+ * @since      1.3.0
+ */
+
+/**
+ * Renders the app download CTA banner.
+ *
+ * This function outputs the HTML and CSS for a fixed-position banner at the bottom of the screen.
+ * It includes links to the iOS App Store and Google Play Store. The dismiss functionality is
+ * handled by a checkbox and label, a common and effective technique for AMP pages.
+ *
+ * @since 1.3.0
+ *
+ * @param string $cta_text The compelling text to display in the banner.
+ *                         Example: "For the best experience, get the Let's Roll app!"
+ *
+ * @return void This function echoes its output directly and does not return a value.
+ *
+ * @example
+ * // To use this in a template file:
+ * if (function_exists('lr_render_cta_banner')) {
+ *     lr_render_cta_banner('Find more spots, events, and skaters in the app!');
+ * }
  */
 function lr_render_cta_banner($cta_text) {
     // These links are for the app stores.
