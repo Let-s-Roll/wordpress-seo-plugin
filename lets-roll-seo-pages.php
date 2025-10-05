@@ -600,6 +600,7 @@ function lr_display_cta_banner() {
     elseif ($single_type === 'skaters') { $cta_text = 'Connect with this skater and many others from around the world. Share your profile and track your sessions with the Let\'s Roll app!'; }
     elseif ($single_type === 'events') { $cta_text = 'Ready to roll? See who\'s going and coordinate with friends in the Let\'s Roll app. Install now!'; }
     elseif ($city_name) { $cta_text = 'Get the full picture of the ' . $city_name . ' skate scene. Find spots, events, and skaters near you with the Let\'s Roll app!'; }
+    elseif (get_query_var('lr_is_explore_page')) { $cta_text = 'Take the next step! Find even more spots, events, and skaters in the Let\'s Roll app.'; }
     if ($cta_text) { lr_render_cta_banner($cta_text); }
 }
 add_action('wp_footer', 'lr_display_cta_banner');

@@ -316,5 +316,12 @@ function lr_render_explore_page_content() {
         $output .= '</div>';
     }
 
+    // Render the CTA banner at the end of the page content
+    if (function_exists('lr_render_cta_banner')) {
+        ob_start();
+        lr_render_cta_banner('Take the next step! Find even more spots, events, and skaters in the Let\'s Roll app.');
+        $output .= ob_get_clean();
+    }
+
     return $output;
 }

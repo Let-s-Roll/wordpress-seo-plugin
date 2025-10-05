@@ -4,7 +4,12 @@
 
 ### ✨ New Features
 
+*   **CTA Banner on Explore Page:** Added the app download CTA banner to the main Explore page to improve user conversion.
 *   **Breadcrumb Navigation:** Added breadcrumb navigation to the Explore, Country, City, and Detail pages to improve user experience and SEO. The breadcrumbs are fully AMP-compatible.
+
+### 🐛 Bug Fixes
+
+*   **CTA Banner Formatting:** Corrected the implementation of the CTA banner on the Explore page to ensure it renders at full-width by hooking into the `wp_footer` action, consistent with other page templates.
 
 ###  housekeeping
 
