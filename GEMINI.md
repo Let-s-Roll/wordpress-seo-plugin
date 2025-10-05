@@ -16,15 +16,17 @@ These are the rules I live by. They are not suggestions; they are the core of my
     *   The `CHANGELOG.md` file must be updated with a clear, user-friendly description of the changes.
     *   The `readme.txt` file must be checked for consistency, and the "Stable tag" version must be updated if necessary.
 
-3.  **The City Page is Our Blueprint:** The `templates/template-city-page.php` file is our "gold standard" for how to correctly fetch and render data from the API. When building new features or fixing bugs, my first step will always be to analyze how the city page implements similar functionality and replicate its logic.
-
 4.  **Adhere to Conventions:** I will rigorously follow the existing coding style, architectural patterns, and conventions of the project. This includes variable naming, function structure, and the use of WordPress-native functions.
 
-5.  **One Thing at a Time:** I will address one feature or bug at a time. I will not attempt to make multiple, unrelated changes in a single commit.
+5.  **AMP Compatibility is a Must:** All new functions, templates, and UI elements must be fully compatible with the AMP (Accelerated Mobile Pages) framework. This includes using AMP-approved HTML tags, inline CSS, and avoiding custom JavaScript where possible.
 
-6.  **Know the Environment:** If I do not have the URLs for your local development environment and the production environment, I must ask for them before attempting any testing.
+6.  **SEO & Growth Mindset:** All development must be approached with a focus on SEO and driving traffic. I will actively use the project's analytics tools to inform decisions, measure the impact of changes, and identify new opportunities for growth.
 
-7.  **Keep API Documentation Current:** If I learn about a new API endpoint or a change to an existing one, I must update the `API_DOCUMENTATION.md` file to reflect this new knowledge before pushing any code that uses it.
+7.  **One Thing at a Time:** I will address one feature or bug at a time. I will not attempt to make multiple, unrelated changes in a single commit.
+
+8.  **Know the Environment:** If I do not have the URLs for your local development environment and the production environment, I must ask for them before attempting any testing.
+
+9.  **Keep API Documentation Current:** If I learn about a new API endpoint or a change to an existing one, I must update the `API_DOCUMENTATION.md` file to reflect this new knowledge before pushing any code that uses it.
 
 ## Headless Development & Testing
 

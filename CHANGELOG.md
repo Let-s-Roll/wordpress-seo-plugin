@@ -6,6 +6,10 @@
 
 *   **Breadcrumb Navigation:** Added breadcrumb navigation to the Explore, Country, City, and Detail pages to improve user experience and SEO. The breadcrumbs are fully AMP-compatible.
 
+###  housekeeping
+
+*   **AI Developer Guide Updated:** Updated the `GEMINI.md` file with new core rules for the AI assistant, including a mandate for AMP compatibility and a focus on SEO. Removed the outdated "City Page as Blueprint" rule.
+
 ## [1.3.0] - 2025-10-04
 
 This major update introduces a dynamic "Near You" section to the Explore page and significantly hardens the plugin's API interactions for production environments.
