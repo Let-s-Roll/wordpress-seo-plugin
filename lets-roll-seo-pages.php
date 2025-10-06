@@ -15,7 +15,11 @@ define('LR_CACHE_VERSION', 'v3'); // Increment to invalidate all caches
 $lr_debug_messages = []; // Global for cache debugging
 
 // Include all necessary files
-if (is_admin()) { require_once plugin_dir_path(__FILE__) . 'admin/admin-page.php'; }
+if (is_admin()) { 
+    require_once plugin_dir_path(__FILE__) . 'admin/admin-page.php'; 
+    require_once plugin_dir_path(__FILE__) . 'admin/brevo-sync-page.php';
+    require_once plugin_dir_path(__FILE__) . 'brevo-integration.php';
+}
 require_once plugin_dir_path(__FILE__) . 'templates/template-explore-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-country-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-city-page.php';
@@ -24,6 +28,26 @@ require_once plugin_dir_path(__FILE__) . 'templates/template-single-spot.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-event.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-skater.php';
 require_once plugin_dir_path(__FILE__) . 'cta-banner.php';
+
+// Hook for adding admin menus
+add_action('admin_menu', 'lr_setup_admin_menu');
+
+function lr_setup_admin_menu() {
+    // Add Brevo Sync Page
+    add_options_page(
+        'Brevo Sync',           // Page title
+        'Brevo Sync',           // Menu title
+        'manage_options',       // Capability
+        'lr-brevo-sync',        // Menu slug
+        'lr_render_brevo_sync_page' // Function that renders the page
+    );
+}
+
+// Register settings for the Brevo page
+function lr_brevo_settings_init() {
+    register_setting('lr_brevo_options', 'lr_brevo_options');
+}
+add_action('admin_init', 'lr_brevo_settings_init');
 
 /**
  * =================================================================================

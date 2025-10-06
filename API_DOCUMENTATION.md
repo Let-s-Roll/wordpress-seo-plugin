@@ -84,4 +84,36 @@ This document outlines the known API endpoints used by the Let's Roll SEO Pages 
     *   `maxAgeInDays`: How recently the skater must have been active (e.g., `90`).
     *   `limit`: The maximum number of skaters to return.
 *   **Expected Response Structure:**
-    *   An object containing a `userProfiles` property, which is an **array** of skater profile objects.
+    *   A complex object containing two main arrays: `activities` and `userProfiles`.
+    *   The `activities` array contains objects with a `userId` and a `distance` (in meters).
+    *   The `userProfiles` array contains the de-duplicated profiles for the users in the `activities` list.
+    *   **To get geographically accurate results, you must first filter the `activities` by `distance` and then use the `userId`s from the filtered list to select the correct `userProfiles`.**
+    *   **Important:** The `userProfiles` objects in this response **do not** contain email addresses.
+    *   **Full Response Example:**
+        ```json
+        {
+            "activities": [
+                {
+                    "_id": "62979660adfdcd546d65a8a9",
+                    "activityType": "app-usage",
+                    "userId": "619a2fb42262d8c9412453d8",
+                    "distance": 2370.44
+                }
+            ],
+            "userProfiles": [
+                {
+                    "userId": "619a2fb42262d8c9412453d8",
+                    "firstName": "Irka from LR team",
+                    "skateName": "unicorn",
+                    "publicBio": "Hey, im Irka...",
+                    "_id": "619a2fe3e3710b09c867c1f4"
+                }
+            ]
+        }
+        ```
+
+*   **Endpoint:** `user/profile/{id}`
+*   **Purpose:** Fetches the full profile for a single skater, which includes their email address.
+*   **Known Parameters:** None (ID is in the path).
+*   **Expected Response Structure:**
+    *   A full user profile object, including an `email` property.
