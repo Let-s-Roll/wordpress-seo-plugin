@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.3] - 2025-10-06
+
+### 🐛 Bug Fixes
+
+*   **Fixed CTA Banner on Explore Page:** Resolved an issue where the Call-to-Action banner on the `/explore` page was duplicated, incorrectly positioned at the top of the page, and had a non-functional close button. The banner now renders correctly in the footer and is fully functional, matching the behavior on all other pages.
+*   **Corrected Mobile Button Sizes:** Fixed a visual bug in the CTA banner where the Apple App Store and Google Play Store buttons were rendered at different sizes on mobile devices. Both buttons now have a consistent height and alignment.
+
 ## [1.3.2] - 2025-10-06
 
 ###  housekeeping

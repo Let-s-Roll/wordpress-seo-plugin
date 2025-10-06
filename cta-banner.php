@@ -15,29 +15,13 @@
  */
 
 /**
- * Renders the app download CTA banner.
+ * Injects the CSS for the CTA banner into the page head.
+ * This function is hooked into 'wp_head' and 'amp_post_template_css' to ensure
+ * the styles are loaded correctly on both standard and AMP pages.
  *
- * This function outputs the HTML and CSS for a fixed-position banner at the bottom of the screen.
- * It includes links to the iOS App Store and Google Play Store. The dismiss functionality is
- * handled by a checkbox and label, a common and effective technique for AMP pages.
- *
- * @since 1.3.0
- *
- * @param string $cta_text The compelling text to display in the banner.
- *                         Example: "For the best experience, get the Let's Roll app!"
- *
- * @return void This function echoes its output directly and does not return a value.
- *
- * @example
- * // To use this in a template file:
- * if (function_exists('lr_render_cta_banner')) {
- *     lr_render_cta_banner('Find more spots, events, and skaters in the app!');
- * }
+ * @since 1.3.1
  */
-function lr_render_cta_banner($cta_text) {
-    // These links are for the app stores.
-    $ios_link = 'https://apps.apple.com/app/apple-store/id1576102938?pt=123205760&ct=explore_pages&mt=8';
-    $android_link = 'https://play.google.com/store/apps/details?id=com.letsroll.android&referrer=utm_source%3Dexplore_pages%26utm_medium%3Dweb';
+function lr_cta_banner_styles() {
     ?>
     <style>
         /* CSS-only dismissible banner */
@@ -105,20 +89,36 @@ function lr_render_cta_banner($cta_text) {
             .lr-cta-banner { padding-bottom: 20px; }
             .lr-cta-icon { margin-right: 0; margin-bottom: 10px; }
             .lr-cta-content { margin: 0 0 15px 0; }
-            .lr-cta-buttons { justify-content: center; width: 100%; }
-            .lr-cta-buttons a { max-width: 45%; height: auto; }
-            .lr-cta-buttons img { width: 100%; height: auto; }
+            .lr-cta-buttons { display: flex; justify-content: center; align-items: center; width: 100%; gap: 10px; }
+            .lr-cta-buttons a { display: inline-block; }
+            .lr-cta-buttons img { height: 40px; width: auto; }
             .lr-cta-close { top: 0px; right: 5px; }
         }
     </style>
+    <?php
+}
+add_action('wp_head', 'lr_cta_banner_styles');
+add_action('amp_post_template_css', 'lr_cta_banner_styles');
 
+
+/**
+ * Renders the HTML for the app download CTA banner.
+ *
+ * @since 1.3.0
+ *
+ * @param string $cta_text The compelling text to display in the banner.
+ */
+function lr_render_cta_banner($cta_text) {
+    $ios_link = 'https://apps.apple.com/app/apple-store/id1576102938?pt=123205760&ct=explore_pages&mt=8';
+    $android_link = 'https://play.google.com/store/apps/details?id=com.letsroll.android&referrer=utm_source%3Dexplore_pages%26utm_medium%3Dweb';
+    ?>
     <input type="checkbox" id="lr-cta-checkbox">
     <div class="lr-cta-banner">
         <label for="lr-cta-checkbox" class="lr-cta-close">&times;</label>
         <div class="lr-cta-banner-inner">
             <div class="lr-cta-main-content">
                 <div class="lr-cta-icon">
-                    <img src="https://lets-roll.app/wp-content/uploads/main-logo.svg" alt="Let's Roll App Icon">
+                    <img src="https://lets-roll.app/wp-content/uploads/main-logo.svg" alt="Let's Roll App Icon" width="50" height="50">
                 </div>
                 <div class="lr-cta-content">
                     <p><?php echo esc_html($cta_text); ?></p>
@@ -126,14 +126,13 @@ function lr_render_cta_banner($cta_text) {
             </div>
             <div class="lr-cta-buttons">
                 <a href="<?php echo esc_url($ios_link); ?>" target="_blank" rel="noopener noreferrer">
-                    <img src="https://lets-roll.app/wp-content/uploads/Download_on_the_App_Store_Badge.svg" alt="Download on the App Store">
+                    <img src="https://lets-roll.app/wp-content/uploads/Download_on_the_App_Store_Badge.svg" alt="Download on the App Store" width="120" height="40">
                 </a>
                 <a href="<?php echo esc_url($android_link); ?>" target="_blank" rel="noopener noreferrer">
-                    <img src="https://lets-roll.app/wp-content/uploads/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play">
+                    <img src="https://lets-roll.app/wp-content/uploads/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" width="135" height="40">
                 </a>
             </div>
         </div>
     </div>
     <?php
 }
-

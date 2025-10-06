@@ -309,18 +309,10 @@ function lr_render_explore_page_content() {
     global $lr_debug_messages;
     if (current_user_can('manage_options') && !empty($lr_debug_messages)) {
         $output .= '<div style="background-color: #e8f5e9; border: 1px solid #c8e6c9; padding: 15px; margin-top: 20px;">';
-        $output .= '<strong>Admin Debug (Cache Status):</strong><br>';
         foreach ($lr_debug_messages as $message) {
             $output .= esc_html($message) . '<br>';
         }
         $output .= '</div>';
-    }
-
-    // Render the CTA banner at the end of the page content
-    if (function_exists('lr_render_cta_banner')) {
-        ob_start();
-        lr_render_cta_banner('Take the next step! Find even more spots, events, and skaters in the Let\'s Roll app.');
-        $output .= ob_get_clean();
     }
 
     return $output;
