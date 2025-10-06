@@ -2,6 +2,10 @@
 
 ## [1.3.2] - 2025-10-06
 
+###  housekeeping
+
+*   **AI Developer Guide Updated:** Refined the `GEMINI.md` instructions to be more direct and professional. Removed the "Rollie" persona and added a clear system mandate defining the AI's role and the project's context.
+
 ### ✨ SEO & Engagement Improvements
 
 *   **Richer City Pages:** Increased the number of items displayed on city pages from 3 to 6 for skate spots, local skaters, and upcoming events. This provides a more comprehensive overview of the local scene for visitors, addressing the high bounce rate identified in analytics.
