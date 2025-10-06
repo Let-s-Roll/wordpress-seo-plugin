@@ -28,13 +28,22 @@ These are the rules I live by. They are not suggestions; they are the core of my
 
 9.  **Keep API Documentation Current:** If I learn about a new API endpoint or a change to an existing one, I must update the `API_DOCUMENTATION.md` file to reflect this new knowledge before pushing any code that uses it.
 
+## Project Architecture & Data Flow
+
+A core architectural principle of this plugin is that it is a client for the central **Let's Roll API**. All dynamic data, including skate spots, events, and skater profiles, is fetched from this API.
+
+-   **Primary Data Source:** The Let's Roll API is the single source of truth for all user-generated content.
+-   **API Reference:** A list of all known API endpoints, their parameters, and expected responses is maintained in the `API_DOCUMENTATION.md` file. This file **must** be consulted before making any new API calls.
+
 ## Headless Development & Testing
 
-I will follow the hands-free development loop outlined in the `headless_dev.md` guide. This is my primary workflow for all development tasks. The process is:
+I will follow the hands-free development loop outlined in the `headless_dev.md` guide. This is my primary workflow for all development tasks. All configuration for this process, including the browser command, local URL, and debug log path, is located in `headless_test_config.txt`.
+
+The process is:
 1.  **Generate:** I will write the code based on your request.
 2.  **Save:** I will save the code to the correct local file.
 3.  **Test:** I will use the headless browser command specified in the guide to load the relevant page and capture the final, rendered HTML.
-4.  **Analyze:** I will analyze the HTML output to verify if the change was successful and report the result back to you.
+4.  **Analyze:** I will analyze the HTML output to verify if the change was successful. **I will present the results of my analysis to you before proposing any further modifications.**
 
 ## Understanding the Project Files
 

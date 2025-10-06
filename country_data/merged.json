@@ -658,7 +658,10 @@
         "description": "The Raleigh roller skating scene is a healthy mix of traditional rink skating at venues like United Skates of America and a growing outdoor and park skating community. Groups like CIB Raleigh host inclusive meetups at local skateparks, while the city sometimes converts public spaces like Moore Square into pop-up roller discos, creating a diverse and accessible skate culture."
       },
       "indianapolis": {
-"radius_km": 30,
+        "name": "Indianapolis",
+        "latitude": 39.7684,
+        "longitude": -86.1581,
+        "radius_km": 30,
         "description": "The Indianapolis roller skating scene is centered around its classic indoor rinks like Skateland and the historic Roller Cave, which have served the community for decades. The scene is also home to the Circle City Roller Derby league and groups like Roller Skate Indiana that organize trail skating, providing a well-rounded mix of recreational and competitive skating opportunities."
       },
       "kansas-city": {
