@@ -53,7 +53,7 @@ function lr_render_city_page_content($country_slug, $city_slug) {
 
     if (!is_wp_error($spots_list) && !empty($spots_list)) {
         usort($spots_list, function($a, $b) { return ($b->sessionsCount ?? 0) <=> ($a->sessionsCount ?? 0); });
-        $top_spots = array_slice($spots_list, 0, 3);
+        $top_spots = array_slice($spots_list, 0, 6);
         $output .= $render_grid_start;
         foreach ($top_spots as $spot) {
             $spot_details = lr_fetch_api_data($access_token, 'spots/' . $spot->_id, []);
@@ -91,7 +91,7 @@ function lr_render_city_page_content($country_slug, $city_slug) {
     $skaters_data = lr_fetch_api_data($access_token, 'nearby-activities/v2/skaters', $skaters_params);
 
     if (!is_wp_error($skaters_data) && !empty($skaters_data->userProfiles)) {
-        $top_skaters = array_slice($skaters_data->userProfiles, 0, 3);
+        $top_skaters = array_slice($skaters_data->userProfiles, 0, 6);
         $output .= $render_grid_start;
         foreach ($top_skaters as $profile) {
             if (!empty($profile->skateName)) {
@@ -129,7 +129,7 @@ function lr_render_city_page_content($country_slug, $city_slug) {
             return isset($event->event->endDate) && (new DateTime($event->event->endDate) > $now);
         });
         usort($upcoming_events, function($a, $b) { return strtotime($a->event->startDate) <=> strtotime($b->event->startDate); });
-        $top_events = array_slice($upcoming_events, 0, 3);
+        $top_events = array_slice($upcoming_events, 0, 6);
         
         if (!empty($top_events)) {
             $output .= $render_grid_start;

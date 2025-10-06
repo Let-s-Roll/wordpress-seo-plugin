@@ -156,6 +156,7 @@ function lr_render_explore_page_content() {
     // --- City Matching Logic (only run if we have a valid token) ---
     if (!$is_bot && !is_wp_error($access_token)) {
         $ip_address = lr_get_user_ip_address();
+        error_log('Lets Roll Debug: IP Address: ' . $ip_address);
 
         if (in_array($ip_address, ['127.0.0.1', '::1'])) {
             // For local dev, use Los Angeles data to ensure we have events for testing
@@ -192,6 +193,7 @@ function lr_render_explore_page_content() {
                 if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
                     $geo_data = json_decode(wp_remote_retrieve_body($response));
                     if ($geo_data && $geo_data->status === 'success') {
+                        error_log('Lets Roll Debug: Geolocated Coords: Lat=' . $geo_data->lat . ', Lon=' . $geo_data->lon);
                         if (!lr_is_testing_mode_enabled()) {
                             set_transient($transient_key, $geo_data, 24 * HOUR_IN_SECONDS);
                         }
@@ -219,6 +221,7 @@ function lr_render_explore_page_content() {
                 }
 
                 if ($matched_city) {
+                    error_log('Lets Roll Debug: Matched City: ' . $matched_city['name']);
                     $nearby_content = lr_get_and_render_nearby_content(
                         $access_token,
                         $matched_city['latitude'],
