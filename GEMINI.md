@@ -37,6 +37,19 @@ A core architectural principle of this plugin is that it is a client for the cen
 -   **Primary Data Source:** The Let's Roll API is the single source of truth for all user-generated content.
 -   **API Reference:** A list of all known API endpoints, their parameters, and expected responses is maintained in the `API_DOCUMENTATION.md` file. This file **must** be consulted before making any new API calls.
 
+## City Data Management
+
+To ensure data integrity and efficient processing, all modifications to the city location data must follow a strict protocol. The `country_data/merged.json` file is a critical component of the plugin, but it is too large for direct manipulation.
+
+-   **NEVER Write to `merged.json`:** The `country_data/merged.json` file must be treated as **read-only**. I will never modify this file directly.
+-   **Work on Regional Files:** All changes to city data, including adding, updating, or deleting entries, must be performed on the appropriate regional source file:
+    -   `country_data/americas.json`
+    -   `country_data/apac.json`
+    -   `country_data/emea.json`
+-   **Merge After Modification:** After saving changes to a regional file, I **must** run the `merge_json.py` script located in the `country_data/` directory to regenerate the `merged.json` file. This is the only approved method for updating the merged data.
+
+This process ensures that the data remains consistent and avoids the potential for errors that can arise from handling large, monolithic JSON files.
+
 ## Headless Development & Testing
 
 I will follow the hands-free development loop outlined in the `headless_dev.md` guide. This is my primary workflow for all development tasks. All configuration for this process, including the browser command, local URL, and debug log path, is located in `headless_test_config.txt`.

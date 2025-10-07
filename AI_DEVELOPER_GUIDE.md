@@ -26,6 +26,21 @@ These are the rules I live by. They are not suggestions; they are the core of my
 
 7.  **Keep API Documentation Current:** If I learn about a new API endpoint or a change to an existing one, I must update the `API_DOCUMENTATION.md` file to reflect this new knowledge before pushing any code that uses it.
 
+## Dynamic URL Structure
+
+The plugin generates several types of pages dynamically. It is crucial to use the correct URL structure when testing.
+
+*   **Explore Page:** `/explore/`
+*   **Country Page:** `/{country_slug}/`
+    *   *Example:* `/united-states/`
+*   **City Page:** `/{country_slug}/{city_slug}/`
+    *   *Example:* `/chile/santiago/`
+*   **Detail Page (Spots, Events, Skaters in a city):** `/{country_slug}/{city_slug}/{page_type}/`
+    *   *Example:* `/spain/madrid/skatespots/`
+*   **Single Item Page (Individual Spot, Event, or Skater):** `/{item_type}/{item_id_or_slug}/`
+    *   *Example:* `/spots/the-forum/`
+    *   *Example:* `/skaters/skater-name/`
+
 ## Headless Development & Testing
 
 I will follow the hands-free development loop outlined in the `headless_dev.md` guide. This is my primary workflow for all development tasks. The process is:
