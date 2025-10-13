@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Let's Roll SEO Pages
  * Description:       Dynamically generates pages for skate locations, skaters, and events.
- * Version:           1.3.0
+ * Version:           1.4.1
  * Author:            Your Name
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html

@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.1] - 2025-10-13
+
+### ✨ New Features
+
+*   **Enriched Spot Pages:** Spot pages are now more dynamic and engaging. They feature a "Recent Activity" section that is separated into "Upcoming Events," "Past Events," and "Recent Roll Sessions."
+*   **Dedicated Activity Page:** A new, shareable `/activity/{id}` page has been created to showcase individual skate sessions and posts.
+*   **AMP-Compatible Image Slideshow:** The new activity pages feature an interactive image slideshow powered by `amp-carousel` for a richer user experience.
+*   **Activity Dates:** All events and roll sessions listed on spot pages now display their relevant date, providing better context for users.
+
+### 🐛 Bug Fixes
+
+*   **Event Display Logic:** Corrected a data flow issue where events were not being displayed on spot pages. The fix ensures that all associated user profiles are correctly fetched and utilized.
+*   **UI Spacing:** Fixed a minor whitespace rendering bug to ensure proper spacing between usernames and action text (e.g., "hosted an event").
+
 ## [1.4.0] - 2025-10-06
 
 ### ✨ New Features
