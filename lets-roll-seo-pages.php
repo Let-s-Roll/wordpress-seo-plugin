@@ -765,6 +765,11 @@ function lr_add_custom_styles() {
                 text-decoration: none;
                 color: inherit;
             }
+            .lr-session-date {
+                font-size: 0.9em;
+                color: #666;
+                margin: -5px 0 10px 0;
+            }
             .lr-session-description {
                 margin: 0;
                 font-style: italic;
@@ -801,10 +806,21 @@ function lr_add_custom_styles() {
             .lr-activity-spot-link {
                 margin-top: 20px;
             }
+            .lr-activity-attachments amp-carousel {
+                border: 1px solid #eee;
+                border-radius: 5px;
+            }
         </style>';
     }
 }
 add_action('wp_head', 'lr_add_custom_styles');
+
+function lr_enqueue_amp_scripts() {
+    if (get_query_var('lr_activity_id')) {
+        echo '<script async custom-element="amp-carousel" src="https://cdn.ampproject.org/v0/amp-carousel-0.1.js"></script>';
+    }
+}
+add_action('wp_head', 'lr_enqueue_amp_scripts');
 
 /**
  * =================================================================================

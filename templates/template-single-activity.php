@@ -48,6 +48,7 @@ function lr_render_single_activity_content($activity_id) {
     // --- Attachments ---
     if (!empty($data->attachments)) {
         $output .= '<div class="lr-activity-attachments">';
+        $output .= '<amp-carousel width="16" height="9" layout="responsive" type="slides" controls>';
         foreach ($data->attachments as $attachment) {
             if (!$attachment->isStaticMap) {
                 $proxy_url = plugin_dir_url( __FILE__ ) . '../image-proxy.php';
@@ -58,9 +59,10 @@ function lr_render_single_activity_content($activity_id) {
                     'width' => 800,
                     'quality' => 85
                 ], $proxy_url);
-                $output .= '<img src="' . esc_url($image_url) . '" alt="' . esc_attr($session->name) . '" style="max-width: 100%; height: auto; margin-bottom: 15px; border-radius: 5px;" loading="lazy" />';
+                $output .= '<amp-img src="' . esc_url($image_url) . '" width="16" height="9" layout="responsive" alt="' . esc_attr($session->name) . '"></amp-img>';
             }
         }
+        $output .= '</amp-carousel>';
         $output .= '</div>';
     }
     

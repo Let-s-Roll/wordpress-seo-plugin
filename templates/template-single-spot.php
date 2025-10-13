@@ -143,14 +143,16 @@ function lr_render_single_spot_content($spot_id) {
                     $output .= '<div class="lr-session-item">';
                                                             $output .= '<div class="lr-session-header">';
                                                             $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" class="lr-session-avatar" loading="lazy" width="40" height="40">';
-                                                            $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $display_name . '</a></strong>&nbsp;is hosting an event:';
-                                                            $output .= '</div>';                    $output .= '<div class="lr-session-body">';
-                    $output .= '<p class="lr-session-title"><a href="' . esc_url($activity_url) . '">' . esc_html($event->name) . '</a></p>';
-                    $output .= '</div>';
-                    $output .= '</div>';
-                }
-                $output .= '</div>';
-            }
+                                                                                $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $display_name . '</a></strong>&nbsp;is hosting an event:';
+                                                                                $output .= '</div>';
+                                                                                $output .= '<div class="lr-session-body">';
+                                                                                $output .= '<p class="lr-session-title"><a href="' . esc_url($activity_url) . '">' . esc_html($event->name) . '</a></p>';
+                                                                                $event_date = new DateTime($event->event->startDate);
+                                                                                $output .= '<p class="lr-session-date">' . $event_date->format('F j, Y') . '</p>';
+                                                                                $output .= '</div>';
+                                                                                $output .= '</div>';
+                                                                            }
+                                                                            $output .= '</div>';            }
 
             // --- Render Past Events ---
             if (!empty($past_events)) {
@@ -168,14 +170,16 @@ function lr_render_single_spot_content($spot_id) {
                     $output .= '<div class="lr-session-item">';
                                                             $output .= '<div class="lr-session-header">';
                                                             $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" class="lr-session-avatar" loading="lazy" width="40" height="40">';
-                                                            $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $display_name . '</a></strong>&nbsp;hosted an event:';
-                                                            $output .= '</div>';                    $output .= '<div class="lr-session-body">';
-                    $output .= '<p class="lr-session-title"><a href="' . esc_url($activity_url) . '">' . esc_html($event->name) . '</a></p>';
-                    $output .= '</div>';
-                    $output .= '</div>';
-                }
-                $output .= '</div>';
-            }
+                                                                                $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $display_name . '</a></strong>&nbsp;hosted an event:';
+                                                                                $output .= '</div>';
+                                                                                $output .= '<div class="lr-session-body">';
+                                                                                $output .= '<p class="lr-session-title"><a href="' . esc_url($activity_url) . '">' . esc_html($event->name) . '</a></p>';
+                                                                                $event_date = new DateTime($event->event->startDate);
+                                                                                $output .= '<p class="lr-session-date">' . $event_date->format('F j, Y') . '</p>';
+                                                                                $output .= '</div>';
+                                                                                $output .= '</div>';
+                                                                            }
+                                                                            $output .= '</div>';            }
 
             // --- Render Recent Roll Sessions ---
             if (!empty($roll_sessions)) {
@@ -193,15 +197,17 @@ function lr_render_single_spot_content($spot_id) {
                     $output .= '<div class="lr-session-item">';
                                                             $output .= '<div class="lr-session-header">';
                                                             $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" class="lr-session-avatar" loading="lazy" width="40" height="40">';
-                                                            $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $display_name . '</a></strong>&nbsp;logged a session:';
-                                                            $output .= '</div>';                    $output .= '<div class="lr-session-body">';
-                    $output .= '<p class="lr-session-title"><a href="' . esc_url($activity_url) . '">' . esc_html($session->name) . '</a></p>';
-                    if (!empty($session->description)) {
-                        $output .= '<p class="lr-session-description">"' . esc_html($session->description) . '"</p>';
-                    }
-                    $output .= '</div>';
-                    $output .= '</div>';
-                }
+                                                                                $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $display_name . '</a></strong>&nbsp;logged a session:';
+                                                                                $output .= '</div>';
+                                                                                $output .= '<div class="lr-session-body">';
+                                                                                $output .= '<p class="lr-session-title"><a href="' . esc_url($activity_url) . '">' . esc_html($session->name) . '</a></p>';
+                                                                                $session_date = new DateTime($session->createdAt);
+                                                                                $output .= '<p class="lr-session-date">' . $session_date->format('F j, Y') . '</p>';
+                                                                                if (!empty($session->description)) {
+                                                                                    $output .= '<p class="lr-session-description">"' . esc_html($session->description) . '"</p>';
+                                                                                }
+                                                                                $output .= '</div>';
+                                                                                $output .= '</div>';                }
                 $output .= '</div>';
             }
         }
