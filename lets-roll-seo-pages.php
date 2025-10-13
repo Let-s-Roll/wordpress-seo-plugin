@@ -576,9 +576,17 @@ function lr_generate_custom_meta_tags_html($data) {
 function lr_get_page_details_from_uri() {
     if (!isset($_SERVER['REQUEST_URI'])) return null;
     $request_uri = $_SERVER['REQUEST_URI'];
+    
+    // New rule for /activity/{id}/
+    if (preg_match('#^/activity/([^/]+)(?:/|/amp/)?$#', $request_uri, $matches)) {
+        return ['type' => 'activity', 'id' => $matches[1]];
+    }
+    
+    // Existing rule for spots, events, skaters
     if (preg_match('#^/(spots|events|skaters)/([^/]+)(?:/|/amp/)?$#', $request_uri, $matches)) {
         return ['type' => $matches[1], 'id' => $matches[2]];
     }
+    
     return null;
 }
 
@@ -605,6 +613,9 @@ function lr_get_current_page_api_data() {
         case 'events': 
             $api_data = lr_get_single_event_data($item_id);
             break;
+        case 'activity':
+            $api_data = lr_get_activity_data($item_id);
+            break;
     }
     if ($api_data && !is_wp_error($api_data)) {
         if (!lr_is_testing_mode_enabled()) {
@@ -623,6 +634,10 @@ function lr_get_og_title($data) {
         case 'skaters': return 'Rollerskater Profile: ' . ($data->skateName ?? $data->firstName);
         case 'spots': return 'Skate Spot: ' . ($data->spotWithAddress->name ?? 'Details');
         case 'events': return 'Skate Event: ' . ($data->name ?? 'Details');
+        case 'activity':
+            $session_name = $data->sessions[0]->name ?? 'A Skate Session';
+            $skater_name = $data->userProfiles[0]->skateName ?? 'a Skater';
+            return 'Skate Session by ' . $skater_name . ': ' . $session_name;
     }
     return '';
 }
@@ -659,6 +674,11 @@ function lr_get_og_description($data) {
                 return implode(' ', $parts);
             }
             break;
+        case 'activity':
+            if (!empty($data->sessions[0]->description)) {
+                return wp_trim_words(esc_html($data->sessions[0]->description), 25, '...');
+            }
+            return 'Check out this skate session on Let\'s Roll!';
     }
     return '';
 }
@@ -677,6 +697,16 @@ function lr_get_og_image_url($data) {
             // MODIFIED: Use the attachment data we now have on the event object.
             if (!empty($data->attachments)) {
                 return plugin_dir_url(__FILE__) . 'image-proxy.php?type=event_attachment&id=' . $data->attachments[0]->_id . '&session_id=' . $data->_id . '&width=1200&quality=85';
+            }
+            break;
+        case 'activity':
+            if (!empty($data->attachments)) {
+                // Find the first non-static map image to use as the OG image
+                foreach ($data->attachments as $attachment) {
+                    if (!$attachment->isStaticMap) {
+                        return plugin_dir_url(__FILE__) . 'image-proxy.php?type=event_attachment&id=' . $attachment->_id . '&session_id=' . $data->sessions[0]->_id . '&width=1200&quality=85';
+                    }
+                }
             }
             break;
     }
