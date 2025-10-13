@@ -3,10 +3,17 @@
  * Renders the content for a single event page.
  */
 function lr_render_single_event_content($event_id) {
-    $access_token = lr_get_api_access_token();
-    if (is_wp_error($access_token)) { return '<p><strong>Error:</strong> Could not authenticate with the API.</p>'; }
+    $data = lr_get_activity_data($event_id);
 
-    $event = lr_get_single_event_data($event_id);
+    if (is_wp_error($data) || empty($data->sessions[0])) {
+        return '<p>Could not find details for this event.</p>';
+    }
+
+    $event = $data->sessions[0];
+    $event->attachments = $data->attachments ?? []; // Ensure attachments are on the event object
+    $organizer_profile = $data->userProfiles[0] ?? null;
+    $spot_details = $data->spotsBoundToSessions[0] ?? null;
+
     $output = '';
 
     if ($event) {
@@ -37,13 +44,10 @@ function lr_render_single_event_content($event_id) {
         }
         $output .= '<p><strong>Where:</strong> ' . esc_html($address) . '</p>';
 
-        if (!empty($event->spotId)) {
-             $spot_details = lr_fetch_api_data($access_token, 'spots/' . $event->spotId, []);
-             if($spot_details && !is_wp_error($spot_details) && isset($spot_details->spotWithAddress->name)) {
-                 $spot_url = home_url('/spots/' . $event->spotId . '/');
-                 $spot_name = $spot_details->spotWithAddress->name;
-                 $output .= '<p>This event takes place at: <a href="'.esc_url($spot_url).'">' . esc_html($spot_name) . '</a></p>';
-             }
+        if ($spot_details) {
+             $spot_url = home_url('/spots/' . $spot_details->_id . '/');
+             $spot_name = $spot_details->name;
+             $output .= '<p>This event takes place at: <a href="'.esc_url($spot_url).'">' . esc_html($spot_name) . '</a></p>';
         }
 
         // --- External URL ---
@@ -79,14 +83,11 @@ function lr_render_single_event_content($event_id) {
         }
 
         // --- Organizer ---
-        if (!empty($event->userId)) {
-            $organizer_profile = lr_fetch_api_data($access_token, 'user/' . $event->userId . '/profile', []);
-            if ($organizer_profile && !is_wp_error($organizer_profile) && !empty($organizer_profile->skateName)) {
-                $organizer_name = $organizer_profile->skateName;
-                $organizer_url = home_url('/skaters/' . $organizer_profile->skateName . '/');
-                $output .= '<hr style="margin: 20px 0;">';
-                $output .= '<p><strong>Organizer:</strong> <a href="'.esc_url($organizer_url).'">' . esc_html($organizer_name) . '</a></p>';
-            }
+        if ($organizer_profile && !empty($organizer_profile->skateName)) {
+            $organizer_name = $organizer_profile->skateName;
+            $organizer_url = home_url('/skaters/' . $organizer_profile->skateName . '/');
+            $output .= '<hr style="margin: 20px 0;">';
+            $output .= '<p><strong>Organizer:</strong> <a href="'.esc_url($organizer_url).'">' . esc_html($organizer_name) . '</a></p>';
         }
         
         return $output;

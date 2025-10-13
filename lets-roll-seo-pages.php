@@ -27,6 +27,7 @@ require_once plugin_dir_path(__FILE__) . 'templates/template-detail-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-spot.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-event.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-skater.php';
+require_once plugin_dir_path(__FILE__) . 'templates/template-single-activity.php';
 require_once plugin_dir_path(__FILE__) . 'cta-banner.php';
 
 // Hook for adding admin menus
@@ -136,6 +137,63 @@ function lr_get_single_event_data($event_id) {
     }
     
     return $event;
+}
+
+function lr_get_spot_sessions($spot_id) {
+    $data = false;
+    $transient_key = LR_CACHE_VERSION . '_lr_spot_sessions_full_v2_' . $spot_id;
+
+    if (!lr_is_testing_mode_enabled()) {
+        $data = get_transient($transient_key);
+        if ($data) return $data;
+    }
+
+    $access_token = lr_get_api_access_token();
+    if (is_wp_error($access_token)) return null;
+
+    $endpoint = 'spots/' . $spot_id . '/sessions/';
+    $params = ['limit' => 50, 'skip' => 0];
+    $api_data = lr_fetch_api_data($access_token, $endpoint, $params);
+
+    if (!is_wp_error($api_data) && isset($api_data->sessions) && !empty($api_data->sessions)) {
+        // Filter for public sessions before caching the whole object
+        $api_data->sessions = array_values(array_filter($api_data->sessions, function($session) {
+            return isset($session->visibilityLevel) && $session->visibilityLevel === 'Everyone';
+        }));
+
+        if (!empty($api_data->sessions)) {
+            if (!lr_is_testing_mode_enabled()) {
+                set_transient($transient_key, $api_data, 4 * HOUR_IN_SECONDS);
+            }
+            return $api_data;
+        }
+    }
+    
+    return null;
+}
+
+function lr_get_activity_data($activity_id) {
+    static $activity_data = []; // In-request cache
+
+    if (isset($activity_data[$activity_id])) {
+        return $activity_data[$activity_id];
+    }
+
+    $access_token = lr_get_api_access_token();
+    if (is_wp_error($access_token)) {
+        return new WP_Error('api_auth_error', 'Could not authenticate with the API.');
+    }
+
+    $endpoint = 'roll-session/' . $activity_id . '/aggregates';
+    $data = lr_fetch_api_data($access_token, $endpoint, []);
+
+    if (is_wp_error($data) || empty($data->sessions[0])) {
+        $activity_data[$activity_id] = new WP_Error('api_fetch_error', 'Could not retrieve activity data.');
+        return $activity_data[$activity_id];
+    }
+
+    $activity_data[$activity_id] = $data;
+    return $activity_data[$activity_id];
 }
 
 
@@ -277,12 +335,14 @@ function lr_get_breadcrumbs() {
 function lr_custom_rewrite_rules() { 
     add_rewrite_tag('%lr_single_type%', '(spots|events|skaters)');
     add_rewrite_tag('%lr_item_id%', '([^/]+)');
+    add_rewrite_tag('%lr_activity_id%', '([^/]+)'); // Add this line
     add_rewrite_tag('%lr_country%','([^/]+)');
     add_rewrite_tag('%lr_city%','([^/]+)');
     add_rewrite_tag('%lr_page_type%','([^/]+)');
     add_rewrite_tag('%lr_is_explore_page%', '([0-9]+)');
     
     add_rewrite_rule('^explore/?$', 'index.php?lr_is_explore_page=1', 'top');
+    add_rewrite_rule('^activity/([^/]+)/?$', 'index.php?lr_activity_id=$matches[1]', 'top'); // Add this line
     add_rewrite_rule('^(spots|events|skaters)/([^/]+)/?$', 'index.php?lr_single_type=$matches[1]&lr_item_id=$matches[2]', 'top');
     
     $locations = lr_get_location_data();
@@ -338,7 +398,7 @@ function lr_calculate_bounding_box($lat, $lon, $radius_km) {
 add_filter('the_posts', 'lr_virtual_page_controller', 10, 2);
 
 function lr_virtual_page_controller($posts, $query) {
-    if ( is_admin() || !$query->is_main_query() || (!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page')) ) {
+    if ( is_admin() || !$query->is_main_query() || (!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page') && !get_query_var('lr_activity_id')) ) {
         return $posts;
     }
     $single_type = get_query_var('lr_single_type');
@@ -366,6 +426,20 @@ function lr_virtual_page_controller($posts, $query) {
 }
 
 function lr_generate_dynamic_content($content) {
+    $activity_id = get_query_var('lr_activity_id');
+    if ($activity_id) {
+        $data = lr_get_activity_data($activity_id);
+        if (is_wp_error($data)) {
+            return '<p>Could not load activity.</p>'; // Or handle error more gracefully
+        }
+
+        if (isset($data->sessions[0]->type) && $data->sessions[0]->type === 'Event') {
+            return lr_render_single_event_content($activity_id);
+        } else {
+            return lr_render_single_activity_content($activity_id);
+        }
+    }
+
     $single_type = get_query_var('lr_single_type');
     if (get_query_var('lr_is_explore_page')) return lr_render_explore_page_content();
     if ($single_type) {
@@ -386,6 +460,17 @@ function lr_generate_dynamic_content($content) {
 }
 
 function lr_generate_dynamic_title($title) {
+    $activity_id = get_query_var('lr_activity_id');
+    if ($activity_id) {
+        $access_token = lr_get_api_access_token();
+        $endpoint = 'roll-session/' . $activity_id . '/aggregates';
+        $data = lr_fetch_api_data($access_token, $endpoint, []);
+        if (!is_wp_error($data) && !empty($data->sessions[0]->name)) {
+            return 'Skate Session: ' . esc_html($data->sessions[0]->name);
+        }
+        return 'Skate Session Details';
+    }
+
     $single_type = get_query_var('lr_single_type');
     if (get_query_var('lr_is_explore_page')) return 'Explore Skate Spots Worldwide';
     if ($single_type) {
@@ -631,7 +716,7 @@ add_action('wp_footer', 'lr_display_cta_banner');
 add_action('amp_post_template_footer', 'lr_display_cta_banner');
 
 function lr_add_custom_styles() {
-    if (get_query_var('lr_country') || get_query_var('lr_single_type') || get_query_var('lr_is_explore_page')) {
+    if (get_query_var('lr_country') || get_query_var('lr_single_type') || get_query_var('lr_is_explore_page') || get_query_var('lr_activity_id')) {
         echo '<style>
             @media (max-width: 768px) { 
                 .entry-content, .post-content, .page-content { 
@@ -650,6 +735,71 @@ function lr_add_custom_styles() {
             }
             .lr-breadcrumbs a:hover {
                 text-decoration: underline;
+            }
+            .lr-session-item {
+                border: 1px solid #eee;
+                padding: 15px;
+                margin-bottom: 15px;
+                border-radius: 5px;
+            }
+            .lr-session-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            .lr-session-avatar {
+                border-radius: 50%;
+                margin-right: 10px;
+            }
+            .lr-session-body {
+                padding-left: 50px; /* Align with header text */
+            }
+            .lr-sessions-list h4 {
+                margin-top: 30px;
+            }
+            .lr-session-title {
+                font-weight: bold;
+                margin: 0 0 5px 0;
+            }
+            .lr-session-title a {
+                text-decoration: none;
+                color: inherit;
+            }
+            .lr-session-description {
+                margin: 0;
+                font-style: italic;
+                color: #555;
+            }
+            .lr-activity-skater-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            .lr-activity-avatar {
+                border-radius: 50%;
+                margin-right: 15px;
+            }
+            .lr-activity-skater-header h2 {
+                margin: 0;
+                font-size: 1.5em;
+            }
+            .lr-activity-description {
+                font-style: italic;
+                color: #333;
+                border-left: 3px solid #eee;
+                padding-left: 15px;
+                margin-bottom: 20px;
+            }
+            .lr-activity-meta {
+                display: flex;
+                gap: 20px;
+                margin: 20px 0;
+                padding: 10px;
+                background-color: #f9f9f9;
+                border-radius: 5px;
+            }
+            .lr-activity-spot-link {
+                margin-top: 20px;
             }
         </style>';
     }

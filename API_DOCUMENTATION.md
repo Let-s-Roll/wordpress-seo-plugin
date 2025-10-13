@@ -46,6 +46,15 @@ This document outlines the known API endpoints used by the Let's Roll SEO Pages 
     *   `width`: The desired image width in pixels.
     *   `quality`: The desired image quality (1-100).
 
+*   **Endpoint:** `spots/{id}/sessions`
+*   **Purpose:** Fetches recent skate sessions that occurred at a specific spot.
+*   **Known Parameters:**
+    *   `limit`: The maximum number of sessions to return (e.g., `50`).
+    *   `skip`: The number of sessions to skip (for pagination, e.g., `0`).
+*   **Expected Response Structure:**
+    *   An object containing a `sessions` property, which is an **array** of session objects.
+    *   Each session object contains details like `userId`, `name`, `description`, and `visibilityLevel`.
+
 ---
 
 ### 3. Events
@@ -73,7 +82,19 @@ This document outlines the known API endpoints used by the Let's Roll SEO Pages 
 
 ---
 
-### 4. Skaters
+### 4. Activity / Sessions
+
+*   **Endpoint:** `roll-session/{id}/aggregates`
+*   **Purpose:** Fetches all aggregate data for a single skate session or event. This is the primary endpoint for building a page for a single piece of activity.
+*   **Known Parameters:** None (ID is in the path).
+*   **Expected Response Structure:**
+    *   A complex object containing `sessions`, `attachments`, `videoAttachments`, `sessionsLikesCount`, `commentsCount`, `lastLikes`, `userProfiles`, and `spotsBoundToSessions`.
+    *   This provides a complete picture of the activity in a single call.
+    *   **Note:** The `sessions` object contains a `type` field. If `type` is `"Event"`, it should be rendered using the event template. Otherwise, it's a standard activity post (e.g., `"Roll"`).
+
+---
+
+### 5. Skaters
 
 *   **Endpoint:** `nearby-activities/v2/skaters`
 *   **Purpose:** Fetches a list of skaters who have been active near a given point.

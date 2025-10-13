@@ -74,6 +74,138 @@ function lr_render_single_spot_content($spot_id) {
             }
         }
         
+        // --- Events & Recent Activity ---
+        $session_data = lr_get_spot_sessions($spot_id);
+        if ($session_data && !empty($session_data->sessions)) {
+            // --- Pre-populate user profiles from the session data ---
+            if (!empty($session_data->userProfiles)) {
+                foreach ($session_data->userProfiles as $profile) {
+                    $user_profiles[$profile->userId] = $profile;
+                }
+            }
+
+            // --- Sort sessions into events and rolls ---
+            $upcoming_events = [];
+            $past_events = [];
+            $roll_sessions = [];
+            $now = new DateTime();
+
+            foreach ($session_data->sessions as $session) {
+                if (isset($session->type) && $session->type === 'Event') {
+                    if (isset($session->event) && isset($session->event->startDate)) {
+                        try {
+                            $event_start = new DateTime($session->event->startDate);
+                            if ($event_start > $now) {
+                                $upcoming_events[] = $session;
+                            } else {
+                                $past_events[] = $session;
+                            }
+                        } catch (Exception $e) {
+                            $past_events[] = $session;
+                        }
+                    } else {
+                        $past_events[] = $session;
+                    }
+                } else {
+                    $roll_sessions[] = $session;
+                }
+            }
+
+            // --- Fallback: Fetch any missing user profiles (should be rare) ---
+            $user_ids_to_fetch = [];
+            foreach ($session_data->sessions as $session) {
+                if (!isset($user_profiles[$session->userId])) {
+                    $user_ids_to_fetch[] = $session->userId;
+                }
+            }
+            if (!empty($user_ids_to_fetch)) {
+                foreach (array_unique($user_ids_to_fetch) as $user_id) {
+                    $profile_data = lr_fetch_api_data($access_token, 'user/profile/' . $user_id, []);
+                    if ($profile_data && !is_wp_error($profile_data)) {
+                        $user_profiles[$user_id] = $profile_data;
+                    }
+                }
+            }
+
+            // --- Render Upcoming Events ---
+            if (!empty($upcoming_events)) {
+                $output .= '<hr style="margin: 20px 0;">';
+                $output .= '<h4>Upcoming Events</h4>';
+                $output .= '<div class="lr-sessions-list">';
+                foreach ($upcoming_events as $event) {
+                    $user = $user_profiles[$event->userId] ?? null;
+                    if (!$user) continue;
+                    $display_name = esc_html($user->skateName ?? $user->firstName ?? 'A skater');
+                    $skater_url = home_url('/skaters/' . esc_attr($user->skateName ?? $user->userId) . '/');
+                    $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . esc_attr($user->userId) . '/avatar/content/processed?width=40&height=40&quality=75';
+                    $activity_url = home_url('/activity/' . esc_attr($event->_id) . '/');
+
+                    $output .= '<div class="lr-session-item">';
+                                                            $output .= '<div class="lr-session-header">';
+                                                            $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" class="lr-session-avatar" loading="lazy" width="40" height="40">';
+                                                            $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $display_name . '</a></strong>&nbsp;is hosting an event:';
+                                                            $output .= '</div>';                    $output .= '<div class="lr-session-body">';
+                    $output .= '<p class="lr-session-title"><a href="' . esc_url($activity_url) . '">' . esc_html($event->name) . '</a></p>';
+                    $output .= '</div>';
+                    $output .= '</div>';
+                }
+                $output .= '</div>';
+            }
+
+            // --- Render Past Events ---
+            if (!empty($past_events)) {
+                $output .= '<hr style="margin: 20px 0;">';
+                $output .= '<h4>Past Events</h4>';
+                $output .= '<div class="lr-sessions-list">';
+                foreach ($past_events as $event) {
+                     $user = $user_profiles[$event->userId] ?? null;
+                    if (!$user) continue;
+                    $display_name = esc_html($user->skateName ?? $user->firstName ?? 'A skater');
+                    $skater_url = home_url('/skaters/' . esc_attr($user->skateName ?? $user->userId) . '/');
+                    $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . esc_attr($user->userId) . '/avatar/content/processed?width=40&height=40&quality=75';
+                    $activity_url = home_url('/activity/' . esc_attr($event->_id) . '/');
+
+                    $output .= '<div class="lr-session-item">';
+                                                            $output .= '<div class="lr-session-header">';
+                                                            $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" class="lr-session-avatar" loading="lazy" width="40" height="40">';
+                                                            $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $display_name . '</a></strong>&nbsp;hosted an event:';
+                                                            $output .= '</div>';                    $output .= '<div class="lr-session-body">';
+                    $output .= '<p class="lr-session-title"><a href="' . esc_url($activity_url) . '">' . esc_html($event->name) . '</a></p>';
+                    $output .= '</div>';
+                    $output .= '</div>';
+                }
+                $output .= '</div>';
+            }
+
+            // --- Render Recent Roll Sessions ---
+            if (!empty($roll_sessions)) {
+                $output .= '<hr style="margin: 20px 0;">';
+                $output .= '<h4>Recent Roll Sessions</h4>';
+                $output .= '<div class="lr-sessions-list">';
+                foreach ($roll_sessions as $session) {
+                    $user = $user_profiles[$session->userId] ?? null;
+                    if (!$user) continue;
+                    $display_name = esc_html($user->skateName ?? $user->firstName ?? 'A skater');
+                    $skater_url = home_url('/skaters/' . esc_attr($user->skateName ?? $user->userId) . '/');
+                    $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . esc_attr($user->userId) . '/avatar/content/processed?width=40&height=40&quality=75';
+                    $activity_url = home_url('/activity/' . esc_attr($session->_id) . '/');
+
+                    $output .= '<div class="lr-session-item">';
+                                                            $output .= '<div class="lr-session-header">';
+                                                            $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" class="lr-session-avatar" loading="lazy" width="40" height="40">';
+                                                            $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $display_name . '</a></strong>&nbsp;logged a session:';
+                                                            $output .= '</div>';                    $output .= '<div class="lr-session-body">';
+                    $output .= '<p class="lr-session-title"><a href="' . esc_url($activity_url) . '">' . esc_html($session->name) . '</a></p>';
+                    if (!empty($session->description)) {
+                        $output .= '<p class="lr-session-description">"' . esc_html($session->description) . '"</p>';
+                    }
+                    $output .= '</div>';
+                    $output .= '</div>';
+                }
+                $output .= '</div>';
+            }
+        }
+
         if (!lr_is_testing_mode_enabled()) {
             set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
         }
