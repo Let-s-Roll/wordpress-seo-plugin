@@ -50,6 +50,7 @@ template-detail-page.php: Renders the paginated list pages for a city's spots, e
 template-single-spot.php: Renders the final detail page for an individual skate spot.
 template-single-event.php: Renders the final detail page for an individual event.
 template-single-skater.php: Renders the final detail page for an individual skater's profile.
+template-single-activity.php: Renders the detail page for an individual skate session or post, complete with an image slideshow.
 
 == Setup & Installation ==
 Upload the lets-roll-seo-pages folder to the /wp-content/plugins/ directory.
@@ -63,6 +64,7 @@ Navigate to Settings -> Permalinks and click "Save Changes". This is a critical 
 == Key Features ==
 Dynamic Page Hierarchy: Creates pages for countries, cities, and detail lists (spots, skaters, events).
 Individual Item Pages: Creates unique, shareable URLs for every single spot, skater, and event.
+Enriched Spot & Activity Pages: The plugin enhances spot list pages with a "Top 3 Most Active Spots" section, complete with the latest user reviews. Individual activity pages feature an interactive, AMP-compatible image slideshow.
 Secure & Robust API Handling: All API calls are made on the server-side. The access token is securely cached, and the system includes self-healing logic to automatically re-authenticate if a token expires. IP detection is hardened to work behind reverse proxies.
 Configurable Locations: All countries, cities, coordinates, and descriptions are managed from a single JSON object on the settings page, making it easy to update and expand.
 
