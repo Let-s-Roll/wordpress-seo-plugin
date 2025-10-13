@@ -2,6 +2,66 @@
 /**
  * Renders the content for a detail page (list of spots, events, skaters).
  */
+function lr_render_top_spots_section($city_details, $access_token, $num_spots = 3) {
+    $transient_key = 'lr_top_spots_html_' . sanitize_key($city_details['name']) . '_' . $num_spots;
+    if (!lr_is_testing_mode_enabled()) {
+        $cached_html = get_transient($transient_key);
+        if ($cached_html) {
+            return $cached_html;
+        }
+    }
+
+    $bounding_box = lr_calculate_bounding_box($city_details['latitude'], $city_details['longitude'], $city_details['radius_km']);
+    $spots_list = lr_fetch_api_data($access_token, 'spots/v2/inBox', ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000]);
+
+    if (is_wp_error($spots_list) || empty($spots_list)) {
+        return '';
+    }
+
+    usort($spots_list, function($a, $b) { return ($b->sessionsCount ?? 0) <=> ($a->sessionsCount ?? 0); });
+    $top_spots = array_slice($spots_list, 0, $num_spots);
+
+    $output = '<h3>Top ' . $num_spots . ' Most Active Spots</h3>';
+    $output .= '<div class="lr-top-spots-grid">';
+
+    foreach ($top_spots as $spot) {
+        $spot_details = lr_fetch_api_data($access_token, 'spots/' . $spot->_id, []);
+        if ($spot_details && isset($spot_details->spotWithAddress)) {
+            $spot_name = esc_attr($spot_details->spotWithAddress->name);
+            $spot_url = home_url('/spots/' . $spot->_id . '/');
+            $proxy_url = plugin_dir_url(__FILE__) . '../image-proxy.php';
+            $image_url = 'https://placehold.co/400x240/e0e0e0/757575?text=Spot';
+            if (!empty($spot_details->spotWithAddress->satelliteAttachment)) {
+                $image_url = add_query_arg(['type' => 'spot_satellite', 'id' => $spot_details->spotWithAddress->satelliteAttachment, 'width' => 400, 'quality' => 75], $proxy_url);
+            }
+
+            $output .= '<div class="lr-top-spot-item">';
+            $output .= '<a href="' . esc_url($spot_url) . '">';
+            $output .= '<img src="' . esc_url($image_url) . '" alt="Satellite view of ' . $spot_name . '" loading="lazy" width="400" height="240" />';
+            $output .= '<h4>' . esc_html($spot_name) . '</h4>';
+            $output .= '</a>';
+
+            // Fetch and display the latest review
+            $ratings_data = lr_fetch_api_data($access_token, 'spots/' . $spot->_id . '/ratings-opinions', ['limit' => 1, 'skip' => 0]);
+            if ($ratings_data && !empty($ratings_data->ratingsAndOpinions[0]->comment)) {
+                $latest_review = $ratings_data->ratingsAndOpinions[0];
+                $output .= '<div class="lr-latest-review">';
+                $output .= '<p><strong>Latest Review:</strong> "' . esc_html(wp_trim_words($latest_review->comment, 15, '...')) . '"</p>';
+                $output .= '</div>';
+            }
+            
+            $output .= '</div>';
+        }
+    }
+    $output .= '</div><hr style="margin: 30px 0;">';
+
+    if (!lr_is_testing_mode_enabled()) {
+        set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
+    }
+
+    return $output;
+}
+
 function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
     $city_details = lr_get_city_details($country_slug, $city_slug);
     if (!$city_details) return '<p>Location not found.</p>';
@@ -10,6 +70,9 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
     $output = lr_get_breadcrumbs();
 
     if ($page_type === 'skatespots') {
+        // --- ADDED: Display Top Spots Section ---
+        $output .= lr_render_top_spots_section($city_details, $access_token, 3);
+
         // --- REVISED Logic for Skate Spots with Custom Query Parameter Pagination ---
         $current_page   = isset($_GET['lr_page']) ? max(1, intval($_GET['lr_page'])) : 1;
         $spots_per_page = 10;

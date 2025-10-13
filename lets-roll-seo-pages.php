@@ -810,6 +810,44 @@ function lr_add_custom_styles() {
                 border: 1px solid #eee;
                 border-radius: 5px;
             }
+            .lr-top-spots-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+            .lr-top-spot-item {
+                border: 1px solid #eee;
+                border-radius: 5px;
+                overflow: hidden;
+            }
+            .lr-top-spot-item a {
+                text-decoration: none;
+                color: inherit;
+            }
+            .lr-top-spot-item img {
+                width: 100%;
+                height: 150px;
+                object-fit: cover;
+            }
+            .lr-top-spot-item h4 {
+                margin: 10px;
+                font-size: 1.1em;
+            }
+            .lr-latest-review {
+                padding: 0 10px 10px;
+                font-size: 0.9em;
+                color: #555;
+            }
+            .lr-latest-review p {
+                margin: 0;
+                font-style: italic;
+            }
+            @media (max-width: 768px) {
+                .lr-top-spots-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
         </style>';
     }
 }
