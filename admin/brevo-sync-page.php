@@ -10,6 +10,7 @@ function lr_render_brevo_sync_page() {
     if (isset($_POST['lr_save_brevo_settings']) && check_admin_referer('lr_brevo_save_settings_action', 'lr_brevo_save_settings_nonce')) {
         $options = get_option('lr_brevo_options', []);
         $options['api_key'] = sanitize_text_field($_POST['brevo_api_key']);
+        $options['list_folder_id'] = intval($_POST['brevo_list_folder_id']);
         $options['resync_days'] = intval($_POST['brevo_resync_days']);
         update_option('lr_brevo_options', $options);
         echo '<div class="notice notice-success is-dismissible"><p>Settings saved.</p></div>';
@@ -46,6 +47,13 @@ function lr_render_brevo_sync_page() {
                     <td><input type="password" id="brevo_api_key" name="brevo_api_key" value="<?php echo esc_attr(get_option('lr_brevo_options')['api_key'] ?? ''); ?>" style="width: 300px;" /></td>
                 </tr>
                 <tr valign="top">
+                    <th scope="row"><label for="brevo_list_folder_id">Brevo List Folder ID</label></th>
+                    <td>
+                        <input type="number" id="brevo_list_folder_id" name="brevo_list_folder_id" value="<?php echo esc_attr(get_option('lr_brevo_options')['list_folder_id'] ?? 31); ?>" style="width: 100px;" />
+                        <p class="description">The ID of the folder in Brevo where city lists will be created (e.g., 31 for "Cities").</p>
+                    </td>
+                </tr>
+                <tr valign="top">
                     <th scope="row"><label for="brevo_resync_days">Re-sync Skaters After (days)</label></th>
                     <td>
                         <input type="number" id="brevo_resync_days" name="brevo_resync_days" value="<?php echo esc_attr(get_option('lr_brevo_options')['resync_days'] ?? 7); ?>" style="width: 100px;" min="1" />
@@ -55,6 +63,20 @@ function lr_render_brevo_sync_page() {
             </table>
             <?php submit_button('Save Settings', 'primary', 'lr_save_brevo_settings'); ?>
         </form>
+
+        <hr>
+
+        <h2>City List Management</h2>
+        <div class="lr-status-box">
+            <p>This tool will check for a corresponding contact list in Brevo for every city in the plugin. If a list doesn't exist, it will be created automatically. This is a necessary first step before skaters can be added to lists.</p>
+            <div id="lr-city-list-mappings">
+                <p><strong>Current Mappings:</strong> Not loaded.</p>
+                <!-- Mappings will be loaded here via AJAX -->
+            </div>
+        </div>
+        <div class="lr-controls-form">
+            <button id="lr-sync-city-lists-btn" class="button button-secondary">Sync City Lists</button>
+        </div>
 
         <hr>
 
@@ -170,6 +192,42 @@ function lr_render_brevo_sync_page() {
 
     <script type="text/javascript">
         jQuery(document).ready(function($) {
+            // --- City List Sync ---
+            $('#lr-sync-city-lists-btn').on('click', function() {
+                var btn = $(this);
+                btn.prop('disabled', true).text('Syncing...');
+                updateLog('--- Starting City List Sync ---');
+
+                var data = {
+                    'action': 'lr_brevo_sync_city_lists',
+                    'nonce': '<?php echo wp_create_nonce('lr_brevo_sync_city_lists_nonce'); ?>'
+                };
+
+                $.post(ajaxurl, data, function(response) {
+                    if (response.success) {
+                        updateLog(response.data.log);
+                        updateCityListMappings(response.data.mappings);
+                    } else {
+                        updateLog('Error: ' + response.data.message);
+                    }
+                    btn.prop('disabled', false).text('Sync City Lists');
+                });
+            });
+
+            function updateCityListMappings(mappings) {
+                var container = $('#lr-city-list-mappings');
+                if (mappings) {
+                    var html = '<p><strong>Current Mappings:</strong></p><ul style="max-height: 200px; overflow-y: auto; background: #f9f9f9; border: 1px solid #ddd; padding: 10px;">';
+                    for (var city in mappings) {
+                        html += '<li><strong>' + city + ':</strong> ' + mappings[city] + '</li>';
+                    }
+                    html += '</ul>';
+                    container.html(html);
+                } else {
+                    container.html('<p><strong>Current Mappings:</strong> No mappings found.</p>');
+                }
+            }
+
             // --- Single Lookup ---
             $('#lr-test-lookup-btn').on('click', function() {
                 var btn = $(this);

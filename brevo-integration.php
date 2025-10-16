@@ -185,6 +185,184 @@ function lr_enrich_skater_in_brevo_by_skatename($skateName, $city_name) {
 
 /**
  * =================================================================================
+ * Brevo City List Management
+ * =================================================================================
+ */
+
+// Hook the AJAX handler into WordPress
+add_action('wp_ajax_lr_brevo_sync_city_lists', 'lr_brevo_ajax_sync_city_lists');
+
+/**
+ * Retrieves all contact lists from Brevo.
+ *
+ * @return array|WP_Error An array of list objects or a WP_Error on failure.
+ */
+function lr_get_brevo_lists() {
+    $options = get_option('lr_brevo_options');
+    $brevo_api_key = $options['api_key'] ?? '';
+    if (empty($brevo_api_key)) {
+        return new WP_Error('api_key_missing', 'Brevo API key is not set.');
+    }
+
+    $all_lists = [];
+    $offset = 0;
+    $limit = 50; // A more conservative limit
+
+    do {
+        $url = add_query_arg([
+            'limit'  => $limit,
+            'offset' => $offset,
+            'sort'   => 'desc',
+        ], 'https://api.brevo.com/v3/contacts/lists');
+
+        $args = [
+            'headers' => [
+                'api-key' => $brevo_api_key,
+                'Accept'  => 'application/json',
+            ]
+        ];
+
+        $response = wp_remote_get($url, $args);
+        $response_code = wp_remote_retrieve_response_code($response);
+        $body = json_decode(wp_remote_retrieve_body($response));
+
+        if ($response_code !== 200 || !isset($body->lists)) {
+            return new WP_Error('api_error', 'Failed to fetch lists from Brevo. Code: ' . $response_code);
+        }
+
+        $all_lists = array_merge($all_lists, $body->lists);
+        $offset += $limit;
+
+    } while (count($body->lists) === $limit);
+
+    return $all_lists;
+}
+
+/**
+ * Creates a new contact list in Brevo.
+ *
+ * @param string $list_name The name of the list to create.
+ * @param int    $folder_id The ID of the folder to create the list in.
+ * @return int|WP_Error The ID of the newly created list or a WP_Error on failure.
+ */
+function lr_create_brevo_list($list_name, $folder_id) {
+    $options = get_option('lr_brevo_options');
+    $brevo_api_key = $options['api_key'] ?? '';
+    if (empty($brevo_api_key)) {
+        return new WP_Error('api_key_missing', 'Brevo API key is not set.');
+    }
+
+    $url = 'https://api.brevo.com/v3/contacts/lists';
+    $args = [
+        'method'  => 'POST',
+        'headers' => [
+            'api-key'      => $brevo_api_key,
+            'Content-Type' => 'application/json',
+            'Accept'       => 'application/json',
+        ],
+        'body'    => json_encode([
+            'name'     => $list_name,
+            'folderId' => $folder_id,
+        ]),
+    ];
+
+    $response = wp_remote_post($url, $args);
+    $response_code = wp_remote_retrieve_response_code($response);
+    $body = json_decode(wp_remote_retrieve_body($response));
+
+    if ($response_code !== 201 || !isset($body->id)) {
+        $error_message = $body->message ?? 'Unknown error';
+        return new WP_Error('list_creation_failed', 'Failed to create list "' . $list_name . '". Reason: ' . $error_message);
+    }
+
+    return $body->id;
+}
+
+/**
+ * Retrieves the saved city list ID mappings.
+ * @return array An associative array of [cityName => listId].
+ */
+function lr_get_city_list_ids() {
+    return get_option('lr_brevo_city_list_ids', []);
+}
+
+/**
+ * AJAX handler to sync city lists with Brevo.
+ */
+function lr_brevo_ajax_sync_city_lists() {
+    check_ajax_referer('lr_brevo_sync_city_lists_nonce', 'nonce');
+    lr_clear_brevo_log();
+    lr_brevo_log_message('Starting City List synchronization with Brevo...');
+
+    $options = get_option('lr_brevo_options');
+    $folder_id = $options['list_folder_id'] ?? 31; // Default to 31 if not set
+    if (empty($folder_id)) {
+        wp_send_json_error(['message' => 'Brevo List Folder ID is not set.']);
+        return;
+    }
+
+    // 1. Get all lists from Brevo
+    $brevo_lists_raw = lr_get_brevo_lists();
+    if (is_wp_error($brevo_lists_raw)) {
+        wp_send_json_error(['message' => $brevo_lists_raw->get_error_message()]);
+        return;
+    }
+    $brevo_lists = [];
+    foreach ($brevo_lists_raw as $list) {
+        if ($list->folderId === $folder_id) {
+            $brevo_lists[$list->name] = $list->id;
+        }
+    }
+    lr_brevo_log_message('Found ' . count($brevo_lists) . ' existing lists in folder ' . $folder_id . '.');
+
+    // 2. Get all cities from our plugin
+    $locations = lr_get_location_data();
+    $plugin_cities = [];
+    if (!empty($locations)) {
+        foreach ($locations as $country_data) {
+            if (empty($country_data['cities'])) continue;
+            foreach ($country_data['cities'] as $city_details) {
+                $plugin_cities[] = $city_details['name'];
+            }
+        }
+    }
+    lr_brevo_log_message('Found ' . count($plugin_cities) . ' cities in the plugin settings.');
+
+    // 3. Compare and create missing lists
+    $city_list_mappings = lr_get_city_list_ids();
+    $created_count = 0;
+
+    foreach ($plugin_cities as $city_name) {
+        if (!isset($brevo_lists[$city_name])) {
+            lr_brevo_log_message('List for "' . $city_name . '" not found in Brevo. Creating it...');
+            $new_list_id = lr_create_brevo_list($city_name, $folder_id);
+            if (is_wp_error($new_list_id)) {
+                lr_brevo_log_message('ERROR creating list for ' . $city_name . ': ' . $new_list_id->get_error_message());
+            } else {
+                $city_list_mappings[$city_name] = $new_list_id;
+                $created_count++;
+                lr_brevo_log_message('SUCCESS: Created list for "' . $city_name . '" with ID: ' . $new_list_id);
+            }
+        } else {
+            // If it exists in Brevo but not in our map, add it.
+            if (!isset($city_list_mappings[$city_name])) {
+                $city_list_mappings[$city_name] = $brevo_lists[$city_name];
+            }
+        }
+    }
+
+    update_option('lr_brevo_city_list_ids', $city_list_mappings);
+    lr_brevo_log_message('Sync complete. Created ' . $created_count . ' new lists.');
+
+    wp_send_json_success([
+        'log'      => get_transient('lr_brevo_log'),
+        'mappings' => $city_list_mappings,
+    ]);
+}
+
+
+/**
+ * =================================================================================
  * Processed Skater Log Functions
  * =================================================================================
  */

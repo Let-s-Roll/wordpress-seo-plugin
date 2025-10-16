@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.4] - 2025-10-16
+
+### ✨ New Features
+*   **Brevo City List Management:** Added a new tool to the Brevo Sync admin page that synchronizes the plugin's cities with Brevo contact lists. It fetches all existing lists, compares them against the plugin's city data, and creates any missing lists in a designated folder. This provides a non-destructive way to manage skater location data.
+
+### 🐛 Bug Fixes
+*   **Brevo API Limit:** Fixed a `400 Bad Request` error when fetching contact lists from Brevo by reducing the API request limit from 500 to a more conservative 50, while ensuring pagination correctly handles fetching all lists.
+
 ## [1.4.3] - 2025-10-16
 
 ###  refactor
