@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.4.3] - 2025-10-16
+
+###  refactor
+*   **Brevo Lookup:** Switched all Brevo contact lookups from the custom `SKATENAME` attribute to the standard `FIRSTNAME` attribute. This improves the reliability and accuracy of the sync, dry run, and single lookup features.
+
 ## [1.4.2] - 2025-10-16
 
 ### 🐛 Bug Fixes

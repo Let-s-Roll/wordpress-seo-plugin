@@ -141,10 +141,10 @@ function lr_render_brevo_sync_page() {
 
         <h2>Single Contact Lookup</h2>
         <div class="lr-status-box">
-            <p>Use this tool to test the Brevo API by looking up a single contact by their Let's Roll skateName.</p>
+            <p>Use this tool to test the Brevo API by looking up a single contact by their Let's Roll skateName in the Brevo FIRSTNAME field.</p>
             <table class="form-table">
                 <tr valign="top">
-                    <th scope="row"><label for="lr-skatename-lookup">Skatename</label></th>
+                    <th scope="row"><label for="lr-skatename-lookup">Firstname (Skatename)</label></th>
                     <td><input type="text" id="lr-skatename-lookup" style="width: 300px;" /></td>
                 </tr>
             </table>
@@ -182,10 +182,10 @@ function lr_render_brevo_sync_page() {
 
                 btn.prop('disabled', true).text('Looking up...');
                 updateLog('--- Starting Single Lookup ---');
-                updateLog('Looking up: ' + skatename);
+                updateLog('Looking up by FIRSTNAME: ' + skatename);
 
                 var data = {
-                    'action': 'lr_brevo_test_skatename_lookup',
+                    'action': 'lr_brevo_test_firstname_lookup',
                     'nonce': '<?php echo wp_create_nonce('lr_brevo_test_lookup_nonce'); ?>',
                     'skatename': skatename
                 };
