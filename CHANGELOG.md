@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.2] - 2025-10-16
+
+### 🐛 Bug Fixes
+*   **Brevo Sync Cron:** Fixed a critical issue where the background sync worker (`lr_brevo_sync_worker_event`) was not being scheduled correctly. The custom 'five_minutes' schedule was failing to register, so the worker now uses the reliable, built-in WordPress 'hourly' schedule as a fallback.
+
 ## [1.5.1] - 2025-10-16
 
 ###  refactor

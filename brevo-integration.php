@@ -538,16 +538,6 @@ function lr_run_single_city_sync($city_details) {
  * =================================================================================
  */
 
-// Add a custom cron schedule for the worker.
-add_filter('cron_schedules', 'lr_add_cron_schedules');
-function lr_add_cron_schedules($schedules) {
-    $schedules['five_minutes'] = [
-        'interval' => 300, // 5 minutes in seconds
-        'display'  => esc_html__('Every Five Minutes'),
-    ];
-    return $schedules;
-}
-
 // Hook the main functions into WP-Cron actions.
 add_action('lr_brevo_sync_main_event', 'lr_populate_brevo_sync_queue');
 add_action('lr_brevo_sync_worker_event', 'lr_process_brevo_sync_queue');
@@ -633,9 +623,9 @@ function lr_activate_brevo_sync_cron() {
     if (!wp_next_scheduled('lr_brevo_sync_main_event')) {
         wp_schedule_event(time(), 'daily', 'lr_brevo_sync_main_event');
     }
-    // Schedule the worker to run every 5 minutes
+    // Schedule the worker to run hourly as a fallback
     if (!wp_next_scheduled('lr_brevo_sync_worker_event')) {
-        wp_schedule_event(time(), 'five_minutes', 'lr_brevo_sync_worker_event');
+        wp_schedule_event(time(), 'hourly', 'lr_brevo_sync_worker_event');
     }
 }
 
