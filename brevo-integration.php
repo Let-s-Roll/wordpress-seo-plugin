@@ -135,13 +135,49 @@ function lr_find_brevo_contact_by_firstname($skateName) {
 }
 
 /**
- * Enriches a single Brevo contact by using a Let's Roll skateName.
- * It finds the contact in Brevo by the SKATENAME attribute, then updates that contact.
+ * Adds a single contact to a specific list in Brevo.
+ *
+ * @param string $email The email of the contact to add.
+ * @param int    $list_id The ID of the list to add the contact to.
+ * @return bool|WP_Error True on success, WP_Error on failure.
+ */
+function lr_add_contact_to_brevo_list($email, $list_id) {
+    $options = get_option('lr_brevo_options');
+    $brevo_api_key = $options['api_key'] ?? '';
+    if (empty($brevo_api_key)) {
+        return new WP_Error('api_key_missing', 'Brevo API key is not set.');
+    }
+
+    $url = 'https://api.brevo.com/v3/contacts/lists/' . $list_id . '/contacts/add';
+    $args = [
+        'method'  => 'POST',
+        'headers' => [
+            'api-key'      => $brevo_api_key,
+            'Content-Type' => 'application/json',
+            'Accept'       => 'application/json',
+        ],
+        'body'    => json_encode(['emails' => [$email]]),
+    ];
+
+    $response = wp_remote_post($url, $args);
+    $response_code = wp_remote_retrieve_response_code($response);
+    $body = json_decode(wp_remote_retrieve_body($response));
+
+    if ($response_code !== 201) {
+        $error_message = $body->message ?? 'Unknown error';
+        return new WP_Error('add_to_list_failed', 'Failed to add contact to list. Reason: ' . $error_message);
+    }
+
+    return true;
+}
+
+/**
+ * Finds a skater in Brevo and adds them to the appropriate city list.
  *
  * @param string $skateName The Let's Roll skateName.
- * @param string $city_name The city name to add to the contact.
+ * @param string $city_name The city name to find the list for.
  */
-function lr_enrich_skater_in_brevo_by_skatename($skateName, $city_name) {
+function lr_add_skater_to_brevo_city_list($skateName, $city_name) {
     $contact = lr_find_brevo_contact_by_firstname($skateName);
 
     if (!$contact) {
@@ -149,37 +185,23 @@ function lr_enrich_skater_in_brevo_by_skatename($skateName, $city_name) {
         return;
     }
 
+    $city_list_ids = lr_get_city_list_ids();
+    if (!isset($city_list_ids[$city_name])) {
+        echo '<p style="color: red;">Error: No Brevo list ID found for city: ' . esc_html($city_name) . '. Skipping.</p>';
+        return;
+    }
+    $list_id = $city_list_ids[$city_name];
     $contact_email = $contact->email;
-    echo '<p>Found contact: ' . esc_html($contact_email) . '. Now updating with city...</p>';
 
-    $options = get_option('lr_brevo_options');
-    $brevo_api_key = $options['api_key'] ?? '';
+    echo '<p>Found contact: ' . esc_html($contact_email) . '. Adding to list "' . esc_html($city_name) . '" (ID: ' . esc_html($list_id) . ')...</p>';
 
-    // Step 2: Update the contact in Brevo using the found email
-    $update_url = 'https://api.brevo.com/v3/contacts/' . urlencode(strtolower($contact_email));
-    $update_args = [
-        'method'  => 'PUT',
-        'headers' => [
-            'api-key'      => $brevo_api_key,
-            'Content-Type' => 'application/json',
-            'Accept'       => 'application/json',
-        ],
-        'body'    => json_encode([
-            'attributes' => [ 'CITY' => $city_name ],
-        ]),
-        'timeout' => 15,
-    ];
+    $result = lr_add_contact_to_brevo_list($contact_email, $list_id);
 
-    $update_response = wp_remote_request($update_url, $update_args);
-    $update_response_code = wp_remote_retrieve_response_code($update_response);
-
-    if ($update_response_code === 204) {
-        echo '<p style="color: green;">Successfully updated contact: ' . esc_html($contact_email) . ' with city: ' . esc_html($city_name) . '</p>';
-        lr_add_processed_skater($skateName, $city_name); // Add to log on success
+    if (is_wp_error($result)) {
+        echo '<p style="color: red;">Failed to add contact ' . esc_html($contact_email) . ' to list. Reason: ' . esc_html($result->get_error_message()) . '</p>';
     } else {
-        $update_body = json_decode(wp_remote_retrieve_body($update_response));
-        $error_message = $update_body->message ?? 'Unknown error during update';
-        echo '<p style="color: red;">Failed to update contact ' . esc_html($contact_email) . '. Brevo API responded with code ' . esc_html($update_response_code) . ' and message: ' . esc_html($error_message) . '</p>';
+        echo '<p style="color: green;">Successfully added contact ' . esc_html($contact_email) . ' to list "' . esc_html($city_name) . '".</p>';
+        lr_add_processed_skater($skateName, $city_name); // Add to log on success
     }
 }
 
@@ -478,7 +500,7 @@ function lr_run_single_city_sync($city_details) {
                     continue; // Skip recently synced skater
                 }
             }
-            lr_enrich_skater_in_brevo_by_skatename($skater->skateName, $city_name);
+            lr_add_skater_to_brevo_city_list($skater->skateName, $city_name);
             $skaters_processed_in_this_run++;
             usleep(200000); // 200ms pause to avoid hitting API rate limits
         }
