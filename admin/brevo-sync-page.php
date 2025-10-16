@@ -183,7 +183,14 @@ function lr_render_brevo_sync_page() {
 
         <h2>Activity Log</h2>
         <div id="lr-brevo-log-viewer">
-            <textarea readonly id="lr-log-textarea" style="width: 100%; height: 250px; background-color: #f7f7f7; font-family: monospace; font-size: 12px;">Log is empty.</textarea>
+            <textarea readonly id="lr-log-textarea" style="width: 100%; height: 250px; background-color: #f7f7f7; font-family: monospace; font-size: 12px;"><?php
+                $log_entries = get_option('lr_brevo_log', []);
+                if (!empty($log_entries)) {
+                    echo esc_textarea(implode("\n", $log_entries));
+                } else {
+                    echo 'Log is empty.';
+                }
+            ?></textarea>
         </div>
     </div>
 

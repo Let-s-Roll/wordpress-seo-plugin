@@ -399,7 +399,7 @@ function lr_brevo_ajax_sync_city_lists() {
     lr_brevo_log_message('Sync complete. Created ' . $created_count . ' new lists.');
 
     wp_send_json_success([
-        'log'      => get_transient('lr_brevo_log'),
+        'log'      => get_option('lr_brevo_log', []),
         'mappings' => $city_list_mappings,
     ]);
 }
@@ -538,10 +538,6 @@ function lr_run_single_city_sync($city_details) {
  * =================================================================================
  */
 
-// Hook the main functions into WP-Cron actions.
-add_action('lr_brevo_sync_main_event', 'lr_populate_brevo_sync_queue');
-add_action('lr_brevo_sync_worker_event', 'lr_process_brevo_sync_queue');
-
 /**
  * Populates the Brevo sync queue with all available cities.
  * This is the main task for the daily cron job.
@@ -581,35 +577,44 @@ function lr_populate_brevo_sync_queue() {
  * This is the "worker" task.
  */
 function lr_process_brevo_sync_queue() {
+    lr_brevo_log_message("--- Worker process started ---");
     $queue = get_option('lr_brevo_sync_queue', []);
 
     if (empty($queue)) {
-        // Queue is empty, sync is complete.
+        lr_brevo_log_message("Worker found an empty queue. Sync is likely complete. Cleaning up.");
         delete_option('lr_brevo_sync_total_count');
         return;
     }
+
+    lr_brevo_log_message("Worker found " . count($queue) . " cities in the queue.");
 
     // Process a batch of 1 city to keep tasks short
     $batch_size = 1;
     $cities_to_process = array_slice($queue, 0, $batch_size);
 
     foreach ($cities_to_process as $city_details) {
+        $city_name = $city_details['name'] ?? 'Unknown City';
+        lr_brevo_log_message("Processing city: " . $city_name);
+        
         // Use the existing single city sync function.
-        // Note: The echo statements in this function will not be visible,
-        // they will only run in the background. We might want to add proper logging later.
         lr_run_single_city_sync($city_details);
+        
+        lr_brevo_log_message("Finished processing city: " . $city_name);
     }
 
     // Remove the processed cities from the queue
     $remaining_queue = array_slice($queue, $batch_size);
     update_option('lr_brevo_sync_queue', $remaining_queue);
+    lr_brevo_log_message(count($remaining_queue) . " cities remaining in the queue.");
 
     // If there are more cities, schedule the next worker run
     if (!empty($remaining_queue)) {
         if (!wp_next_scheduled('lr_brevo_sync_worker_event')) {
             wp_schedule_single_event(time() + 10, 'lr_brevo_sync_worker_event'); // 10-second delay
+            lr_brevo_log_message("Scheduled next worker run in 10 seconds.");
         }
     } else {
+        lr_brevo_log_message("--- Sync Complete: Last city processed. ---");
         // Last batch was processed, clear the total count
         delete_option('lr_brevo_sync_total_count');
     }
@@ -764,7 +769,7 @@ function lr_generate_dry_run_rows_for_city($city_details) {
  * @param string $message The message to log.
  */
 function lr_brevo_log_message($message) {
-    $log = get_transient('lr_brevo_log');
+    $log = get_option('lr_brevo_log', []);
     if (!is_array($log)) {
         $log = [];
     }
@@ -774,14 +779,14 @@ function lr_brevo_log_message($message) {
     if (count($log) > 100) {
         $log = array_slice($log, 0, 100);
     }
-    set_transient('lr_brevo_log', $log, HOUR_IN_SECONDS);
+    update_option('lr_brevo_log', $log);
 }
 
 /**
  * Clears the Brevo sync log.
  */
 function lr_clear_brevo_log() {
-    delete_transient('lr_brevo_log');
+    delete_option('lr_brevo_log');
 }
 
 /**
@@ -829,7 +834,7 @@ function lr_brevo_ajax_start_report() {
     wp_send_json_success([
         'queue' => $city_queue,
         'total' => count($city_queue),
-        'log'   => get_transient('lr_brevo_log')
+        'log'   => get_option('lr_brevo_log', [])
     ]);
 }
 
@@ -844,7 +849,7 @@ function lr_brevo_ajax_process_report_batch() {
         lr_brevo_log_message('Finished processing all cities. Report is now complete.');
         wp_send_json_success([
             'status' => 'complete',
-            'log'    => get_transient('lr_brevo_log')
+            'log'    => get_option('lr_brevo_log', [])
         ]);
         return;
     }
@@ -864,7 +869,7 @@ function lr_brevo_ajax_process_report_batch() {
     wp_send_json_success([
         'status'    => 'processing',
         'queue'     => $queue,
-        'log'       => get_transient('lr_brevo_log')
+        'log'       => get_option('lr_brevo_log', [])
     ]);
 }
 
@@ -900,13 +905,13 @@ function lr_brevo_ajax_test_contact_lookup() {
         wp_send_json_success([
             'message' => 'SUCCESS: Contact found.',
             'contact' => $contact_data,
-            'log'     => get_transient('lr_brevo_log')
+            'log'     => get_option('lr_brevo_log', [])
         ]);
     } else {
         lr_brevo_log_message('FAILURE: No unique contact found in Brevo with that skatename.');
         wp_send_json_error([
             'message' => 'FAILURE: Contact not found in Brevo.',
-            'log'     => get_transient('lr_brevo_log')
+            'log'     => get_option('lr_brevo_log', [])
         ]);
     }
 }

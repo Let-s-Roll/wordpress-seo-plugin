@@ -15,10 +15,10 @@ define('LR_CACHE_VERSION', 'v3'); // Increment to invalidate all caches
 $lr_debug_messages = []; // Global for cache debugging
 
 // Include all necessary files
+require_once plugin_dir_path(__FILE__) . 'brevo-integration.php';
 if (is_admin()) { 
     require_once plugin_dir_path(__FILE__) . 'admin/admin-page.php'; 
     require_once plugin_dir_path(__FILE__) . 'admin/brevo-sync-page.php';
-    require_once plugin_dir_path(__FILE__) . 'brevo-integration.php';
 }
 require_once plugin_dir_path(__FILE__) . 'templates/template-explore-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-country-page.php';
@@ -49,6 +49,12 @@ function lr_brevo_settings_init() {
     register_setting('lr_brevo_options', 'lr_brevo_options');
 }
 add_action('admin_init', 'lr_brevo_settings_init');
+
+// Activation, deactivation, and action hooks for the Brevo Sync cron jobs
+register_activation_hook(__FILE__, 'lr_activate_brevo_sync_cron');
+register_deactivation_hook(__FILE__, 'lr_deactivate_brevo_sync_cron');
+add_action('lr_brevo_sync_main_event', 'lr_populate_brevo_sync_queue');
+add_action('lr_brevo_sync_worker_event', 'lr_process_brevo_sync_queue');
 
 /**
  * =================================================================================
