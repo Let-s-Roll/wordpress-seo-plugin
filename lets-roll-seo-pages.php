@@ -382,6 +382,10 @@ function lr_activate_plugin() {
 }
 register_activation_hook(__FILE__, 'lr_activate_plugin');
 
+// Activation and deactivation hooks for the Brevo Sync cron jobs
+register_activation_hook(__FILE__, 'lr_activate_brevo_sync_cron');
+register_deactivation_hook(__FILE__, 'lr_deactivate_brevo_sync_cron');
+
 function lr_calculate_bounding_box($lat, $lon, $radius_km) {
     $earth_radius = 6371; $lat_rad = deg2rad($lat); $lat_delta = $radius_km / $earth_radius;
     $min_lat = $lat - rad2deg($lat_delta); $max_lat = $lat + rad2deg($lat_delta);
