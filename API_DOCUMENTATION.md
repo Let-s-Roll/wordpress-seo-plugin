@@ -138,3 +138,47 @@ This document outlines the known API endpoints used by the Let's Roll SEO Pages 
 *   **Known Parameters:** None (ID is in the path).
 *   **Expected Response Structure:**
     *   A full user profile object, including an `email` property.
+
+---
+
+# Brevo API
+
+This section outlines the known API endpoints used for the Brevo integration. The base URL is `https://api.brevo.com/v3/`.
+
+### 1. Contacts
+
+*   **Endpoint:** `contacts`
+*   **Method:** `GET`
+*   **Purpose:** Fetches a list of contacts, primarily used for finding a specific contact by an attribute.
+*   **Key Parameters:**
+    *   `filter`: Used to filter contacts. The syntax `equals(ATTRIBUTE,"Value")` is used to find an exact match (e.g., `equals(FIRSTNAME,"rollerskatingcharlie")`).
+
+### 2. Lists
+
+*   **Endpoint:** `contacts/lists`
+*   **Method:** `GET`
+*   **Purpose:** Fetches all contact lists in the account. Used to check for the existence of city lists.
+*   **Key Parameters:**
+    *   `limit`: The number of lists to return per page (e.g., `50`).
+    *   `offset`: The starting point for pagination.
+
+*   **Endpoint:** `contacts/lists`
+*   **Method:** `POST`
+*   **Purpose:** Creates a new contact list.
+*   **Request Body:**
+    ```json
+    {
+        "name": "My New List",
+        "folderId": 31
+    }
+    ```
+
+*   **Endpoint:** `contacts/lists/{listId}/contacts/add`
+*   **Method:** `POST`
+*   **Purpose:** Adds one or more contacts to a specific list.
+*   **Request Body:**
+    ```json
+    {
+        "emails": ["example@email.com"]
+    }
+    ```
