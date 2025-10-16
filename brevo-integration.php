@@ -628,9 +628,9 @@ function lr_activate_brevo_sync_cron() {
     if (!wp_next_scheduled('lr_brevo_sync_main_event')) {
         wp_schedule_event(time(), 'daily', 'lr_brevo_sync_main_event');
     }
-    // Schedule the worker to run hourly as a fallback
+    // Schedule the worker to run every ten minutes as a fallback
     if (!wp_next_scheduled('lr_brevo_sync_worker_event')) {
-        wp_schedule_event(time(), 'hourly', 'lr_brevo_sync_worker_event');
+        wp_schedule_event(time(), 'ten_minutes', 'lr_brevo_sync_worker_event');
     }
 }
 

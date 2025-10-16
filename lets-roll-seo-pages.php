@@ -56,6 +56,16 @@ register_deactivation_hook(__FILE__, 'lr_deactivate_brevo_sync_cron');
 add_action('lr_brevo_sync_main_event', 'lr_populate_brevo_sync_queue');
 add_action('lr_brevo_sync_worker_event', 'lr_process_brevo_sync_queue');
 
+// Add a custom cron schedule for every 10 minutes.
+add_filter('cron_schedules', 'lr_add_ten_minute_cron_interval');
+function lr_add_ten_minute_cron_interval($schedules) {
+    $schedules['ten_minutes'] = array(
+        'interval' => 600, // 10 * 60 seconds
+        'display'  => esc_html__('Every Ten Minutes'),
+    );
+    return $schedules;
+}
+
 /**
  * =================================================================================
  * Core API & Location Functions

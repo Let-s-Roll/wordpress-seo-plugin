@@ -1,51 +1,14 @@
 # Changelog
 
-## [1.5.2] - 2025-10-16
-
-### 🐛 Bug Fixes
-*   **Brevo Sync Cron:** Fixed a critical issue where the background sync worker (`lr_brevo_sync_worker_event`) was not being scheduled correctly. The custom 'five_minutes' schedule was failing to register, so the worker now uses the reliable, built-in WordPress 'hourly' schedule as a fallback.
-
-## [1.5.1] - 2025-10-16
-
-###  refactor
-*   **Brevo Dual-Lookup:** The contact lookup process is now more robust. The system will first attempt to find a contact by matching the `skateName` to the standard `FIRSTNAME` attribute. If no unique match is found, it automatically falls back to a second search against the `SKATENAME` custom attribute, maximizing the chances of a successful match.
-
-### 🛠️ Developer Experience
-*   **Manual Sync Trigger:** Added a "Manually Process Next Batch" button to the admin page. This allows for immediate processing of a single city from the sync queue, making it easier to test the sync logic and diagnose issues with the WP-Cron background scheduling.
-
-## [1.5.0] - 2025-10-16
-
-### ✨ New Features
-*   **List-Based Brevo Sync:** The entire Brevo synchronization process has been refactored to be more robust and non-destructive. Instead of updating a contact's `CITY` attribute, the sync process now adds contacts to city-specific lists.
-*   **Brevo City List Management:** A new tool has been added to the Brevo Sync admin page that synchronizes the plugin's cities with Brevo contact lists. It fetches all existing lists, compares them against the plugin's city data, and creates any missing lists in a designated folder.
-
-### 🐛 Bug Fixes
-*   **Brevo API Limit:** Fixed a `400 Bad Request` error when fetching contact lists from Brevo by reducing the API request limit from 500 to a more conservative 50, while ensuring pagination correctly handles fetching all lists.
-
-###  refactor
-*   **Brevo Lookup:** Switched all Brevo contact lookups from the custom `SKATENAME` attribute to the standard `FIRSTNAME` attribute. This improves the reliability and accuracy of the sync, dry run, and single lookup features.
-
 ## [1.4.2] - 2025-10-16
+### Fixed
+- Changed the Brevo sync worker's fallback schedule from hourly to every ten minutes to ensure more timely processing if the self-scheduling mechanism fails.
 
-### 🐛 Bug Fixes
-*   **Brevo Dry Run:** Fixed a critical bug in the Dry Run Report generator where the Brevo contact lookup was failing due to an undefined `$skateName` variable. The function now correctly uses `$skater->skateName`.
-
-### 🛠️ Developer Experience
-*   **Brevo Test Utility:** Added a new "Single Contact Lookup" tool to the Brevo Sync admin page. This allows developers to test the `lr_find_brevo_contact_by_skatename` function directly by entering a skatename, making it much easier to debug API connection and data issues.
-
-## [1.4.1] - 2025-10-13
-
-### ✨ New Features
-
-*   **Enriched Spot Pages:** Spot pages are now more dynamic and engaging. They feature a "Recent Activity" section that is separated into "Upcoming Events," "Past Events," and "Recent Roll Sessions."
-*   **Dedicated Activity Page:** A new, shareable `/activity/{id}` page has been created to showcase individual skate sessions and posts.
-*   **AMP-Compatible Image Slideshow:** The new activity pages feature an interactive image slideshow powered by `amp-carousel` for a richer user experience.
-*   **Activity Dates:** All events and roll sessions listed on spot pages now display their relevant date, providing better context for users.
-
-### 🐛 Bug Fixes
-
-*   **Event Display Logic:** Corrected a data flow issue where events were not being displayed on spot pages. The fix ensures that all associated user profiles are correctly fetched and utilized.
-*   **UI Spacing:** Fixed a minor whitespace rendering bug to ensure proper spacing between usernames and action text (e.g., "hosted an event").
+## [1.4.1] - 2025-10-15
+### Fixed
+- Resolved a critical issue where Brevo sync cron jobs would fail to run due to being loaded only in an admin context.
+- Improved cron job logging and persistence for better debugging.
+- Fixed the admin UI to correctly display the activity log from background processes.
 
 ## [1.4.0] - 2025-10-06
 

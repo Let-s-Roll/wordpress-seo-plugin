@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.5.2
+Stable tag: 1.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -71,3 +71,13 @@ Configurable Locations: All countries, cities, coordinates, and descriptions are
 Sitemap Generation: Includes a utility to generate a CSV sitemap of all primary pages, formatted for import into SEO plugins like AIOSEO.
 AMP-Compatible CTA Banner: A dismissible "Install the App" banner that works correctly on AMP-enabled sites.
 Robust Caching Strategy: The plugin is designed to work with caching plugins like W3 Total Cache. By pre-warming the cache (using the caching plugin's sitemap feature), the dynamically generated pages can be served as fast, static HTML files to all users.
+
+== Changelog ==
+
+= 1.4.2 =
+* FIX: Changed the Brevo sync worker's fallback schedule from hourly to every ten minutes to ensure more timely processing if the self-scheduling mechanism fails.
+
+= 1.4.1 =
+* FIX: Resolved a critical issue where Brevo sync cron jobs would fail to run due to being loaded only in an admin context.
+* FIX: Improved cron job logging and persistence for better debugging.
+* FIX: Fixed the admin UI to correctly display the activity log from background processes.
