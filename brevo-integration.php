@@ -515,7 +515,7 @@ function lr_generate_dry_run_rows_for_city($city_details) {
             }
         }
 
-        $contact = lr_find_brevo_contact_by_skatename($skateName);
+        $contact = lr_find_brevo_contact_by_skatename($skater->skateName);
         
         if (!$contact) {
             $status = 'Will Skip';
@@ -658,17 +658,17 @@ function lr_brevo_ajax_process_report_batch() {
 
 /**
  * =================================================================================
- * AJAX Single Contact Lookup
+ * AJAX Single Skatename Lookup
  * =================================================================================
  */
 
 // Hook the AJAX handler into WordPress
-add_action('wp_ajax_lr_brevo_test_lookup', 'lr_brevo_ajax_test_lookup');
+add_action('wp_ajax_lr_brevo_test_skatename_lookup', 'lr_brevo_ajax_test_skatename_lookup');
 
 /**
- * AJAX handler for the single contact lookup tool.
+ * AJAX handler for the single contact lookup tool using SKATENAME.
  */
-function lr_brevo_ajax_test_lookup() {
+function lr_brevo_ajax_test_skatename_lookup() {
     check_ajax_referer('lr_brevo_test_lookup_nonce', 'nonce');
 
     $skatename = isset($_POST['skatename']) ? sanitize_text_field($_POST['skatename']) : '';
@@ -679,24 +679,10 @@ function lr_brevo_ajax_test_lookup() {
     }
 
     lr_clear_brevo_log();
-    lr_brevo_log_message('--- Starting Single Contact Lookup Test ---');
-    lr_brevo_log_message('1. Looking up email for SKATENAME: ' . $skatename);
+    lr_brevo_log_message('--- Starting Single Skatename Lookup Test ---');
+    lr_brevo_log_message('1. Looking up contact in Brevo with SKATENAME: ' . $skatename);
 
-    $email = lr_get_email_by_skatename($skatename);
-
-    if (!$email) {
-        lr_brevo_log_message('FAILURE: Could not find an email for that skatename in the Let\'s Roll App.');
-        wp_send_json_error([
-            'message' => 'FAILURE: Email not found.',
-            'log'     => get_transient('lr_brevo_log')
-        ]);
-        return;
-    }
-
-    lr_brevo_log_message('SUCCESS: Found email: ' . $email);
-    lr_brevo_log_message('2. Looking up contact in Brevo with that email...');
-
-    $contact_data = lr_find_brevo_contact_by_email($email);
+    $contact_data = lr_find_brevo_contact_by_skatename($skatename);
 
     if ($contact_data) {
         lr_brevo_log_message('SUCCESS: Contact found in Brevo.');
@@ -706,7 +692,7 @@ function lr_brevo_ajax_test_lookup() {
             'log'     => get_transient('lr_brevo_log')
         ]);
     } else {
-        lr_brevo_log_message('FAILURE: No contact found in Brevo with that email.');
+        lr_brevo_log_message('FAILURE: No unique contact found in Brevo with that skatename.');
         wp_send_json_error([
             'message' => 'FAILURE: Contact not found in Brevo.',
             'log'     => get_transient('lr_brevo_log')

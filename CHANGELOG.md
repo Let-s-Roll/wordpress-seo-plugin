@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.2] - 2025-10-16
+
+### 🐛 Bug Fixes
+*   **Brevo Dry Run:** Fixed a critical bug in the Dry Run Report generator where the Brevo contact lookup was failing due to an undefined `$skateName` variable. The function now correctly uses `$skater->skateName`.
+
+### 🛠️ Developer Experience
+*   **Brevo Test Utility:** Added a new "Single Contact Lookup" tool to the Brevo Sync admin page. This allows developers to test the `lr_find_brevo_contact_by_skatename` function directly by entering a skatename, making it much easier to debug API connection and data issues.
+
 ## [1.4.1] - 2025-10-13
 
 ### ✨ New Features

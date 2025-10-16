@@ -120,261 +120,186 @@ function lr_render_brevo_sync_page() {
 
                 <hr>
 
-        
-
-                <h2>Dry Run Report</h2>
-
-                <div class="lr-status-box">
-
-                    <p>Generate a CSV report to see what the sync will do without making any changes in Brevo. The process runs in your browser, so please keep this tab open until it completes.</p>
-
-                    <div id="lr-report-progress-bar-container" style="display: none;">
-
-                        <p><strong>Status:</strong> <span id="lr-report-status-text" style="color: orange;">Generating...</span></p>
-
-                        <div class="lr-progress-bar"><div id="lr-report-progress-bar"></div></div>
-
-                        <p><span id="lr-report-processed-count">0</span> / <span id="lr-report-total-count">0</span> cities processed.</p>
-
-                    </div>
-
-                </div>
-
-                <div class="lr-controls-form">
-
-                    <button id="lr-generate-report-btn" class="button button-primary">Generate Report</button>
-
-                    <form id="lr-download-report-form" method="post" action="" style="display: none; margin-left: 10px;">
-
-                        <?php wp_nonce_field('lr_brevo_download_report_action', 'lr_brevo_download_report_nonce'); ?>
-
-                        <?php submit_button('Download Report (CSV)', 'secondary', 'lr_brevo_download_report'); ?>
-
-                    </form>
-
-                </div>
-
-        
-
-                <hr>
-
-        
-
-                <h2>Activity Log</h2>
-
-                <div id="lr-brevo-log-viewer">
-
-                    <textarea readonly id="lr-log-textarea" style="width: 100%; height: 250px; background-color: #f7f7f7; font-family: monospace; font-size: 12px;">Log is empty.</textarea>
-
-                </div>
-
-        
-
+        <h2>Dry Run Report</h2>
+        <div class="lr-status-box">
+            <p>Generate a CSV report to see what the sync will do without making any changes in Brevo. The process runs in your browser, so please keep this tab open until it completes.</p>
+            <div id="lr-report-progress-bar-container" style="display: none;">
+                <p><strong>Status:</strong> <span id="lr-report-status-text" style="color: orange;">Generating...</span></p>
+                <div class="lr-progress-bar"><div id="lr-report-progress-bar"></div></div>
+                <p><span id="lr-report-processed-count">0</span> / <span id="lr-report-total-count">0</span> cities processed.</p>
             </div>
-
-        
-
-            <style>
-
-                .lr-status-box { background-color: #fff; border: 1px solid #ccd0d4; padding: 1px 20px; margin-top: 15px; }
-
-                .lr-progress-bar { background-color: #eee; border: 1px solid #ccc; height: 24px; width: 100%; }
-
-                .lr-progress-bar div { background-color: #2271b1; height: 100%; width: 0%; }
-
-                .lr-controls-form { margin-top: 15px; }
-
-            </style>
-
-        
-
-            <script type="text/javascript">
-
-                jQuery(document).ready(function($) {
-
-                    var reportQueue = [];
-
-                    var totalCities = 0;
-
-                    var processedCities = 0;
-
-        
-
-                    $('#lr-generate-report-btn').on('click', function() {
-
-                        var btn = $(this);
-
-                        btn.prop('disabled', true).text('Starting...');
-
-                        
-
-                        $('#lr-report-progress-bar-container').show();
-
-                        $('#lr-download-report-form').hide();
-
-                        updateLog('Starting...');
-
-        
-
-                        var data = {
-
-                            'action': 'lr_brevo_start_report',
-
-                            'nonce': '<?php echo wp_create_nonce('lr_brevo_report_nonce'); ?>'
-
-                        };
-
-        
-
-                        $.post(ajaxurl, data, function(response) {
-
-                            if (response.success) {
-
-                                reportQueue = response.data.queue;
-
-                                totalCities = response.data.total;
-
-                                processedCities = 0;
-
-                                updateLog(response.data.log);
-
-                                $('#lr-report-total-count').text(totalCities);
-
-                                btn.text('Generating...');
-
-                                processNextBatch();
-
-                            } else {
-
-                                updateLog('Error: ' + response.data.message);
-
-                                btn.prop('disabled', false).text('Generate Report');
-
-                            }
-
-                        });
-
-                    });
-
-        
-
-                    function processNextBatch() {
-
-                        if (reportQueue.length === 0) {
-
-                            $('#lr-report-status-text').text('Complete!').css('color', 'green');
-
-                            $('#lr-generate-report-btn').prop('disabled', false).text('Generate Report');
-
-                            $('#lr-download-report-form').show();
-
-                            return;
-
-                        }
-
-        
-
-                        var data = {
-
-        
-
-                                            'action': 'lr_brevo_process_report_batch',
-
-        
-
-                                            'nonce': '<?php echo wp_create_nonce('lr_brevo_report_nonce'); ?>',
-
-        
-
-                                            'queue': JSON.stringify(reportQueue)
-
-        
-
-                                        };
-
-        
-
-                        $.post(ajaxurl, data, function(response) {
-
-                            if (response.success) {
-
-                                reportQueue = response.data.queue;
-
-                                processedCities = totalCities - reportQueue.length;
-
-                                
-
-                                updateLog(response.data.log);
-
-                                updateProgressBar();
-
-        
-
-                                if (response.data.status === 'processing') {
-
-                                    processNextBatch();
-
-                                } else { // complete
-
-                                    $('#lr-report-status-text').text('Complete!').css('color', 'green');
-
-                                    $('#lr-generate-report-btn').prop('disabled', false).text('Generate Report');
-
-                                    $('#lr-download-report-form').show();
-
-                                }
-
-                            } else {
-
-                                updateLog('An error occurred. Please check the server logs.');
-
-                                $('#lr-generate-report-btn').prop('disabled', false).text('Generate Report');
-
-                            }
-
-                        });
-
+        </div>
+        <div class="lr-controls-form">
+            <button id="lr-generate-report-btn" class="button button-primary">Generate Report</button>
+            <form id="lr-download-report-form" method="post" action="" style="display: none; margin-left: 10px;">
+                <?php wp_nonce_field('lr_brevo_download_report_action', 'lr_brevo_download_report_nonce'); ?>
+                <?php submit_button('Download Report (CSV)', 'secondary', 'lr_brevo_download_report'); ?>
+            </form>
+        </div>
+
+        <hr>
+
+        <h2>Single Contact Lookup</h2>
+        <div class="lr-status-box">
+            <p>Use this tool to test the Brevo API by looking up a single contact by their Let's Roll skateName.</p>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row"><label for="lr-skatename-lookup">Skatename</label></th>
+                    <td><input type="text" id="lr-skatename-lookup" style="width: 300px;" /></td>
+                </tr>
+            </table>
+        </div>
+        <div class="lr-controls-form">
+            <button id="lr-test-lookup-btn" class="button button-secondary">Test Lookup</button>
+        </div>
+
+        <hr>
+
+        <h2>Activity Log</h2>
+        <div id="lr-brevo-log-viewer">
+            <textarea readonly id="lr-log-textarea" style="width: 100%; height: 250px; background-color: #f7f7f7; font-family: monospace; font-size: 12px;">Log is empty.</textarea>
+        </div>
+    </div>
+
+    <style>
+        .lr-status-box { background-color: #fff; border: 1px solid #ccd0d4; padding: 1px 20px; margin-top: 15px; }
+        .lr-progress-bar { background-color: #eee; border: 1px solid #ccc; height: 24px; width: 100%; }
+        .lr-progress-bar div { background-color: #2271b1; height: 100%; width: 0%; }
+        .lr-controls-form { margin-top: 15px; }
+    </style>
+
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            // --- Single Lookup ---
+            $('#lr-test-lookup-btn').on('click', function() {
+                var btn = $(this);
+                var skatename = $('#lr-skatename-lookup').val();
+
+                if (!skatename) {
+                    alert('Please enter a skatename.');
+                    return;
+                }
+
+                btn.prop('disabled', true).text('Looking up...');
+                updateLog('--- Starting Single Lookup ---');
+                updateLog('Looking up: ' + skatename);
+
+                var data = {
+                    'action': 'lr_brevo_test_skatename_lookup',
+                    'nonce': '<?php echo wp_create_nonce('lr_brevo_test_lookup_nonce'); ?>',
+                    'skatename': skatename
+                };
+
+                $.post(ajaxurl, data, function(response) {
+                    if (response.success) {
+                        updateLog(response.data.log);
+                        var contact = response.data.contact;
+                        var formattedContact = JSON.stringify(contact, null, 2);
+                        updateLog("--- Contact Found --- \n" + formattedContact);
+                    } else {
+                        updateLog(response.data.log);
                     }
-
-        
-
-                    function updateProgressBar() {
-
-                        var percentage = (processedCities / totalCities) * 100;
-
-                        $('#lr-report-progress-bar').css('width', percentage + '%');
-
-                        $('#lr-report-processed-count').text(processedCities);
-
-                    }
-
-        
-
-                    function updateLog(logEntries) {
-
-                        if (Array.isArray(logEntries)) {
-
-                            $('#lr-log-textarea').val(logEntries.join("\n"));
-
-                        } else {
-
-                            var currentLog = $('#lr-log-textarea').val();
-
-                            if (currentLog === 'Log is empty.') currentLog = '';
-
-                            $('#lr-log-textarea').val(logEntries + "\n" + currentLog);
-
-                        }
-
-                    }
-
+                    btn.prop('disabled', false).text('Test Lookup');
                 });
+            });
 
-            </script>
+            // --- Dry Run Report ---
+            var reportQueue = [];
+            var totalCities = 0;
+            var processedCities = 0;
 
-            <?php
+            $('#lr-generate-report-btn').on('click', function() {
+                var btn = $(this);
+                btn.prop('disabled', true).text('Starting...');
+                
+                $('#lr-report-progress-bar-container').show();
+                $('#lr-download-report-form').hide();
+                updateLog('--- Starting Dry Run Report ---');
 
-        }
+                var data = {
+                    'action': 'lr_brevo_start_report',
+                    'nonce': '<?php echo wp_create_nonce('lr_brevo_report_nonce'); ?>'
+                };
+
+                $.post(ajaxurl, data, function(response) {
+                    if (response.success) {
+                        reportQueue = response.data.queue;
+                        totalCities = response.data.total;
+                        processedCities = 0;
+                        updateLog(response.data.log);
+                        $('#lr-report-total-count').text(totalCities);
+                        btn.text('Generating...');
+                        processNextBatch();
+                    } else {
+                        updateLog('Error: ' + response.data.message);
+                        btn.prop('disabled', false).text('Generate Report');
+                    }
+                });
+            });
+
+            function processNextBatch() {
+                if (reportQueue.length === 0) {
+                    $('#lr-report-status-text').text('Complete!').css('color', 'green');
+                    $('#lr-generate-report-btn').prop('disabled', false).text('Generate Report');
+                    $('#lr-download-report-form').show();
+                    return;
+                }
+
+                var data = {
+                    'action': 'lr_brevo_process_report_batch',
+                    'nonce': '<?php echo wp_create_nonce('lr_brevo_report_nonce'); ?>',
+                    'queue': JSON.stringify(reportQueue)
+                };
+
+                $.post(ajaxurl, data, function(response) {
+                    if (response.success) {
+                        reportQueue = response.data.queue;
+                        processedCities = totalCities - reportQueue.length;
+                        
+                        updateLog(response.data.log);
+                        updateProgressBar();
+
+                        if (response.data.status === 'processing') {
+                            processNextBatch();
+                        } else { // complete
+                            $('#lr-report-status-text').text('Complete!').css('color', 'green');
+                            $('#lr-generate-report-btn').prop('disabled', false).text('Generate Report');
+                            $('#lr-download-report-form').show();
+                        }
+                    } else {
+                        updateLog('An error occurred. Please check the server logs.');
+                        $('#lr-generate-report-btn').prop('disabled', false).text('Generate Report');
+                    }
+                });
+            }
+
+            function updateProgressBar() {
+                var percentage = (processedCities / totalCities) * 100;
+                $('#lr-report-progress-bar').css('width', percentage + '%');
+                $('#lr-report-processed-count').text(processedCities);
+            }
+
+            // --- Shared Functions ---
+            function updateLog(logEntries) {
+                var textarea = $('#lr-log-textarea');
+                var currentLog = textarea.val();
+                if (currentLog === 'Log is empty.') {
+                    currentLog = '';
+                }
+
+                var newContent;
+                if (Array.isArray(logEntries)) {
+                    newContent = logEntries.join("\n");
+                } else {
+                    newContent = logEntries;
+                }
+                
+                textarea.val(newContent + "\n" + currentLog);
+            }
+        });
+    </script>
+    <?php
+}
 
         
 
