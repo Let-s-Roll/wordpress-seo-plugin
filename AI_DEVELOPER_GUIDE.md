@@ -85,3 +85,9 @@ This file contains high-level ideas and strategic goals for the plugin's future 
 ### `.gitignore`
 
 A standard Git file that lists files and directories that should not be tracked by version control (e.g., `.env` files, temporary logs).
+
+---
+
+### Brevo Integration
+
+All functionality related to the Brevo API (contact lookup, syncing, etc.) is complex and has been a source of significant bugs. All development related to Brevo **must** follow the specific implementation details outlined in the `Brevo_integration.md` file. Do not attempt to use any other API endpoints or filtering methods without updating that documentation first.

@@ -99,30 +99,39 @@ function lr_find_brevo_contact_by_skatename($skateName) {
         return null;
     }
 
-    // The API expects the filter value to be URL encoded and the attribute to be namespaced.
-    $search_url = 'https://api.brevo.com/v3/contacts?filter[attributes.SKATENAME]=' . urlencode($skateName);
+    $url = 'https://api.brevo.com/v3/contacts';
+    $filter_value = 'equals(SKATENAME,"' . $skateName . '")';
+    $full_url = add_query_arg('filter', $filter_value, $url);
 
-    $search_args = [
+    // Log the request for debugging
+    error_log('Brevo API Request URL: ' . $full_url);
+
+    $args = [
         'headers' => [
             'api-key' => $brevo_api_key,
             'Accept'  => 'application/json',
         ]
     ];
 
-    $search_response = wp_remote_get($search_url, $search_args);
-    $search_response_code = wp_remote_retrieve_response_code($search_response);
-    $search_body = json_decode(wp_remote_retrieve_body($search_response));
+    $response = wp_remote_get($full_url, $args);
+    $response_code = wp_remote_retrieve_response_code($response);
+    $body_raw = wp_remote_retrieve_body($response);
 
-    if ($search_response_code !== 200 || !isset($search_body->contacts) || empty($search_body->contacts)) {
+    // Log the response for debugging
+    error_log('Brevo API Response Code: ' . $response_code);
+    error_log('Brevo API Response Body: ' . $body_raw);
+
+    $body = json_decode($body_raw);
+
+    if ($response_code !== 200 || !isset($body->contacts) || empty($body->contacts)) {
         return null; // Not found or error
     }
 
-    if (count($search_body->contacts) > 1) {
-        // Ambiguous, treat as not found
-        return null;
+    if (count($body->contacts) > 1) {
+        return null; // Found more than one, ambiguous
     }
 
-    return $search_body->contacts[0];
+    return $body->contacts[0];
 }
 
 /**
@@ -465,7 +474,6 @@ function lr_handle_dry_run_download() {
 
 
 
-
 /**
  * Generates the report rows for a single city.
  *
@@ -646,4 +654,62 @@ function lr_brevo_ajax_process_report_batch() {
         'queue'     => $queue,
         'log'       => get_transient('lr_brevo_log')
     ]);
+}
+
+/**
+ * =================================================================================
+ * AJAX Single Contact Lookup
+ * =================================================================================
+ */
+
+// Hook the AJAX handler into WordPress
+add_action('wp_ajax_lr_brevo_test_lookup', 'lr_brevo_ajax_test_lookup');
+
+/**
+ * AJAX handler for the single contact lookup tool.
+ */
+function lr_brevo_ajax_test_lookup() {
+    check_ajax_referer('lr_brevo_test_lookup_nonce', 'nonce');
+
+    $skatename = isset($_POST['skatename']) ? sanitize_text_field($_POST['skatename']) : '';
+
+    if (empty($skatename)) {
+        wp_send_json_error(['message' => 'No skatename provided.']);
+        return;
+    }
+
+    lr_clear_brevo_log();
+    lr_brevo_log_message('--- Starting Single Contact Lookup Test ---');
+    lr_brevo_log_message('1. Looking up email for SKATENAME: ' . $skatename);
+
+    $email = lr_get_email_by_skatename($skatename);
+
+    if (!$email) {
+        lr_brevo_log_message('FAILURE: Could not find an email for that skatename in the Let\'s Roll App.');
+        wp_send_json_error([
+            'message' => 'FAILURE: Email not found.',
+            'log'     => get_transient('lr_brevo_log')
+        ]);
+        return;
+    }
+
+    lr_brevo_log_message('SUCCESS: Found email: ' . $email);
+    lr_brevo_log_message('2. Looking up contact in Brevo with that email...');
+
+    $contact_data = lr_find_brevo_contact_by_email($email);
+
+    if ($contact_data) {
+        lr_brevo_log_message('SUCCESS: Contact found in Brevo.');
+        wp_send_json_success([
+            'message' => 'SUCCESS: Contact found.',
+            'contact' => $contact_data,
+            'log'     => get_transient('lr_brevo_log')
+        ]);
+    } else {
+        lr_brevo_log_message('FAILURE: No contact found in Brevo with that email.');
+        wp_send_json_error([
+            'message' => 'FAILURE: Contact not found in Brevo.',
+            'log'     => get_transient('lr_brevo_log')
+        ]);
+    }
 }
