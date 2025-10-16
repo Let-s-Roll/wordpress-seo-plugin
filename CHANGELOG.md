@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.1] - 2025-10-16
+
+###  refactor
+*   **Brevo Dual-Lookup:** The contact lookup process is now more robust. The system will first attempt to find a contact by matching the `skateName` to the standard `FIRSTNAME` attribute. If no unique match is found, it automatically falls back to a second search against the `SKATENAME` custom attribute, maximizing the chances of a successful match.
+
+### 🛠️ Developer Experience
+*   **Manual Sync Trigger:** Added a "Manually Process Next Batch" button to the admin page. This allows for immediate processing of a single city from the sync queue, making it easier to test the sync logic and diagnose issues with the WP-Cron background scheduling.
+
 ## [1.5.0] - 2025-10-16
 
 ### ✨ New Features

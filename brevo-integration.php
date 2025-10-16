@@ -86,12 +86,12 @@ function lr_fetch_skaters_for_city($city_details) {
 }
 
 /**
- * Searches for a contact in Brevo using the FIRSTNAME standard attribute.
+ * Searches for a contact in Brevo, first by FIRSTNAME and then falling back to SKATENAME.
  *
- * @param string $skateName The skateName to search for in the FIRSTNAME field.
+ * @param string $skateName The skateName to search for.
  * @return object|null The contact object from Brevo if found, otherwise null.
  */
-function lr_find_brevo_contact_by_firstname($skateName) {
+function lr_find_brevo_contact($skateName) {
     $options = get_option('lr_brevo_options');
     $brevo_api_key = $options['api_key'] ?? '';
 
@@ -99,12 +99,43 @@ function lr_find_brevo_contact_by_firstname($skateName) {
         return null;
     }
 
-    $url = 'https://api.brevo.com/v3/contacts';
-    $filter_value = 'equals(FIRSTNAME,"' . $skateName . '")';
-    $full_url = add_query_arg('filter', $filter_value, $url);
+    // --- First Attempt: Search by FIRSTNAME ---
+    lr_brevo_log_message("Attempting lookup for '$skateName' using FIRSTNAME...");
+    $contact = lr_brevo_api_get_contact_by_attribute('FIRSTNAME', $skateName);
 
-    // Log the request for debugging
-    error_log('Brevo API Request URL: ' . $full_url);
+    if ($contact) {
+        lr_brevo_log_message("...SUCCESS found contact using FIRSTNAME.");
+        return $contact;
+    }
+    lr_brevo_log_message("...No unique match found using FIRSTNAME.");
+
+    // --- Fallback Attempt: Search by SKATENAME ---
+    lr_brevo_log_message("Attempting fallback lookup for '$skateName' using SKATENAME...");
+    $contact = lr_brevo_api_get_contact_by_attribute('SKATENAME', $skateName);
+    
+    if ($contact) {
+        lr_brevo_log_message("...SUCCESS found contact using SKATENAME.");
+        return $contact;
+    }
+    lr_brevo_log_message("...No unique match found using SKATENAME.");
+
+    return null; // Return null if both attempts fail
+}
+
+/**
+ * Helper function to query the Brevo API for a contact by a specific attribute.
+ *
+ * @param string $attribute_name The name of the attribute to filter by (e.g., 'FIRSTNAME', 'SKATENAME').
+ * @param string $attribute_value The value to match.
+ * @return object|null The contact object or null if not found/ambiguous.
+ */
+function lr_brevo_api_get_contact_by_attribute($attribute_name, $attribute_value) {
+    $options = get_option('lr_brevo_options');
+    $brevo_api_key = $options['api_key'] ?? '';
+
+    $url = 'https://api.brevo.com/v3/contacts';
+    $filter_value = 'equals(' . $attribute_name . ',"' . $attribute_value . '")';
+    $full_url = add_query_arg('filter', $filter_value, $url);
 
     $args = [
         'headers' => [
@@ -116,19 +147,10 @@ function lr_find_brevo_contact_by_firstname($skateName) {
     $response = wp_remote_get($full_url, $args);
     $response_code = wp_remote_retrieve_response_code($response);
     $body_raw = wp_remote_retrieve_body($response);
-
-    // Log the response for debugging
-    error_log('Brevo API Response Code: ' . $response_code);
-    error_log('Brevo API Response Body: ' . $body_raw);
-
     $body = json_decode($body_raw);
 
-    if ($response_code !== 200 || !isset($body->contacts) || empty($body->contacts)) {
-        return null; // Not found or error
-    }
-
-    if (count($body->contacts) > 1) {
-        return null; // Found more than one, ambiguous
+    if ($response_code !== 200 || !isset($body->contacts) || empty($body->contacts) || count($body->contacts) > 1) {
+        return null;
     }
 
     return $body->contacts[0];
@@ -178,7 +200,7 @@ function lr_add_contact_to_brevo_list($email, $list_id) {
  * @param string $city_name The city name to find the list for.
  */
 function lr_add_skater_to_brevo_city_list($skateName, $city_name) {
-    $contact = lr_find_brevo_contact_by_firstname($skateName);
+    $contact = lr_find_brevo_contact($skateName);
 
     if (!$contact) {
         echo '<p style="color: #888;">No unique contact found in Brevo with skateName: ' . esc_html($skateName) . '. Skipping.</p>';
@@ -715,7 +737,7 @@ function lr_generate_dry_run_rows_for_city($city_details) {
             }
         }
 
-        $contact = lr_find_brevo_contact_by_firstname($skater->skateName);
+        $contact = lr_find_brevo_contact($skater->skateName);
         
         if (!$contact) {
             $status = 'Will Skip';
@@ -858,17 +880,17 @@ function lr_brevo_ajax_process_report_batch() {
 
 /**
  * =================================================================================
- * AJAX Single Firstname Lookup
+ * AJAX Single Contact Lookup
  * =================================================================================
  */
 
 // Hook the AJAX handler into WordPress
-add_action('wp_ajax_lr_brevo_test_firstname_lookup', 'lr_brevo_ajax_test_firstname_lookup');
+add_action('wp_ajax_lr_brevo_test_contact_lookup', 'lr_brevo_ajax_test_contact_lookup');
 
 /**
- * AJAX handler for the single contact lookup tool using FIRSTNAME.
+ * AJAX handler for the single contact lookup tool.
  */
-function lr_brevo_ajax_test_firstname_lookup() {
+function lr_brevo_ajax_test_contact_lookup() {
     check_ajax_referer('lr_brevo_test_lookup_nonce', 'nonce');
 
     $skatename = isset($_POST['skatename']) ? sanitize_text_field($_POST['skatename']) : '';
@@ -879,20 +901,19 @@ function lr_brevo_ajax_test_firstname_lookup() {
     }
 
     lr_clear_brevo_log();
-    lr_brevo_log_message('--- Starting Single Firstname Lookup Test ---');
-    lr_brevo_log_message('1. Looking up contact in Brevo with FIRSTNAME: ' . $skatename);
-
-    $contact_data = lr_find_brevo_contact_by_firstname($skatename);
+    lr_brevo_log_message('--- Starting Single Contact Lookup Test ---');
+    
+    $contact_data = lr_find_brevo_contact($skatename);
 
     if ($contact_data) {
-        lr_brevo_log_message('SUCCESS: Contact found in Brevo.');
+        lr_brevo_log_message('SUCCESS: Final contact found.');
         wp_send_json_success([
             'message' => 'SUCCESS: Contact found.',
             'contact' => $contact_data,
             'log'     => get_transient('lr_brevo_log')
         ]);
     } else {
-        lr_brevo_log_message('FAILURE: No unique contact found in Brevo with that firstname.');
+        lr_brevo_log_message('FAILURE: No unique contact found in Brevo with that skatename.');
         wp_send_json_error([
             'message' => 'FAILURE: Contact not found in Brevo.',
             'log'     => get_transient('lr_brevo_log')

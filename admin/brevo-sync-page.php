@@ -30,6 +30,10 @@ function lr_render_brevo_sync_page() {
         }
         echo '<div class="notice notice-warning is-dismissible"><p>Sync has been cancelled.</p></div>';
     }
+    if (isset($_POST['lr_brevo_process_batch']) && check_admin_referer('lr_brevo_manual_sync_action', 'lr_brevo_manual_sync_nonce')) {
+        echo '<div class="notice notice-info is-dismissible"><p>Manually processing one batch...</p></div>';
+        lr_process_brevo_sync_queue();
+    }
     // ... other non-AJAX handlers like log clearing can remain ...
     ?>
     <div class="wrap">
@@ -127,7 +131,7 @@ function lr_render_brevo_sync_page() {
                     <?php wp_nonce_field('lr_brevo_manual_sync_action', 'lr_brevo_manual_sync_nonce'); ?>
 
                     <?php if ($is_sync_running) : ?>
-
+                        <?php submit_button('Manually Process Next Batch', 'secondary', 'lr_brevo_process_batch', ['style' => 'margin-right: 10px;']); ?>
                         <?php submit_button('Cancel Sync', 'delete', 'lr_brevo_cancel_sync'); ?>
 
                     <?php else : ?>
@@ -240,10 +244,10 @@ function lr_render_brevo_sync_page() {
 
                 btn.prop('disabled', true).text('Looking up...');
                 updateLog('--- Starting Single Lookup ---');
-                updateLog('Looking up by FIRSTNAME: ' + skatename);
+                updateLog('Looking up: ' + skatename);
 
                 var data = {
-                    'action': 'lr_brevo_test_firstname_lookup',
+                    'action': 'lr_brevo_test_contact_lookup',
                     'nonce': '<?php echo wp_create_nonce('lr_brevo_test_lookup_nonce'); ?>',
                     'skatename': skatename
                 };
