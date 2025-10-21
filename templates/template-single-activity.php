@@ -25,37 +25,7 @@ function lr_render_single_activity_content($activity_id) {
     $user_profile = $data->userProfiles[0] ?? null;
     $spot = $data->spotsBoundToSessions[0] ?? null;
 
-    $output = '<div class="lr-page-container">'; // Start of new wrapper
-
-    // --- ADDED: Style block for mobile padding and slideshow aspect ratio ---
-    $output .= '
-    <style>
-        .lr-activity-attachments amp-carousel {
-            aspect-ratio: 3 / 4;
-            max-height: 70vh;
-        }
-        .lr-activity-attachments amp-img img {
-            object-fit: contain;
-        }
-        .lr-activity-meta {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 10px;
-            text-align: center;
-        }
-        @media (max-width: 768px) {
-            .lr-page-container { padding-left: 15px; padding-right: 15px; }
-            .lr-activity-meta {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-    </style>';
+    $output = '<div class="lr-activity-container">';
 
     // --- Skater Header ---
     if ($user_profile) {
@@ -115,7 +85,7 @@ function lr_render_single_activity_content($activity_id) {
         $output .= '<p class="lr-activity-spot-link"><strong>At:</strong> <a href="' . esc_url($spot_url) . '">' . esc_html($spot->name) . '</a></p>';
     }
 
-    $output .= '</div>'; // close lr-page-container
+    $output .= '</div>'; // close lr-activity-container
 
     if (!lr_is_testing_mode_enabled()) {
         set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);

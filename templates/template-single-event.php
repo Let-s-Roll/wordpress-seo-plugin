@@ -14,13 +14,7 @@ function lr_render_single_event_content($event_id) {
     $organizer_profile = $data->userProfiles[0] ?? null;
     $spot_details = $data->spotsBoundToSessions[0] ?? null;
 
-    $output = '<div class="lr-page-container">'; // Start of new wrapper
-    $output .= '
-    <style>
-        @media (max-width: 768px) {
-            .lr-page-container { padding-left: 15px; padding-right: 15px; }
-        }
-    </style>';
+    $output = '';
 
     if ($event) {
         $event_name = esc_attr($event->name);
@@ -96,12 +90,10 @@ function lr_render_single_event_content($event_id) {
             $output .= '<p><strong>Organizer:</strong> <a href="'.esc_url($organizer_url).'">' . esc_html($organizer_name) . '</a></p>';
         }
         
-        $output .= '</div>'; // End of new wrapper
         return $output;
 
     } else {
         $output .= '<p>Could not find details for this event.</p>';
-        $output .= '</div>'; // End of new wrapper
         return $output;
     }
 }

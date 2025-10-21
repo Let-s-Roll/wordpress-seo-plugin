@@ -85,6 +85,10 @@ function lr_cta_banner_styles() {
 
         /* Mobile Styles */
         @media (max-width: 768px) {
+            .entry-content {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
             .lr-cta-banner-inner, .lr-cta-main-content { flex-direction: column; text-align: center; }
             .lr-cta-banner { padding-bottom: 20px; }
             .lr-cta-icon { margin-right: 0; margin-bottom: 10px; }

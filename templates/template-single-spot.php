@@ -21,31 +21,7 @@ function lr_render_single_spot_content($spot_id) {
     if (isset($spot_data->spotWithAddress)) {
         $spot = $spot_data->spotWithAddress;
         $spot_name = esc_attr($spot->name);
-        $output = '<div class="lr-page-container">'; // Start of new wrapper
-
-        // --- ADDED: Style block for mobile padding ---
-        $output .= '
-        <style>
-            .lr-sessions-list .lr-session-item {
-                border: 1px solid #eee;
-                padding: 15px;
-                margin-bottom: 15px;
-                border-radius: 5px;
-                overflow: hidden;
-            }
-            .lr-sessions-list .lr-session-header {
-                display: flex;
-                align-items: center;
-                margin-bottom: 10px;
-            }
-            .lr-sessions-list .lr-session-avatar {
-                border-radius: 50%;
-                margin-right: 15px;
-            }
-            @media (max-width: 768px) {
-                .lr-page-container { padding-left: 15px; padding-right: 15px; }
-            }
-        </style>';
+        $output = '';
 
         // --- Satellite Image ---
         if (!empty($spot->satelliteAttachment)) {
@@ -235,7 +211,7 @@ function lr_render_single_spot_content($spot_id) {
                 $output .= '</div>';
             }
         }
-        $output .= '</div>'; // End of new wrapper
+
         if (!lr_is_testing_mode_enabled()) {
             set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
         }
