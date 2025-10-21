@@ -138,6 +138,62 @@ function lr_render_cta_banner($cta_text) {
 }
 
 /**
+ * Determines the appropriate CTA banner text based on the current page.
+ *
+ * @since 1.4.8
+ * @return string The CTA text.
+ */
+function lr_get_cta_banner_text() {
+    $text = 'Find even more spots, events, and skaters in the app!'; // Default text
+
+    $single_type = get_query_var('lr_single_type');
+    $page_type = get_query_var('lr_page_type');
+    $city_slug = get_query_var('lr_city');
+    $country_slug = get_query_var('lr_country');
+
+    if (get_query_var('lr_is_explore_page')) {
+        $text = 'Explore thousands of skate spots, events, and skaters worldwide with the Let\'s Roll app!';
+    } elseif ($single_type) {
+        switch ($single_type) {
+            case 'spots':
+                $text = 'Discover details, photos, and sessions for this spot and thousands more in the app!';
+                break;
+            case 'events':
+                $text = 'Get event updates, see who\'s going, and RSVP in the Let\'s Roll app!';
+                break;
+            case 'skaters':
+                $text = 'Connect with this skater and others in your area by downloading the Let\'s Roll app!';
+                break;
+        }
+    } elseif ($page_type) {
+        $city_details = lr_get_city_details($country_slug, $city_slug);
+        $city_name = $city_details['name'] ?? 'the area';
+        switch ($page_type) {
+            case 'skatespots':
+                $text = "Find every street spot, skatepark, and hidden gem in {$city_name} with the Let's Roll app!";
+                break;
+            case 'events':
+                $text = "Never miss a session! See all the upcoming skate events in {$city_name} on the app.";
+                break;
+            case 'skaters':
+                $text = "Connect with the local skate community in {$city_name} on the Let's Roll app!";
+                break;
+        }
+    } elseif ($city_slug) {
+        $city_details = lr_get_city_details($country_slug, $city_slug);
+        $city_name = $city_details['name'] ?? 'this city';
+        $text = "Get the full picture of the {$city_name} skate scene. Download the Let's Roll app!";
+    } elseif ($country_slug) {
+        $country_details = lr_get_country_details($country_slug);
+        $country_name = $country_details['name'] ?? 'this country';
+        $text = "Explore all the cities and skate spots in {$country_name} on the Let's Roll app!";
+    }
+
+    return $text;
+}
+
+
+/**
  * Hooks the CTA banner into the WordPress footer for all front-end pages.
  *
  * @since 1.4.7
@@ -147,10 +203,8 @@ function lr_conditionally_add_cta_banner() {
     if (is_admin()) {
         return;
     }
-
-    // You can add more complex logic here if you want to exclude
-    // the banner from specific pages in the future.
     
-    lr_render_cta_banner('Find even more spots, events, and skaters in the app!');
+    $cta_text = lr_get_cta_banner_text();
+    lr_render_cta_banner($cta_text);
 }
 add_action('wp_footer', 'lr_conditionally_add_cta_banner');

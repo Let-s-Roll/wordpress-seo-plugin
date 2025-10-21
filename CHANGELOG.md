@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.8
+*   **FIX:** Restored dynamic, page-specific text to the CTA banner. A new helper function now inspects the page's query variables to ensure the banner text is relevant to the content being viewed.
+
 ## 1.4.7
 *   **FIX:** Restored the missing CTA banner on all front-end pages. The banner is now hooked into the `wp_footer` action to ensure it is displayed reliably across all templates.
 
