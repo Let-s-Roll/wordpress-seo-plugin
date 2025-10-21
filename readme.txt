@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.4.2
+Stable tag: 1.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -73,6 +73,10 @@ AMP-Compatible CTA Banner: A dismissible "Install the App" banner that works cor
 Robust Caching Strategy: The plugin is designed to work with caching plugins like W3 Total Cache. By pre-warming the cache (using the caching plugin's sitemap feature), the dynamically generated pages can be served as fast, static HTML files to all users.
 
 == Changelog ==
+
+= 1.4.3 =
+* ENHANCEMENT: Enriched the "Top 3 Most Active Spots" section on skatespot detail pages with stats (rating, skater count, session count) to provide more context.
+* FORMATTING: Centered the stats block for better mobile presentation and prevented line breaks between numbers and labels.
 
 = 1.4.2 =
 * FIX: Changed the Brevo sync worker's fallback schedule from hourly to every ten minutes to ensure more timely processing if the self-scheduling mechanism fails.

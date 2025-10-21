@@ -41,6 +41,21 @@ function lr_render_top_spots_section($city_details, $access_token, $num_spots = 
             $output .= '<h4>' . esc_html($spot_name) . '</h4>';
             $output .= '</a>';
 
+            // --- ADDED: Display spot stats ---
+            $spot_info = $spot_details->spotWithAddress;
+            $total_skaters = $spot_details->totalSkaters ?? 0;
+            $total_sessions = $spot_details->totalSessions ?? 0;
+            $ratings_count = $spot_info->rating->ratingsCount ?? 0;
+            $total_value = $spot_info->rating->totalValue ?? 0;
+            $avg_rating = ($ratings_count > 0) ? round($total_value / $ratings_count) : 0;
+            $stars_html = str_repeat('★', $avg_rating) . str_repeat('☆', 5 - $avg_rating);
+
+            $output .= '<div class="lr-spot-stats" style="font-size: 0.9em; color: #555; margin: 10px 0; text-align: center;">';
+            $output .= '<span>' . $stars_html . '</span> &nbsp;&middot;&nbsp; ';
+            $output .= '<span>' . esc_html($total_skaters) . '&nbsp;Skaters</span> &nbsp;&middot;&nbsp; ';
+            $output .= '<span>' . esc_html($total_sessions) . '&nbsp;Sessions</span>';
+            $output .= '</div>';
+
             // Fetch and display the latest review
             $ratings_data = lr_fetch_api_data($access_token, 'spots/' . $spot->_id . '/ratings-opinions', ['limit' => 1, 'skip' => 0]);
             if ($ratings_data && !empty($ratings_data->ratingsAndOpinions[0]->comment)) {
@@ -153,8 +168,8 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
 
                     $output .= '<div style="font-size: 0.9em; color: #555; margin-top: 5px;">';
                     $output .= '<span>' . $stars_html . '</span> &nbsp;&middot;&nbsp; ';
-                    $output .= '<span>' . esc_html($total_skaters) . ' Skaters</span> &nbsp;&middot;&nbsp; ';
-                    $output .= '<span>' . esc_html($total_sessions) . ' Sessions</span>';
+                    $output .= '<span>' . esc_html($total_skaters) . '&nbsp;Skaters</span> &nbsp;&middot;&nbsp; ';
+                    $output .= '<span>' . esc_html($total_sessions) . '&nbsp;Sessions</span>';
                     $output .= '</div>';
 
                 } else {

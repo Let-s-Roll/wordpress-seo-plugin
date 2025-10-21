@@ -1,14 +1,16 @@
 # Changelog
 
-## [1.4.2] - 2025-10-16
-### Fixed
-- Changed the Brevo sync worker's fallback schedule from hourly to every ten minutes to ensure more timely processing if the self-scheduling mechanism fails.
+## 1.4.3
+*   **ENHANCEMENT:** Enriched the "Top 3 Most Active Spots" section on skatespot detail pages with stats (rating, skater count, session count) to provide more context.
+*   **FORMATTING:** Centered the stats block for better mobile presentation and prevented line breaks between numbers and labels.
 
-## [1.4.1] - 2025-10-15
-### Fixed
-- Resolved a critical issue where Brevo sync cron jobs would fail to run due to being loaded only in an admin context.
-- Improved cron job logging and persistence for better debugging.
-- Fixed the admin UI to correctly display the activity log from background processes.
+## 1.4.2
+*   **FIX:** Changed the Brevo sync worker's fallback schedule from hourly to every ten minutes to ensure more timely processing if the self-scheduling mechanism fails.
+
+## 1.4.1
+*   **FIX:** Resolved a critical issue where Brevo sync cron jobs would fail to run due to being loaded only in an admin context.
+*   **FIX:** Improved cron job logging and persistence for better debugging.
+*   **FIX:** Fixed the admin UI to correctly display the activity log from background processes.
 
 ## [1.4.0] - 2025-10-06
 
