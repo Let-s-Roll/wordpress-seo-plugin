@@ -136,3 +136,21 @@ function lr_render_cta_banner($cta_text) {
     </div>
     <?php
 }
+
+/**
+ * Hooks the CTA banner into the WordPress footer for all front-end pages.
+ *
+ * @since 1.4.7
+ */
+function lr_conditionally_add_cta_banner() {
+    // Don't show the banner on admin pages.
+    if (is_admin()) {
+        return;
+    }
+
+    // You can add more complex logic here if you want to exclude
+    // the banner from specific pages in the future.
+    
+    lr_render_cta_banner('Find even more spots, events, and skaters in the app!');
+}
+add_action('wp_footer', 'lr_conditionally_add_cta_banner');

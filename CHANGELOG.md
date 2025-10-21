@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.7
+*   **FIX:** Restored the missing CTA banner on all front-end pages. The banner is now hooked into the `wp_footer` action to ensure it is displayed reliably across all templates.
+
 ## 1.4.6
 *   **FIX:** Resolved a fatal error on the Explore page (`Call to undefined function lr_calculate_distance()`) by adding the missing distance calculation utility function.
 *   **FIX:** Prevented a potential PHP notice on the Explore page by ensuring spot statistics are only displayed for spot items in the "Near You" grid.
