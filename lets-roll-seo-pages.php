@@ -309,6 +309,34 @@ function lr_get_city_details($country_slug, $city_slug) {
 }
 
 /**
+ * Generates the HTML for a spot's statistics.
+ *
+ * @param object $spot_details The full spot details object from the API.
+ * @return string The HTML for the stats.
+ */
+function lr_get_spot_stats_html($spot_details) {
+    if (!$spot_details || !isset($spot_details->spotWithAddress)) {
+        return '';
+    }
+
+    $spot_info = $spot_details->spotWithAddress;
+    $total_skaters = $spot_details->totalSkaters ?? 0;
+    $total_sessions = $spot_details->totalSessions ?? 0;
+    $ratings_count = $spot_info->rating->ratingsCount ?? 0;
+    $total_value = $spot_info->rating->totalValue ?? 0;
+    $avg_rating = ($ratings_count > 0) ? round($total_value / $ratings_count) : 0;
+    $stars_html = str_repeat('★', $avg_rating) . str_repeat('☆', 5 - $avg_rating);
+
+    $output = '<div class="lr-spot-stats" style="font-size: 0.9em; color: #555; margin: 10px 0; text-align: center;">';
+    $output .= '<span>' . $stars_html . '</span> &nbsp;&middot;&nbsp; ';
+    $output .= '<span>' . esc_html($total_skaters) . '&nbsp;Skaters</span> &nbsp;&middot;&nbsp; ';
+    $output .= '<span>' . esc_html($total_sessions) . '&nbsp;Sessions</span>';
+    $output .= '</div>';
+
+    return $output;
+}
+
+/**
  * Generates and displays breadcrumb navigation for the SEO pages.
  *
  * @return string HTML for the breadcrumbs.
@@ -401,6 +429,29 @@ register_activation_hook(__FILE__, 'lr_activate_plugin');
 // Activation and deactivation hooks for the Brevo Sync cron jobs
 register_activation_hook(__FILE__, 'lr_activate_brevo_sync_cron');
 register_deactivation_hook(__FILE__, 'lr_deactivate_brevo_sync_cron');
+
+/**
+ * Get the real user IP address, checking for common proxy headers.
+ * @return string The user's IP address.
+ */
+function lr_get_user_ip_address() {
+    $ip_headers = [
+        'HTTP_CF_CONNECTING_IP', // Cloudflare
+        'HTTP_X_FORWARDED_FOR',  // Standard proxy
+        'HTTP_CLIENT_IP',
+        'HTTP_X_REAL_IP',
+        'REMOTE_ADDR'            // Fallback
+    ];
+
+    foreach ($ip_headers as $header) {
+        if (!empty($_SERVER[$header])) {
+            // HTTP_X_FORWARDED_FOR can be a comma-separated list. The first IP is the client.
+            $ip_list = explode(',', $_SERVER[$header]);
+            return trim($ip_list[0]);
+        }
+    }
+    return '0.0.0.0'; // Should not happen in a real scenario
+}
 
 function lr_calculate_bounding_box($lat, $lon, $radius_km) {
     $earth_radius = 6371; $lat_rad = deg2rad($lat); $lat_delta = $radius_km / $earth_radius;
@@ -532,438 +583,6 @@ function lr_generate_dynamic_title($title) {
 
 /**
  * =================================================================================
- * Dynamic Open Graph & Meta Tag Generation (Definitive Strategy)
- * =================================================================================
- */
-
-// Step 1: Start the output buffer at the very beginning of the page load.
-add_action('init', 'lr_start_html_buffer_for_og_tags');
-function lr_start_html_buffer_for_og_tags() {
-    // Only buffer our specific single pages to minimize performance impact.
-    if (!is_admin() && lr_get_page_details_from_uri()) {
-        ob_start('lr_process_final_html_for_og_tags');
-    }
-}
-
-// Step 2: Process the final HTML buffer at the very end of the page load.
-function lr_process_final_html_for_og_tags($buffer) {
-    $data = lr_get_current_page_api_data();
-    // If we don't have data for this page, return the buffer unmodified.
-    if (!$data) {
-        return $buffer;
-    }
-    
-    // Generate our block of correct meta tags.
-    $custom_tags_html = lr_generate_custom_meta_tags_html($data);
-
-    // Surgically remove any existing OG/Twitter tags added by other plugins.
-    $buffer = preg_replace('/<meta (property|name)="(og|twitter):[^"]+" content="[^"]*"\s*\/?>/i', '', $buffer);
-
-    // Inject our new tags right after the <head> tag.
-    $buffer = str_replace('<head>', '<head>' . "\n" . $custom_tags_html, $buffer);
-
-    return $buffer;
-}
-
-// Helper function to generate the HTML for our custom tags.
-function lr_generate_custom_meta_tags_html($data) {
-    $page_details = lr_get_page_details_from_uri();
-    if (!$page_details) return '';
-    
-    // Use our existing logic to get the correct values for each tag
-    $tags = [];
-    $tags['og:title']       = lr_get_og_title($data);
-    $tags['og:description'] = lr_get_og_description($data);
-    $tags['og:image']       = lr_get_og_image_url($data);
-    $tags['og:type']        = lr_get_og_type($data);
-    $tags['og:url']         = home_url($_SERVER['REQUEST_URI']);
-    $tags['twitter:card']   = 'summary_large_image';
-    
-    $html = '<!-- Let\'s Roll Dynamic OG Tags -->'."\n";
-    foreach ($tags as $property => $content) {
-        if (!empty($content)) {
-            // Use name attribute for twitter card
-            $attribute = (strpos($property, 'twitter') === 0) ? 'name' : 'property';
-            $html .= '<meta ' . $attribute . '="' . esc_attr($property) . '" content="' . esc_attr($content) . '">' . "\n";
-        }
-    }
-    $html .= '<!-- End Let\'s Roll OG Tags -->'."\n";
-
-    return $html;
-}
-
-// --- HELPER FUNCTIONS TO GET OG DATA (Refactored from old AIOSEO filters) ---
-function lr_get_page_details_from_uri() {
-    if (!isset($_SERVER['REQUEST_URI'])) return null;
-    $request_uri = $_SERVER['REQUEST_URI'];
-    
-    // New rule for /activity/{id}/
-    if (preg_match('#^/activity/([^/]+)(?:/|/amp/)?$#', $request_uri, $matches)) {
-        return ['type' => 'activity', 'id' => $matches[1]];
-    }
-    
-    // Existing rule for spots, events, skaters
-    if (preg_match('#^/(spots|events|skaters)/([^/]+)(?:/|/amp/)?$#', $request_uri, $matches)) {
-        return ['type' => $matches[1], 'id' => $matches[2]];
-    }
-    
-    return null;
-}
-
-function lr_get_current_page_api_data() {
-    static $data = null;
-    if ($data !== null) return $data;
-    $page_details = lr_get_page_details_from_uri();
-    if (!$page_details) { $data = false; return null; }
-    
-    $single_type = $page_details['type'];
-    $item_id = $page_details['id'];
-    $transient_key = 'lr_og_data_v4_' . $single_type . '_' . sanitize_key($item_id);
-
-    if (!lr_is_testing_mode_enabled()) {
-        $cached_data = get_transient($transient_key);
-        if ($cached_data) { $data = $cached_data; return $data; }
-    }
-
-    $access_token = lr_get_api_access_token();
-    $api_data = null;
-    switch ($single_type) {
-        case 'skaters': $api_data = lr_fetch_api_data($access_token, 'user/profile/' . $item_id, []); break;
-        case 'spots': $api_data = lr_fetch_api_data($access_token, 'spots/' . $item_id, []); break;
-        case 'events': 
-            $api_data = lr_get_single_event_data($item_id);
-            break;
-        case 'activity':
-            $api_data = lr_get_activity_data($item_id);
-            break;
-    }
-    if ($api_data && !is_wp_error($api_data)) {
-        if (!lr_is_testing_mode_enabled()) {
-            set_transient($transient_key, $api_data, 10 * MINUTE_IN_SECONDS);
-        }
-        $data = $api_data;
-        return $data;
-    }
-    $data = false; return null;
-}
-
-function lr_get_og_title($data) {
-    $page_details = lr_get_page_details_from_uri();
-    if (!$page_details) return '';
-    switch ($page_details['type']) {
-        case 'skaters': return 'Rollerskater Profile: ' . ($data->skateName ?? $data->firstName);
-        case 'spots': return 'Skate Spot: ' . ($data->spotWithAddress->name ?? 'Details');
-        case 'events': return 'Skate Event: ' . ($data->name ?? 'Details');
-        case 'activity':
-            $session_name = $data->sessions[0]->name ?? 'A Skate Session';
-            $skater_name = $data->userProfiles[0]->skateName ?? 'a Skater';
-            return 'Skate Session by ' . $skater_name . ': ' . $session_name;
-    }
-    return '';
-}
-
-function lr_get_og_description($data) {
-    $page_details = lr_get_page_details_from_uri();
-    if (!$page_details) return '';
-    switch ($page_details['type']) {
-        case 'skaters':
-            if (!empty($data->publicBio)) return wp_trim_words(esc_html($data->publicBio), 25, '...');
-            return 'Check out the profile for ' . esc_html($data->skateName ?? '') . ' on Let\'s Roll and connect with skaters from around the world.';
-        case 'spots':
-            $spot = $data->spotWithAddress ?? null;
-            if ($spot) {
-                $parts = [];
-                if (!empty($spot->info->address)) $parts[] = $spot->info->address;
-                $ratings_count = $spot->rating->ratingsCount ?? 0;
-                if ($ratings_count > 0) {
-                    $avg_rating = round($spot->rating->totalValue / $ratings_count, 1);
-                    $parts[] = 'Rated ' . $avg_rating . ' out of 5 stars by the community.';
-                }
-                return implode(' ', $parts);
-            }
-            break;
-        case 'events':
-            if ($data) {
-                $parts = [];
-                if (!empty($data->event->startDate)) { try { $parts[] = 'When: ' . (new DateTime($data->event->startDate))->format('F j, Y, g:i A') . '.'; } catch (Exception $e) {} }
-                if(!empty($data->event->address)) {
-                    $address_obj = json_decode($data->event->address);
-                    if(isset($address_obj->formatted_address)) $parts[] = 'Where: ' . $address_obj->formatted_address . '.';
-                }
-                if (!empty($data->description)) $parts[] = wp_trim_words(esc_html($data->description), 20, '...');
-                return implode(' ', $parts);
-            }
-            break;
-        case 'activity':
-            if (!empty($data->sessions[0]->description)) {
-                return wp_trim_words(esc_html($data->sessions[0]->description), 25, '...');
-            }
-            return 'Check out this skate session on Let\'s Roll!';
-    }
-    return '';
-}
-
-function lr_get_og_image_url($data) {
-    $page_details = lr_get_page_details_from_uri();
-    if (!$page_details) return '';
-    switch ($page_details['type']) {
-        case 'skaters': return 'https://beta.web.lets-roll.app/api/user/' . $data->userId . '/avatar/content/processed?width=1200&height=630&quality=85';
-        case 'spots':
-            if (!empty($data->spotWithAddress->satelliteAttachment)) {
-                return plugin_dir_url(__FILE__) . 'image-proxy.php?type=spot_satellite&id=' . $data->spotWithAddress->satelliteAttachment . '&width=1200&quality=85';
-            }
-            break;
-        case 'events':
-            // MODIFIED: Use the attachment data we now have on the event object.
-            if (!empty($data->attachments)) {
-                return plugin_dir_url(__FILE__) . 'image-proxy.php?type=event_attachment&id=' . $data->attachments[0]->_id . '&session_id=' . $data->_id . '&width=1200&quality=85';
-            }
-            break;
-        case 'activity':
-            if (!empty($data->attachments)) {
-                // Find the first non-static map image to use as the OG image
-                foreach ($data->attachments as $attachment) {
-                    if (!$attachment->isStaticMap) {
-                        return plugin_dir_url(__FILE__) . 'image-proxy.php?type=event_attachment&id=' . $attachment->_id . '&session_id=' . $data->sessions[0]->_id . '&width=1200&quality=85';
-                    }
-                }
-            }
-            break;
-    }
-    return '';
-}
-
-function lr_get_og_type($data) {
-    $page_details = lr_get_page_details_from_uri();
-    if ($page_details && $page_details['type'] === 'skaters') return 'profile';
-    return 'article';
-}
-
-/**
- * =================================================================================
  * App Install CTA Banner & Custom Styles
  * =================================================================================
  */
-function lr_display_cta_banner() {
-    $cta_text = ''; $city_name = '';
-    $country_slug = get_query_var('lr_country'); $city_slug = get_query_var('lr_city');
-    $page_type = get_query_var('lr_page_type'); $single_type = get_query_var('lr_single_type');
-    if ($country_slug && $city_slug) {
-        $city_details = lr_get_city_details($country_slug, $city_slug);
-        if ($city_details) $city_name = $city_details['name'];
-    }
-    if ($page_type === 'skatespots' && $city_name) { $cta_text = 'Find even more skate spots and see who\'s rolling in ' . $city_name . '. Install the Let\'s Roll app to explore the full map!'; } 
-    elseif ($page_type === 'skaters' && $city_name) { $cta_text = 'You\'re seeing just a few of the active skaters in ' . $city_name . '. Join the community and find new friends to skate with on the Let\'s Roll app!'; }
-    elseif ($page_type === 'events' && $city_name) { $cta_text = 'Never miss a local skate event in ' . $city_name . ' again! Get notifications and connect with attendees by downloading the Let\'s Roll app.'; } 
-    elseif ($single_type === 'spots') { $cta_text = 'This is just one of many spots waiting for you. Find your next favorite location with the Let\'s Roll app.'; }
-    elseif ($single_type === 'skaters') { $cta_text = 'Connect with this skater and many others from around the world. Share your profile and track your sessions with the Let\'s Roll app!'; }
-    elseif ($single_type === 'events') { $cta_text = 'Ready to roll? See who\'s going and coordinate with friends in the Let\'s Roll app. Install now!'; }
-    elseif ($city_name) { $cta_text = 'Get the full picture of the ' . $city_name . ' skate scene. Find spots, events, and skaters near you with the Let\'s Roll app!'; }
-    elseif (get_query_var('lr_is_explore_page')) { $cta_text = 'Take the next step! Find even more spots, events, and skaters in the Let\'s Roll app.'; }
-    if ($cta_text) { lr_render_cta_banner($cta_text); }
-}
-add_action('wp_footer', 'lr_display_cta_banner');
-add_action('amp_post_template_footer', 'lr_display_cta_banner');
-
-function lr_add_custom_styles() {
-    if (get_query_var('lr_country') || get_query_var('lr_single_type') || get_query_var('lr_is_explore_page') || get_query_var('lr_activity_id')) {
-        echo '<style>
-            @media (max-width: 768px) { 
-                .entry-content, .post-content, .page-content { 
-                    padding-left: 15px !important; 
-                    padding-right: 15px !important; 
-                } 
-            }
-            .lr-breadcrumbs {
-                margin-bottom: 1.5em;
-                font-size: 0.9em;
-                color: #555;
-            }
-            .lr-breadcrumbs a {
-                color: #555;
-                text-decoration: none;
-            }
-            .lr-breadcrumbs a:hover {
-                text-decoration: underline;
-            }
-            .lr-session-item {
-                border: 1px solid #eee;
-                padding: 15px;
-                margin-bottom: 15px;
-                border-radius: 5px;
-            }
-            .lr-session-header {
-                display: flex;
-                align-items: center;
-                margin-bottom: 10px;
-            }
-            .lr-session-avatar {
-                border-radius: 50%;
-                margin-right: 10px;
-            }
-            .lr-session-body {
-                padding-left: 50px; /* Align with header text */
-            }
-            .lr-sessions-list h4 {
-                margin-top: 30px;
-            }
-            .lr-session-title {
-                font-weight: bold;
-                margin: 0 0 5px 0;
-            }
-            .lr-session-title a {
-                text-decoration: none;
-                color: inherit;
-            }
-            .lr-session-date {
-                font-size: 0.9em;
-                color: #666;
-                margin: -5px 0 10px 0;
-            }
-            .lr-session-description {
-                margin: 0;
-                font-style: italic;
-                color: #555;
-            }
-            .lr-activity-skater-header {
-                display: flex;
-                align-items: center;
-                margin-bottom: 20px;
-            }
-            .lr-activity-avatar {
-                border-radius: 50%;
-                margin-right: 15px;
-            }
-            .lr-activity-skater-header h2 {
-                margin: 0;
-                font-size: 1.5em;
-            }
-            .lr-activity-description {
-                font-style: italic;
-                color: #333;
-                border-left: 3px solid #eee;
-                padding-left: 15px;
-                margin-bottom: 20px;
-            }
-            .lr-activity-meta {
-                display: flex;
-                gap: 20px;
-                margin: 20px 0;
-                padding: 10px;
-                background-color: #f9f9f9;
-                border-radius: 5px;
-            }
-            .lr-activity-spot-link {
-                margin-top: 20px;
-            }
-            .lr-activity-attachments amp-carousel {
-                border: 1px solid #eee;
-                border-radius: 5px;
-            }
-            .lr-top-spots-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 20px;
-                margin-bottom: 20px;
-            }
-            .lr-top-spot-item {
-                border: 1px solid #eee;
-                border-radius: 5px;
-                overflow: hidden;
-            }
-            .lr-top-spot-item a {
-                text-decoration: none;
-                color: inherit;
-            }
-            .lr-top-spot-item img {
-                width: 100%;
-                height: 150px;
-                object-fit: cover;
-            }
-            .lr-top-spot-item h4 {
-                margin: 10px;
-                font-size: 1.1em;
-            }
-            .lr-latest-review {
-                padding: 0 10px 10px;
-                font-size: 0.9em;
-                color: #555;
-            }
-            .lr-latest-review p {
-                margin: 0;
-                font-style: italic;
-            }
-            @media (max-width: 768px) {
-                .lr-top-spots-grid {
-                    grid-template-columns: 1fr;
-                }
-            }
-        </style>';
-    }
-}
-add_action('wp_head', 'lr_add_custom_styles');
-
-function lr_enqueue_amp_scripts() {
-    if (get_query_var('lr_activity_id')) {
-        echo '<script async custom-element="amp-carousel" src="https://cdn.ampproject.org/v0/amp-carousel-0.1.js"></script>';
-    }
-}
-add_action('wp_head', 'lr_enqueue_amp_scripts');
-
-/**
- * =================================================================================
- * Geolocation AJAX Handling
- * =================================================================================
- */
-
-// --- Existing code continues ---
-
-/**
- * Get the real user IP address, checking for common proxy headers.
- * @return string The user's IP address.
- */
-function lr_get_user_ip_address() {
-    $ip_headers = [
-        'HTTP_CF_CONNECTING_IP', // Cloudflare
-        'HTTP_X_FORWARDED_FOR',  // Standard proxy
-        'HTTP_CLIENT_IP',
-        'HTTP_X_REAL_IP',
-        'REMOTE_ADDR'            // Fallback
-    ];
-
-    foreach ($ip_headers as $header) {
-        if (!empty($_SERVER[$header])) {
-            // HTTP_X_FORWARDED_FOR can be a comma-separated list. The first IP is the client.
-            $ip_list = explode(',', $_SERVER[$header]);
-            return trim($ip_list[0]);
-        }
-    }
-    return '0.0.0.0'; // Should not happen in a real scenario
-}
-
-/**
- * Calculate the distance between two points on Earth (Haversine formula).
- *
- * @param float $lat1 Latitude of point 1.
- * @param float $lon1 Longitude of point 1.
- * @param float $lat2 Latitude of point 2.
- * @param float $lon2 Longitude of point 2.
- * @return float Distance in kilometers.
- */
-function lr_calculate_distance($lat1, $lon1, $lat2, $lon2) {
-    $earth_radius = 6371; // Radius of the earth in km
-
-    $dLat = deg2rad($lat2 - $lat1);
-    $dLon = deg2rad($lon2 - $lon1);
-
-    $a = sin($dLat / 2) * sin($dLat / 2) +
-         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-         sin($dLon / 2) * sin($dLon / 2);
-    
-    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-    $distance = $earth_radius * $c; // Distance in km
-    
-    return $distance;
-}
-
-

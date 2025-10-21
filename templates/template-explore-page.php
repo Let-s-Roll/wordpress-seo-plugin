@@ -64,7 +64,10 @@ function lr_render_nearby_grid($items, $type) {
         $output .= '<div class="lr-grid-item">';
         $output .= '<a href="' . esc_url($url) . '">';
         $output .= '<img src="' . esc_url($image_url) . '" alt="' . esc_attr($alt_text) . '" loading="lazy" width="400" height="240" />';
-        $output .= '<div class="lr-grid-item-content"><h4>' . esc_html($name) . '</h4></div></a></div>';
+        $output .= '<div class="lr-grid-item-content"><h4>' . esc_html($name) . '</h4></div></a>';
+        // --- ADDED: Display spot stats using the helper function ---
+        $output .= lr_get_spot_stats_html($spot_details);
+        $output .= '</div>';
     }
     return $output;
 }

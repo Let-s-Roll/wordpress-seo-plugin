@@ -73,7 +73,10 @@ function lr_render_city_page_content($country_slug, $city_slug) {
                 $output .= '<img src="' . esc_url($image_url) . '" alt="Satellite view of ' . $spot_name . '" width="200" height="120" />';
                 $output .= '<div class="lr-grid-item-content">';
                 $output .= '<h4>' . esc_html($spot_details->spotWithAddress->name) . '</h4>';
-                $output .= '</div></a></div>';
+                $output .= '</div></a>';
+                // --- ADDED: Display spot stats using the helper function ---
+                $output .= lr_get_spot_stats_html($spot_details);
+                $output .= '</div>';
             }
         }
         $output .= $render_grid_end;
