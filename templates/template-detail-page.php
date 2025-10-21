@@ -61,7 +61,8 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
     if (!$city_details) return '<p>Location not found.</p>';
 
     $access_token = lr_get_api_access_token();
-    $output = lr_get_breadcrumbs();
+    $output = '<div class="lr-page-container">'; // Start of new wrapper
+    $output .= lr_get_breadcrumbs();
 
     // --- MOVED: Add Grid Styles at the beginning for universal application ---
     $output .= '
@@ -72,7 +73,10 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         .lr-grid-item img { width: 100%; height: 180px; object-fit: cover; background-color: #f0f0f0; }
         .lr-grid-item .lr-grid-item-content { padding: 10px 10px 0; display: flex; align-items: center; justify-content: center; }
         .lr-grid-item .lr-grid-item-content h4 { margin: 0; font-size: 1em; }
-        @media (max-width: 768px) { .lr-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { 
+            .lr-grid { grid-template-columns: 1fr; } 
+            .lr-page-container { padding-left: 15px; padding-right: 15px; }
+        }
     </style>';
 
     if ($page_type === 'skatespots') {
@@ -303,7 +307,7 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
     } else {
         $output .= '<p>API integration for ' . esc_html($page_type) . ' is coming soon.</p>';
     }
-
+    $output .= '</div>'; // End of new wrapper
     return $output;
 }
 

@@ -141,7 +141,8 @@ function lr_get_and_render_nearby_content($access_token, $lat, $lon, $radius_km 
 
 
 function lr_render_explore_page_content() {
-    $output = lr_get_breadcrumbs();
+    $output = '<div class="lr-page-container">'; // Start of new wrapper
+    $output .= lr_get_breadcrumbs();
     $matched_city_html = '';
 
     // --- Primary Authentication & Debugging ---
@@ -293,7 +294,10 @@ function lr_render_explore_page_content() {
         .lr-country-list { column-count: 4; column-gap: 20px; margin-top: 15px; }
         .lr-country-list a { display: block; margin-bottom: 10px; text-decoration: none; }
         @media (max-width: 1024px) { .lr-grid { grid-template-columns: repeat(2, 1fr); } .lr-country-list { column-count: 2; } }
-        @media (max-width: 768px) { .lr-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { 
+            .lr-grid { grid-template-columns: 1fr; } 
+            .lr-page-container { padding-left: 15px; padding-right: 15px; }
+        }
     </style>';
 
     $output .= '<div class="lr-country-list">';
@@ -319,6 +323,6 @@ function lr_render_explore_page_content() {
         }
         $output .= '</div>';
     }
-
+    $output .= '</div>'; // End of new wrapper
     return $output;
 }

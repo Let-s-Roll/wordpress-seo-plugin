@@ -17,7 +17,8 @@ function lr_render_city_page_content($country_slug, $city_slug) {
     if (!$city_details) return '<p>City not found.</p>';
 
     $access_token = lr_get_api_access_token();
-    $output = lr_get_breadcrumbs();
+    $output = '<div class="lr-page-container">'; // Start of new wrapper
+    $output .= lr_get_breadcrumbs();
 
     // --- (CSS remains the same) ---
     $output .= '
@@ -29,7 +30,10 @@ function lr_render_city_page_content($country_slug, $city_slug) {
         .lr-grid-item .lr-grid-item-content { padding: 10px 10px 0; display: flex; align-items: center; justify-content: center; }
         .lr-grid-item .lr-grid-item-content h4 { margin: 0; font-size: 1em; }
         .lr-grid-item-skater img { width: 120px; height: 120px; border-radius: 50%; margin: 10px auto 0; }
-        @media (max-width: 768px) { .lr-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { 
+            .lr-grid { grid-template-columns: 1fr; } 
+            .lr-page-container { padding-left: 15px; padding-right: 15px; }
+        }
     </style>';
 
     // --- City Description ---
@@ -165,6 +169,7 @@ function lr_render_city_page_content($country_slug, $city_slug) {
         $output .= '<p>No events found for this location.</p>';
     }
     
+    $output .= '</div>'; // End of new wrapper
     set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
 
     return $output;
