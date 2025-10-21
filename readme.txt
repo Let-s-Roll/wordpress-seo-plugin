@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.4.5
+Stable tag: 1.4.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -73,6 +73,10 @@ AMP-Compatible CTA Banner: A dismissible "Install the App" banner that works cor
 Robust Caching Strategy: The plugin is designed to work with caching plugins like W3 Total Cache. By pre-warming the cache (using the caching plugin's sitemap feature), the dynamically generated pages can be served as fast, static HTML files to all users.
 
 == Changelog ==
+
+= 1.4.6 =
+* FIX: Resolved a fatal error on the Explore page (`Call to undefined function lr_calculate_distance()`) by adding the missing distance calculation utility function.
+* FIX: Prevented a potential PHP notice on the Explore page by ensuring spot statistics are only displayed for spot items in the "Near You" grid.
 
 = 1.4.5 =
 * STYLE: Improved the visual presentation of skate spot tiles across the city, explore, and skatespot list pages for better balance and readability.

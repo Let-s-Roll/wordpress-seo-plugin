@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.6
+*   **FIX:** Resolved a fatal error on the Explore page (`Call to undefined function lr_calculate_distance()`) by adding the missing distance calculation utility function.
+*   **FIX:** Prevented a potential PHP notice on the Explore page by ensuring spot statistics are only displayed for spot items in the "Near You" grid.
+
 ## 1.4.5
 *   **STYLE:** Improved the visual presentation of skate spot tiles across the city, explore, and skatespot list pages for better balance and readability.
     *   Increased the height of spot images from 120px to 180px to make them more prominent.

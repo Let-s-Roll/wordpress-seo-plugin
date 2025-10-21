@@ -467,6 +467,30 @@ function lr_calculate_bounding_box($lat, $lon, $radius_km) {
 }
 
 /**
+ * Calculates the distance between two points on Earth given their latitudes and longitudes.
+ *
+ * @param float $lat1 Latitude of the first point.
+ * @param float $lon1 Longitude of the first point.
+ * @param float $lat2 Latitude of the second point.
+ * @param float $lon2 Longitude of the second point.
+ * @return float The distance in kilometers.
+ */
+function lr_calculate_distance($lat1, $lon1, $lat2, $lon2) {
+    $earth_radius = 6371; // in kilometers
+
+    $dLat = deg2rad($lat2 - $lat1);
+    $dLon = deg2rad($lon2 - $lon1);
+
+    $a = sin($dLat / 2) * sin($dLat / 2) +
+         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+         sin($dLon / 2) * sin($dLon / 2);
+    
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    
+    return $earth_radius * $c;
+}
+
+/**
  * =================================================================================
  * Dynamic Page Generation
  * =================================================================================
