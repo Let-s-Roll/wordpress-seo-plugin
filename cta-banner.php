@@ -75,6 +75,35 @@ function lr_cta_banner_styles() {
             z-index: 1001;
         }
 
+        /* Session & Activity Styles */
+        .lr-sessions-list .lr-session-item {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .lr-sessions-list .lr-session-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .lr-sessions-list .lr-session-avatar {
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        .lr-activity-meta {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+            text-align: center;
+        }
+
         /* Desktop Styles for a Taller Banner */
         @media (min-width: 769px) {
             .lr-cta-banner-inner { flex-direction: column; gap: 15px; padding: 20px 0; }
@@ -88,6 +117,10 @@ function lr_cta_banner_styles() {
             body .entry-content {
                 padding-left: 15px;
                 padding-right: 15px;
+            }
+            .lr-activity-meta {
+                flex-direction: column;
+                align-items: flex-start;
             }
             .lr-cta-banner-inner, .lr-cta-main-content { flex-direction: column; text-align: center; }
             .lr-cta-banner { padding-bottom: 20px; }

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.0
+*   **FIX(style):** Fixed a styling regression where the session list on single spot pages and the meta info box on single activity pages lost their borders and background. The specific CSS rules for these components have been moved to the global stylesheet to ensure they are applied consistently.
+
 ## 1.4.9
 *   **FIX(style):** Resolved a persistent mobile padding issue on AMP pages by increasing the specificity of the CSS selector to `body .entry-content`. This ensures the plugin's horizontal padding rules override the theme's default styles.
 
