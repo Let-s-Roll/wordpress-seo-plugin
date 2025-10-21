@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.4
+*   **FIX:** Corrected a layout issue on the skatespot list page (`/skatespots/`) where the "Top 3 Most Active Spots" section was not rendering as a grid. Moved the CSS style block to the beginning of the render function to ensure styles were loaded before the content, fixing the visual alignment and adding the correct borders.
+
 ## 1.4.3
 *   **ENHANCEMENT:** Enriched the "Top 3 Most Active Spots" section on skatespot detail pages with stats (rating, skater count, session count) to provide more context.
 *   **FORMATTING:** Centered the stats block for better mobile presentation and prevented line breaks between numbers and labels.

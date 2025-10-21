@@ -22,7 +22,8 @@ function lr_render_top_spots_section($city_details, $access_token, $num_spots = 
     $top_spots = array_slice($spots_list, 0, $num_spots);
 
     $output = '<h3>Top ' . $num_spots . ' Most Active Spots</h3>';
-    $output .= '<div class="lr-top-spots-grid">';
+    // --- MODIFIED: Use the standard 'lr-grid' class for consistency ---
+    $output .= '<div class="lr-grid">';
 
     foreach ($top_spots as $spot) {
         $spot_details = lr_fetch_api_data($access_token, 'spots/' . $spot->_id, []);
@@ -35,24 +36,14 @@ function lr_render_top_spots_section($city_details, $access_token, $num_spots = 
                 $image_url = add_query_arg(['type' => 'spot_satellite', 'id' => $spot_details->spotWithAddress->satelliteAttachment, 'width' => 400, 'quality' => 75], $proxy_url);
             }
 
-            $output .= '<div class="lr-top-spot-item">';
+            // --- MODIFIED: Use the standard 'lr-grid-item' structure ---
+            $output .= '<div class="lr-grid-item">';
             $output .= '<a href="' . esc_url($spot_url) . '">';
-            $output .= '<img src="' . esc_url($image_url) . '" alt="Satellite view of ' . $spot_name . '" loading="lazy" width="400" height="240" />';
-            $output .= '<h4>' . esc_html($spot_name) . '</h4>';
-            $output .= '</a>';
-
-            // --- REFACTORED: Use the helper function to display stats ---
+            $output .= '<img src="' . esc_url($image_url) . '" alt="Satellite view of ' . $spot_name . '" width="200" height="120" />';
+            $output .= '<div class="lr-grid-item-content">';
+            $output .= '<h4>' . esc_html($spot_details->spotWithAddress->name) . '</h4>';
+            $output .= '</div></a>';
             $output .= lr_get_spot_stats_html($spot_details);
-
-            // Fetch and display the latest review
-            $ratings_data = lr_fetch_api_data($access_token, 'spots/' . $spot->_id . '/ratings-opinions', ['limit' => 1, 'skip' => 0]);
-            if ($ratings_data && !empty($ratings_data->ratingsAndOpinions[0]->comment)) {
-                $latest_review = $ratings_data->ratingsAndOpinions[0];
-                $output .= '<div class="lr-latest-review">';
-                $output .= '<p><strong>Latest Review:</strong> "' . esc_html(wp_trim_words($latest_review->comment, 15, '...')) . '"</p>';
-                $output .= '</div>';
-            }
-            
             $output .= '</div>';
         }
     }
@@ -72,6 +63,18 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
     $access_token = lr_get_api_access_token();
     $output = lr_get_breadcrumbs();
 
+    // --- MOVED: Add Grid Styles at the beginning for universal application ---
+    $output .= '
+    <style>
+        .lr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 15px; }
+        .lr-grid-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; height: 100%; display: flex; flex-direction: column; }
+        .lr-grid-item a { text-decoration: none; color: inherit; display: flex; flex-direction: column; height: 100%; }
+        .lr-grid-item img { width: 100%; height: 120px; object-fit: cover; background-color: #f0f0f0; }
+        .lr-grid-item .lr-grid-item-content { padding: 10px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        .lr-grid-item .lr-grid-item-content h4 { margin: 0; font-size: 1em; }
+        @media (max-width: 768px) { .lr-grid { grid-template-columns: 1fr; } }
+    </style>';
+
     if ($page_type === 'skatespots') {
         // --- ADDED: Display Top Spots Section ---
         $output .= lr_render_top_spots_section($city_details, $access_token, 3);
@@ -80,7 +83,6 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         $current_page   = isset($_GET['lr_page']) ? max(1, intval($_GET['lr_page'])) : 1;
         $spots_per_page = 10;
         
-        // MODIFIED: Changed the transient key to _v3_ to invalidate the old, unsorted cache.
         $transient_key = 'lr_spots_list_v3_' . sanitize_key($city_slug);
         
         if (lr_is_testing_mode_enabled()) {
@@ -89,34 +91,19 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
         $all_spot_ids = get_transient($transient_key);
 
         if (false === $all_spot_ids) {
-            // --- CORRECTED API CALL ---
-            // Use the bounding box to correctly limit the search area.
             $bounding_box = lr_calculate_bounding_box(
                 $city_details['latitude'],
                 $city_details['longitude'],
                 $city_details['radius_km']
             );
-
-            $api_params = [
-                'ne'    => $bounding_box['ne'],
-                'sw'    => $bounding_box['sw'],
-                'limit' => 1000,
-            ];
-            // Use the correct 'inBox' endpoint.
+            $api_params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
             $spots_list = lr_fetch_api_data($access_token, 'spots/v2/inBox', $api_params);
             
             $all_spot_ids = [];
             if (is_array($spots_list) && !empty($spots_list)) {
-                
-                // --- ADDED: Sort the spots list by sessionsCount before caching ---
                 usort($spots_list, function($a, $b) {
-                    $count_a = $a->sessionsCount ?? 0;
-                    $count_b = $b->sessionsCount ?? 0;
-                    // Use the spaceship operator for comparison. This sorts descending (highest first).
-                    return $count_b <=> $count_a;
+                    return ($b->sessionsCount ?? 0) <=> ($a->sessionsCount ?? 0);
                 });
-
-                // Now that the list is sorted, extract the IDs in the new order.
                 foreach ($spots_list as $spot) {
                     if (is_object($spot) && isset($spot->_id)) {
                         $all_spot_ids[] = $spot->_id;
@@ -146,19 +133,8 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
                     $output .= '<strong><a href="' . esc_url($spot_url) . '">' . esc_html($spot_name) . '</a></strong><br>';
                     $output .= '<span>' . esc_html($spot_address) . '</span>';
                     
-                    // --- ADDED: Display spot stats ---
-                    $total_skaters = $spot_details->totalSkaters ?? 0;
-                    $total_sessions = $spot_details->totalSessions ?? 0;
-                    $ratings_count = $spot_info->rating->ratingsCount ?? 0;
-                    $total_value = $spot_info->rating->totalValue ?? 0;
-                    $avg_rating = ($ratings_count > 0) ? round($total_value / $ratings_count) : 0;
-                    $stars_html = str_repeat('★', $avg_rating) . str_repeat('☆', 5 - $avg_rating);
-
-                    $output .= '<div style="font-size: 0.9em; color: #555; margin-top: 5px;">';
-                    $output .= '<span>' . $stars_html . '</span> &nbsp;&middot;&nbsp; ';
-                    $output .= '<span>' . esc_html($total_skaters) . '&nbsp;Skaters</span> &nbsp;&middot;&nbsp; ';
-                    $output .= '<span>' . esc_html($total_sessions) . '&nbsp;Sessions</span>';
-                    $output .= '</div>';
+                    // --- UNIFIED STATS: Use the helper function for consistency ---
+                    $output .= lr_get_spot_stats_html($spot_details);
 
                 } else {
                     $output .= '<strong>Spot ID:</strong> ' . esc_html($spot_id) . ' - <em style="color:red;">Could not load details.</em>';
