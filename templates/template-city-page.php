@@ -24,9 +24,9 @@ function lr_render_city_page_content($country_slug, $city_slug) {
     <style>
         .lr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 15px; }
         .lr-grid-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; height: 100%; display: flex; flex-direction: column; }
-        .lr-grid-item a { text-decoration: none; color: inherit; display: flex; flex-direction: column; height: 100%; }
-        .lr-grid-item img { width: 100%; height: 120px; object-fit: cover; background-color: #f0f0f0; }
-        .lr-grid-item .lr-grid-item-content { padding: 10px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        .lr-grid-item a { text-decoration: none; color: inherit; display: flex; flex-direction: column; }
+        .lr-grid-item img { width: 100%; height: 180px; object-fit: cover; background-color: #f0f0f0; }
+        .lr-grid-item .lr-grid-item-content { padding: 10px 10px 0; display: flex; align-items: center; justify-content: center; }
         .lr-grid-item .lr-grid-item-content h4 { margin: 0; font-size: 1em; }
         .lr-grid-item-skater img { width: 120px; height: 120px; border-radius: 50%; margin: 10px auto 0; }
         @media (max-width: 768px) { .lr-grid { grid-template-columns: 1fr; } }

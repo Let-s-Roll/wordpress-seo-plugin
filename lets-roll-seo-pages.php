@@ -327,7 +327,8 @@ function lr_get_spot_stats_html($spot_details) {
     $avg_rating = ($ratings_count > 0) ? round($total_value / $ratings_count) : 0;
     $stars_html = str_repeat('★', $avg_rating) . str_repeat('☆', 5 - $avg_rating);
 
-    $output = '<div class="lr-spot-stats" style="font-size: 0.9em; color: #555; margin: 10px 0; text-align: center;">';
+    // MODIFIED: Reduced top margin from 10px to 0, and added bottom margin of 5px for balance.
+    $output = '<div class="lr-spot-stats" style="font-size: 0.9em; color: #555; margin: 0 10px 5px 10px; text-align: center;">';
     $output .= '<span>' . $stars_html . '</span> &nbsp;&middot;&nbsp; ';
     $output .= '<span>' . esc_html($total_skaters) . '&nbsp;Skaters</span> &nbsp;&middot;&nbsp; ';
     $output .= '<span>' . esc_html($total_sessions) . '&nbsp;Sessions</span>';

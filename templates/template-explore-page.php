@@ -9,7 +9,7 @@ function lr_render_nearby_grid($items, $type) {
     if (empty($items)) return '';
 
     $output = '';
-    foreach (array_slice($items, 0, 4) as $item) {
+    foreach (array_slice($items, 0, 3) as $item) {
         $name = '';
         $url = '';
         $image_url = 'https://placehold.co/400x240/e0e0e0/757575?text=' . ucfirst($type);
@@ -281,11 +281,11 @@ function lr_render_explore_page_content() {
     $output .= '<p>Select a country below to explore local roller skating scenes, spots, and events.</p>';
     
     $output .= '<style>
-        .lr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 15px; }
+        .lr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 15px; }
         .lr-grid-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; height: 100%; display: flex; flex-direction: column; }
-        .lr-grid-item a { text-decoration: none; color: inherit; display: flex; flex-direction: column; height: 100%; }
-        .lr-grid-item img { width: 100%; height: 120px; object-fit: cover; background-color: #f0f0f0; }
-        .lr-grid-item .lr-grid-item-content { padding: 15px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        .lr-grid-item a { text-decoration: none; color: inherit; display: flex; flex-direction: column; }
+        .lr-grid-item img { width: 100%; height: 180px; object-fit: cover; background-color: #f0f0f0; }
+        .lr-grid-item .lr-grid-item-content { padding: 10px 10px 0; display: flex; align-items: center; justify-content: center; }
         .lr-grid-item .lr-grid-item-content h4 { margin: 0; font-size: 1.2em; }
         .lr-grid-item-skater img { width: 120px; height: 120px; border-radius: 50%; margin: 10px auto 0; }
         .lr-country-list { column-count: 4; column-gap: 20px; margin-top: 15px; }

@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.4.4
+Stable tag: 1.4.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -73,6 +73,12 @@ AMP-Compatible CTA Banner: A dismissible "Install the App" banner that works cor
 Robust Caching Strategy: The plugin is designed to work with caching plugins like W3 Total Cache. By pre-warming the cache (using the caching plugin's sitemap feature), the dynamically generated pages can be served as fast, static HTML files to all users.
 
 == Changelog ==
+
+= 1.4.5 =
+* STYLE: Improved the visual presentation of skate spot tiles across the city, explore, and skatespot list pages for better balance and readability.
+* STYLE: Increased the height of spot images from 120px to 180px to make them more prominent.
+* STYLE: Significantly reduced the vertical spacing between the spot name and the stats bar (stars, skater count) by adjusting CSS padding and removing flex-grow properties.
+* STYLE: Changed the "Near You" section on the explore page to a 3-column grid (down from 4) to prevent a cramped appearance on desktop.
 
 = 1.4.4 =
 * FIX: Corrected a layout issue on the skatespot list page (`/skatespots/`) where the "Top 3 Most Active Spots" section was not rendering as a grid. Moved the CSS style block to the beginning of the render function to ensure styles were loaded before the content, fixing the visual alignment and adding the correct borders.
