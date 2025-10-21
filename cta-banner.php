@@ -85,7 +85,7 @@ function lr_cta_banner_styles() {
 
         /* Mobile Styles */
         @media (max-width: 768px) {
-            .entry-content {
+            body .entry-content {
                 padding-left: 15px;
                 padding-right: 15px;
             }
