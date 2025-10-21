@@ -15,7 +15,14 @@ function lr_render_single_skater_content() {
     }
 
     $access_token = lr_get_api_access_token();
-    $output = '';
+    $output = '<div class="lr-page-container">'; // Start of new wrapper
+    $output .= '
+    <style>
+        @media (max-width: 768px) {
+            .lr-page-container { padding-left: 15px; padding-right: 15px; }
+        }
+    </style>';
+    
     $api_endpoint = 'user/profile/' . $username;
     $profile_data = lr_fetch_api_data($access_token, $api_endpoint, []);
 
@@ -68,6 +75,7 @@ function lr_render_single_skater_content() {
         $output .= '<h2>Skater Profile</h2><p>Could not retrieve profile information for this skater.</p>';
     }
     
+    $output .= '</div>'; // End of new wrapper
     if (!lr_is_testing_mode_enabled()) {
         set_transient($transient_key, $output, 4 * HOUR_IN_SECONDS);
     }
