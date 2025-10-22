@@ -55,6 +55,16 @@ This document outlines the known API endpoints used by the Let's Roll SEO Pages 
     *   An object containing a `sessions` property, which is an **array** of session objects.
     *   Each session object contains details like `userId`, `name`, `description`, and `visibilityLevel`.
 
+*   **Endpoint:** `spots/{id}/ratings-opinions`
+*   **Purpose:** Fetches reviews (called "opinions") and ratings for a specific spot.
+*   **Known Parameters:**
+    *   `limit`: The maximum number of opinions to return (e.g., `20`).
+    *   `skip`: The number of opinions to skip for pagination (e.g., `0`).
+*   **Expected Response Structure:**
+    *   An object containing two arrays: `ratingsAndOpinions` and `userProfiles`.
+    *   Each object in `ratingsAndOpinions` contains the review `comment`, `rating`, a unique `_id`, and a `createdAt` timestamp.
+    *   The `userProfiles` array contains the public profiles of the users who left the opinions.
+
 ---
 
 ### 3. Events

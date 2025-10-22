@@ -19,11 +19,10 @@ define('LR_CACHE_VERSION', 'v3'); // Increment to invalidate all caches
 $lr_debug_messages = []; // Global for cache debugging
 
 // Include all necessary files
+require_once plugin_dir_path(__FILE__) . 'admin/admin-page.php'; 
+require_once plugin_dir_path(__FILE__) . 'admin/brevo-sync-page.php';
+require_once plugin_dir_path(__FILE__) . 'admin/content-discovery-page.php';
 require_once plugin_dir_path(__FILE__) . 'brevo-integration.php';
-if (is_admin()) { 
-    require_once plugin_dir_path(__FILE__) . 'admin/admin-page.php'; 
-    require_once plugin_dir_path(__FILE__) . 'admin/brevo-sync-page.php';
-}
 require_once plugin_dir_path(__FILE__) . 'templates/template-explore-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-country-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-city-page.php';
@@ -33,18 +32,52 @@ require_once plugin_dir_path(__FILE__) . 'templates/template-single-event.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-skater.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-single-activity.php';
 require_once plugin_dir_path(__FILE__) . 'cta-banner.php';
+require_once plugin_dir_path(__FILE__) . 'includes/database.php';
+require_once plugin_dir_path(__FILE__) . 'includes/content-discovery.php';
 
 // Hook for adding admin menus
 add_action('admin_menu', 'lr_setup_admin_menu');
 
 function lr_setup_admin_menu() {
-    // Add Brevo Sync Page
-    add_options_page(
-        'Brevo Sync',           // Page title
-        'Brevo Sync',           // Menu title
-        'manage_options',       // Capability
-        'lr-brevo-sync',        // Menu slug
-        'lr_render_brevo_sync_page' // Function that renders the page
+    // Add the top-level menu page
+    add_menu_page(
+        'Let\'s Roll',               // Page title
+        'Let\'s Roll',               // Menu title
+        'manage_options',           // Capability
+        'lets-roll-settings',       // Menu slug (for the parent)
+        'lr_options_page_html',     // Correct function for the first submenu page
+        plugin_dir_url(__FILE__) . 'icon.png', // Custom Icon
+        30                          // Position
+    );
+
+    // Add the main settings page (this will be the first item, using the parent's slug)
+    add_submenu_page(
+        'lets-roll-settings',       // Parent slug
+        'SEO Settings',             // Page title
+        'SEO Settings',             // Menu title
+        'manage_options',           // Capability
+        'lets-roll-settings',       // Menu slug
+        'lr_options_page_html'      // Correct function
+    );
+
+    // Add the Brevo Sync sub-menu page
+    add_submenu_page(
+        'lets-roll-settings',       // Parent slug
+        'Brevo Sync',               // Page title
+        'Brevo Sync',               // Menu title
+        'manage_options',           // Capability
+        'lr-brevo-sync',            // Menu slug
+        'lr_render_brevo_sync_page' // Function
+    );
+
+    // Add the new Content Discovery sub-menu page
+    add_submenu_page(
+        'lets-roll-settings',       // Parent slug
+        'Content Discovery',        // Page title
+        'Content Discovery',        // Menu title
+        'manage_options',           // Capability
+        'lr-content-discovery',     // Menu slug
+        'lr_render_content_discovery_page' // Function
     );
 }
 
@@ -427,6 +460,7 @@ function lr_custom_rewrite_rules() {
 add_action('init', 'lr_custom_rewrite_rules');
 
 function lr_activate_plugin() { 
+    lr_create_discovered_content_table();
     lr_custom_rewrite_rules(); 
 }
 register_activation_hook(__FILE__, 'lr_activate_plugin');

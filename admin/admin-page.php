@@ -55,19 +55,7 @@ function lr_handle_sitemap_generation() {
 add_action('admin_init', 'lr_handle_sitemap_generation');
 
 
-/**
- * Registers the admin menu page.
- */
-function lr_add_admin_menu() {
-    add_options_page(
-        'Let\'s Roll SEO Settings',
-        'Let\'s Roll SEO',
-        'manage_options',
-        'lets_roll_seo',
-        'lr_options_page_html'
-    );
-}
-add_action('admin_menu', 'lr_add_admin_menu');
+
 
 /**
  * Registers the settings fields for the options page.
