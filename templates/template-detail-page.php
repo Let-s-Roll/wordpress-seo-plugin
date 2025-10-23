@@ -11,8 +11,7 @@ function lr_render_top_spots_section($city_details, $access_token, $num_spots = 
         }
     }
 
-    $bounding_box = lr_calculate_bounding_box($city_details['latitude'], $city_details['longitude'], $city_details['radius_km']);
-    $spots_list = lr_fetch_api_data($access_token, 'spots/v2/inBox', ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000]);
+    $spots_list = lr_get_spots_for_city($city_details);
 
     if (is_wp_error($spots_list) || empty($spots_list)) {
         return '';
@@ -168,26 +167,11 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
 
     } elseif ($page_type === 'events') {
         // --- REVISED Logic for Events ---
-        $radius_km = $city_details['radius_km'];
+        $all_events = lr_get_events_for_city($city_details);
 
-        $bounding_box = lr_calculate_bounding_box(
-            $city_details['latitude'],
-            $city_details['longitude'],
-            $radius_km
-        );
-
-        $api_params = [
-            'ne'    => $bounding_box['ne'],
-            'sw'    => $bounding_box['sw'],
-        ];
-
-        $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $api_params);
-
-        if (is_wp_error($events_data)) {
-            $output .= '<p><strong>Error:</strong> ' . esc_html($events_data->get_error_message()) . '</p>';
-        } elseif (isset($events_data->rollEvents) && !empty($events_data->rollEvents)) {
-            
-            $all_events = $events_data->rollEvents;
+        if (is_wp_error($all_events)) {
+            $output .= '<p><strong>Error:</strong> ' . esc_html($all_events->get_error_message()) . '</p>';
+        } elseif (!empty($all_events)) {
             $upcoming_events = [];
             $past_events = [];
             $now = new DateTime();
@@ -257,52 +241,48 @@ function lr_render_detail_page_content($country_slug, $city_slug, $page_type) {
             $output .= '<p>No events found for this location.</p>';
         }
     } elseif ($page_type === 'skaters') {
-        // --- REVISED Logic for Skaters with Pagination ---
-        $min_distance = isset($_GET['lr_page_dist']) ? floatval($_GET['lr_page_dist']) : 0;
+        // --- CORRECTED Logic for Skaters using the consolidated function ---
+        $all_skaters = lr_fetch_filtered_skaters_for_city($city_details, 90); // Use 90 days for consistency
 
-        $api_params = [
-            'lat'          => $city_details['latitude'],
-            'lng'          => $city_details['longitude'],
-            'minDistance'  => $min_distance,
-            'maxAgeInDays' => 90,
-            'limit'        => 20,
-        ];
-
-        $activity_data = lr_fetch_api_data($access_token, 'nearby-activities/v2/skaters', $api_params);
-
-        if (is_wp_error($activity_data)) {
-            $output .= '<p><strong>Error:</strong> ' . esc_html($activity_data->get_error_message()) . '</p>';
-        } elseif (isset($activity_data->userProfiles) && !empty($activity_data->userProfiles)) {
+        if (is_wp_error($all_skaters)) {
+            $output .= '<p><strong>Error:</strong> ' . esc_html($all_skaters->get_error_message()) . '</p>';
+        } elseif (!empty($all_skaters)) {
             
-            $output .= '<p>Here are some of the skaters recently active in the area:</p><ul>';
+            $skaters_per_page = 20;
+            $current_page = isset($_GET['lr_page']) ? max(1, intval($_GET['lr_page'])) : 1;
+            $total_skaters = count($all_skaters);
+            $total_pages = ceil($total_skaters / $skaters_per_page);
+            $offset = ($current_page - 1) * $skaters_per_page;
+            $skaters_for_page = array_slice($all_skaters, $offset, $skaters_per_page);
+
+            $output .= '<p>Showing skaters ' . ($offset + 1) . ' to ' . ($offset + count($skaters_for_page)) . ' of ' . $total_skaters . ' recently active in the area:</p><ul>';
             
-            foreach ($activity_data->userProfiles as $profile) {
-                // MODIFIED: Use skateName for the URL and ensure it exists.
-                if (is_object($profile) && isset($profile->userId) && !empty($profile->skateName)) {
-                    $display_name = $profile->skateName;
+            foreach ($skaters_for_page as $profile) {
+                if (is_object($profile) && !empty($profile->skateName)) {
                     $skater_url = home_url('/skaters/' . $profile->skateName . '/');
-                    $output .= '<li><a href="'. esc_url($skater_url) .'">' . esc_html($display_name) . '</a></li>';
+                    $output .= '<li><a href="'. esc_url($skater_url) .'">' . esc_html($profile->skateName) . '</a></li>';
                 }
             }
             
             $output .= '</ul>';
 
-            $next_min_distance = $activity_data->mostDistantActivity ?? 0;
-            $city_radius_meters = $city_details['radius_km'] * 1000;
-
-            if ($next_min_distance > $min_distance && $next_min_distance < $city_radius_meters) {
-                $next_page_url = add_query_arg('lr_page_dist', $next_min_distance);
-                $output .= '<div class="lr-pagination" style="margin-top: 20px;">';
-                $output .= '<a href="' . esc_url($next_page_url) . '">Next Page &raquo;</a>';
-                $output .= '</div>';
+            // --- Pagination Links ---
+            $output .= '<div class="lr-pagination" style="margin-top: 20px;">';
+            if ($current_page > 1) {
+                $prev_url = add_query_arg('lr_page', $current_page - 1);
+                $output .= '<a href="' . esc_url($prev_url) . '">&laquo; Previous Page</a>';
             }
+            if ($current_page > 1 && $current_page < $total_pages) {
+                $output .= ' &nbsp; | &nbsp; ';
+            }
+            if ($current_page < $total_pages) {
+                $next_url = add_query_arg('lr_page', $current_page + 1);
+                $output .= '<a href="' . esc_url($next_url) . '">Next Page &raquo;</a>';
+            }
+            $output .= '</div>';
 
         } else {
-            if ($min_distance > 0) {
-                $output .= '<p>No more skaters found in this area. <a href="' . esc_url(remove_query_arg('lr_page_dist')) . '">Back to Start</a></p>';
-            } else {
-                $output .= '<p>No recent skater activity found in this area.</p>';
-            }
+            $output .= '<p>No recent skater activity found in this area.</p>';
         }
     } else {
         $output .= '<p>API integration for ' . esc_html($page_type) . ' is coming soon.</p>';

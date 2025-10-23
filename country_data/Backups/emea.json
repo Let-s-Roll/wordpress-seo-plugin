@@ -1,0 +1,228 @@
+{
+  "belgium": {
+    "name": "Belgium",
+    "cities": {
+      "brussels": {
+        "name": "Brussels",
+        "latitude": 50.8503,
+        "longitude": 4.35,
+        "radius_km": 25,
+        "description": "The Brussels skate scene offers a fantastic mix of indoor fun and seasonal outdoor parks. The heart of the community can often be found at Rollerland BXL, a dedicated indoor rink that hosts everything from beginner courses to lively weekend roller disco nights, creating a super social and welcoming vibe. During the warmer months, skaters flock to the BXL S'ket Park in the Bois de la Cambre, a well-equipped outdoor space for all types of wheels. Whether you're looking to learn new skills, dance the night away on eight wheels, or session a park, roller skating in Brussels has a vibrant and friendly community waiting for you."
+      }
+    }
+  },
+  "denmark": {
+    "name": "Denmark",
+    "cities": {
+      "copenhagen": {
+        "name": "Copenhagen",
+        "latitude": 55.6761,
+        "longitude": 12.5683,
+        "radius_km": 20,
+        "description": "Roller skating in Copenhagen is a dream, thanks to the city's world-class infrastructure. Renowned as one of the most bike-friendly cities on the planet, its vast network of smooth, well-maintained paths and waterfront promenades makes it a paradise for urban cruising and long-distance skating. The vibe is relaxed and fitness-oriented, with skaters sharing the space with cyclists and joggers. While dedicated skateparks are more geared towards skateboarding, the entire city is a playground for roller skaters who love to explore. From the iconic Nyhavn harbor to the modern architecture of Ørestad, every neighborhood offers a new, beautiful route to discover on wheels."
+      }
+    }
+  },
+  "france": {
+    "name": "France",
+    "cities": {
+      "paris": {
+        "name": "Paris",
+        "latitude": 48.8566,
+        "longitude": 2.3522,
+        "radius_km": 35,
+        "description": "The Paris roller skating scene is iconic, deeply organized, and woven into the fabric of the city. The vibe is a unique blend of fitness, social gathering, and urban exploration. The heart of the culture is the legendary Pari Roller, a massive weekly night skate that has been taking over the city's streets every Friday for over two decades, attracting thousands of skaters. For a more relaxed pace, the Rollers & Coquillages group hosts a friendly Sunday afternoon skate. Beyond these organized events, skaters can be found cruising along the Seine, practicing slalom at Trocadéro, or exploring the city's many beautiful parks. With a rich history and a passionate community, skating in Paris is an unforgettable experience."
+      },
+      "lyon": {
+        "name": "Lyon",
+        "latitude": 45.764,
+        "longitude": 4.8357,
+        "radius_km": 30,
+        "description": "Lyon's roller skating scene is vibrant and active, with a strong focus on urban exploration and community events. The city's beautiful riverfronts along the Rhône and Saône are prime spots for skaters, offering miles of smooth paths with stunning views. The Parc de la Tête d'Or is another favorite location for leisurely cruising. The community is energized by local groups that organize regular street skates, similar to the famous Pari Roller, but with a unique Lyon flavor. With a mix of scenic routes, a friendly atmosphere, and a lively events calendar, skating in Lyon is a fantastic way to experience the city."
+      },
+      "marseille": {
+        "name": "Marseille",
+        "latitude": 43.2965,
+        "longitude": 5.3698,
+        "radius_km": 30,
+        "description": "The roller skating scene in Marseille is defined by its stunning coastal setting and a laid-back, sun-drenched vibe. The city's famous Prado beachfront and the long, scenic Corniche Kennedy are the main arteries of the skate culture, where you'll find skaters of all levels cruising and enjoying the Mediterranean views. The legendary bowl at the Prado skatepark is a major hub for aggressive skaters. The community is less about large, organized night skates and more about spontaneous sessions and enjoying the beautiful outdoor environment. With its incredible coastline and relaxed atmosphere, skating in Marseille is a truly unique experience."
+      }
+    }
+  },
+  "germany": {
+    "name": "Germany",
+    "cities": {
+      "berlin": {
+        "name": "Berlin",
+        "latitude": 52.52,
+        "longitude": 13.405,
+        "radius_km": 30,
+        "description": "The Berlin roller skating scene is a sprawling, diverse, and creative universe with a strong DIY spirit. The vibe is a mix of urban exploration, dance, and park skating. The vast, smooth runways of the former Tempelhof Airport are a legendary spot for skaters of all kinds, offering endless space for cruising, speed skating, and freestyle. The city is also home to a vibrant dance skate community, with regular meetups and workshops. Numerous skateparks and a strong roller derby culture add to the mix. With its unique blend of historic sites and modern skate spots, Berlin is a playground for skaters."
+      },
+      "hamburg": {
+        "name": "Hamburg",
+        "latitude": 53.5511,
+        "longitude": 9.9937,
+        "radius_km": 25,
+        "description": "Hamburg's roller skating scene is a dynamic mix of organized street skates and a strong park skating community. The city hosts a popular weekly night skate that attracts a large and energetic crowd, offering a unique way to explore the urban landscape after dark. The vibe is social and welcoming. For park skaters, the city offers several excellent facilities, with the skatepark in Planten un Blomen being a central hub. With its beautiful waterfront, numerous parks, and a thriving events calendar, Hamburg is a fantastic city for roller skating."
+      },
+      "munich": {
+        "name": "Munich",
+        "latitude": 48.1351,
+        "longitude": 11.582,
+        "radius_km": 35,
+        "description": "The Munich roller skating scene is characterized by its love for the outdoors and a relaxed, friendly atmosphere. The vast Englischer Garten is a favorite spot for skaters, offering a network of paths through beautiful scenery. The city's efficient and smooth bike path system also provides endless routes for urban exploration. While the indoor rink scene is less prominent, the community thrives during the warmer months, with skaters making the most of the city's parks and public spaces. The vibe is more about leisurely cruising and enjoying nature than intense street skating."
+      }
+    }
+  },
+  "ireland": {
+    "name": "Ireland",
+    "cities": {
+      "dublin": {
+        "name": "Dublin",
+        "latitude": 53.3498,
+        "longitude": -6.2603,
+        "radius_km": 25,
+        "description": "The Dublin roller skating scene is a passionate and growing community with a strong DIY ethic. The heart of the scene is the city's network of skateparks, where you'll find a dedicated crew of park skaters. Groups like the Dublin Roller Skaters organize regular meetups and events, fostering a welcoming and inclusive vibe. Phoenix Park, one of Europe's largest urban parks, offers plenty of space for cruising and outdoor skating. While the city's weather can be a challenge, the community's enthusiasm makes up for it, with a strong focus on skill-sharing and mutual support."
+      }
+    }
+  },
+  "israel": {
+    "name": "Israel",
+    "cities": {
+      "tel-aviv": {
+        "name": "Tel Aviv",
+        "latitude": 32.0853,
+        "longitude": 34.7818,
+        "radius_km": 20,
+        "description": "The Tel Aviv roller skating scene is famous for its massive, high-energy night skates. The legendary Tel Aviv Rollers group hosts huge night skates that draw hundreds of participants, turning the city's streets into a moving party. The vibe is exceptionally social, fast-paced, and full of life. The city's famous beachfront promenade provides a perfect, scenic route for daytime cruising with stunning Mediterranean views. With a strong sense of community and a love for taking over the urban landscape, skating in Tel Aviv is an electrifying experience, especially for those who enjoy the thrill of a large group roll."
+      }
+    }
+  },
+  "italy": {
+    "name": "Italy",
+    "cities": {
+      "rome": {
+        "name": "Rome",
+        "latitude": 41.9028,
+        "longitude": 12.4964,
+        "radius_km": 25,
+        "description": "The Rome roller skating scene is a unique blend of ancient history and modern street culture. The Pincio Promenade, overlooking the Piazza del Popolo, is a legendary gathering spot where skaters have been meeting for decades. The vibe is social and relaxed, with a focus on freestyle and dance skating. The city's extensive bike paths, particularly along the Tiber River, offer scenic routes for cruising. The weekly 'Pincio Roll' is a long-standing tradition, bringing the community together for a fun and informal skate. Skating through the historic streets of Rome is a truly unforgettable experience."
+      },
+      "milan": {
+        "name": "Milan",
+        "latitude": 45.4642,
+        "longitude": 9.19,
+        "radius_km": 25,
+        "description": "The Milan roller skating scene is stylish and energetic, with a strong focus on urban skating and community events. The city hosts regular night skates that attract a large and fashionable crowd, offering a dynamic way to explore the city's modern architecture and historic streets. The vibe is social and fast-paced. Parks like Parco Sempione provide great spots for daytime cruising and practice. With its blend of high fashion and street culture, Milan's skate scene is as cool and contemporary as the city itself."
+      }
+    }
+  },
+  "netherlands": {
+    "name": "Netherlands",
+    "cities": {
+      "amsterdam": {
+        "name": "Amsterdam",
+        "latitude": 52.3702,
+        "longitude": 4.8952,
+        "radius_km": 25,
+        "description": "The Amsterdam roller skating scene is legendary, thanks to the city's incredible infrastructure and vibrant skate culture. The world-famous Friday Night Skate (FNS) is one of the oldest and largest weekly street skates on the planet, attracting a massive, international crowd. The vibe is exhilarating and incredibly social. The city's vast network of smooth bike paths makes it a paradise for skaters, and the beautiful Vondelpark is a central hub for cruising, dancing, and practicing. With its flat terrain, skate-friendly layout, and passionate community, Amsterdam is a true mecca for roller skaters."
+      }
+    }
+  },
+  "poland": {
+    "name": "Poland",
+    "cities": {
+      "warsaw": {
+        "name": "Warsaw",
+        "latitude": 52.2297,
+        "longitude": 21.0122,
+        "radius_km": 25,
+        "description": "The Warsaw roller skating scene is a thriving and modern community with excellent facilities. The city is home to several large, smooth, and well-maintained outdoor tracks specifically designed for roller skating and inline speed skating, like the Tor Łyżwiarsko-Wrotkarski Stegny. These venues are hubs for both recreational and competitive skaters. The city also hosts night skates and has a growing street skating scene. The vibe is fitness-oriented and family-friendly, with a strong emphasis on providing safe and high-quality spaces for skaters of all ages."
+      }
+    }
+  },
+  "spain": {
+    "name": "Spain",
+    "cities": {
+      "barcelona": {
+        "name": "Barcelona",
+        "latitude": 41.3851,
+        "longitude": 2.1734,
+        "radius_km": 20,
+        "description": "The Barcelona roller skating scene is a world-renowned, sun-drenched paradise for skaters. The city's long, smooth beachfront promenade, stretching from Barceloneta to the Fòrum, is the epicenter of the culture. The vibe is laid-back, international, and incredibly social. You'll find every style of skating here, from aggressive park skating at the many concrete skateparks to artistic dance and slalom along the beach. The city's skate-friendly architecture and year-round good weather make it a top destination for skaters from all over the globe. It's a place where skating is not just a hobby, but a way of life."
+      },
+      "madrid": {
+        "name": "Madrid",
+        "latitude": 40.4168,
+        "longitude": -3.7038,
+        "radius_km": 25,
+        "description": "The Madrid roller skating scene is a vibrant mix of urban exploration and park life. The heart of the community can be found in Retiro Park, where skaters gather to practice, socialize, and enjoy the beautiful surroundings. The city also boasts the impressive Madrid Río park, which offers miles of smooth paths along the Manzanares River. The scene is energized by regular night skates and a strong roller derby community. The vibe is friendly and social, with a welcoming atmosphere for skaters of all levels. Madrid's combination of beautiful parks and a lively event calendar makes it a fantastic city for skating."
+      }
+    }
+  },
+  "switzerland": {
+    "name": "Switzerland",
+    "cities": {
+      "zurich": {
+        "name": "Zurich",
+        "latitude": 47.3769,
+        "longitude": 8.5417,
+        "radius_km": 20,
+        "description": "The Zurich roller skating scene is efficient, scenic, and perfectly integrated into the city's high-quality infrastructure. The city is renowned for its network of smooth, dedicated paths for skating and cycling, particularly around the beautiful Lake Zurich. The vibe is fitness-focused and respectful, with skaters sharing the paths with other recreational users. The city hosts a massive annual night skate event that attracts thousands of participants. With its stunning alpine backdrop, pristine environment, and world-class facilities, Zurich offers a premium skating experience."
+      }
+    }
+  },
+  "united_arab_emirates": {
+    "name": "United Arab Emirates",
+    "cities": {
+      "dubai": {
+        "name": "Dubai",
+        "latitude": 25.2048,
+        "longitude": 55.2708,
+        "radius_km": 35,
+        "description": "Dubai's roller skating scene is modern, ambitious, and built on world-class facilities. The vibe is structured and professional, with a strong focus on skill development. Skateraati, the UAE's leading roller skating academy, offers expert coaching across numerous locations for genres like speed and slalom skating. For park enthusiasts, Dubai boasts incredible skateparks like the massive XDubai Skatepark at Kite Beach, which offers a premier experience for all levels. This commitment to high-quality infrastructure and professional training makes skating in Dubai a top-tier experience for those looking to learn, train, and session in state-of-the-art environments."
+      }
+    }
+  },
+  "united_kingdom": {
+    "name": "United Kingdom",
+    "cities": {
+      "london": {
+        "name": "London",
+        "latitude": 51.5072,
+        "longitude": -0.1276,
+        "radius_km": 35,
+        "description": "The London roller skating scene is a massive, diverse, and incredibly social universe. At its heart is Hyde Park, where skaters have gathered on Serpentine Road for decades, making it a legendary hub for dance, slalom, and casual cruising. The city's pulse is best felt during the legendary London Friday Night Skate (LFNS), a huge, fast-paced street skate that takes over the city after dark, starting from Wellington Arch. For a more relaxed vibe, the Sunday Stroll offers a gentle roll through the park. From the quad-friendly bowls of Clapham Common to scenic paths along the Thames, roller skating in London offers endless adventure for every style and skill level."
+      },
+      "manchester": {
+        "name": "Manchester",
+        "latitude": 53.4808,
+        "longitude": -2.2426,
+        "radius_km": 25,
+        "description": "Manchester's roller skating scene is experiencing a vibrant renaissance, fueled by a passionate, grassroots community. The central hub is Projekts MCR, an iconic skatepark under the Mancunian Way flyover that hosts dedicated roller nights and inclusive sessions for groups like Skating Queer. For a classic rink experience, weekend roller discos at Ardwick Sports Hall are a local favorite. Street skaters find smooth surfaces and a welcoming atmosphere at spots like the Great Northern Warehouse. With a strong focus on inclusivity and community-building, skating in Manchester is all about good vibes and creative expression."
+      },
+      "bristol": {
+        "name": "Bristol",
+        "latitude": 51.4545,
+        "longitude": -2.5879,
+        "radius_km": 20,
+        "description": "Bristol's roller skating scene is a creative and gritty mix of DIY spirit and community pride. The city is famous for its legendary M32 spot, a DIY skatepark built by locals in the space underneath the motorway. The scene is also anchored by the formidable Bristol Roller Derby league, a cornerstone of the local skate community. Whether you're cruising the scenic Bath to Bristol cycle path or joining a family-friendly session at a community rink, skating in Bristol is an authentic and welcoming adventure."
+      },
+      "leeds": {
+        "name": "Leeds",
+        "latitude": 53.7965,
+        "longitude": -1.5479,
+        "radius_km": 20,
+        "description": "The Leeds roller skating scene is a vibrant and inclusive community with a strong DIY spirit. The heart of the scene is the Roller Girl Gang, which runs The Skate Sanctuary, a dedicated skate space offering classes and practice sessions. The city also hosts regular roller discos and is home to community groups like the Potternewton Park Rollers, ensuring there are plenty of opportunities to skate, learn, and connect with other skaters."
+      },
+      "birmingham": {
+        "name": "Birmingham",
+        "latitude": 52.4895,
+        "longitude": -1.8986,
+        "radius_km": 20,
+        "description": "The Birmingham roller skating scene is diverse, with modern venues like Roller Jam Digbeth offering a lively, entertainment-focused experience. The city also has a strong competitive side, with the Birmingham Wheels Roller Speed Club training at the iconic Wheels Park. For a more traditional experience, skaters can visit local roller discos or enjoy the outdoors at Cannon Hill Park."
+      }
+    }
+  }
+}

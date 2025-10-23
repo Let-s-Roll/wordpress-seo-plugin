@@ -1,4 +1,4 @@
 headless_test_config.txt
 .env
 search-console-reports/
-country_data/Backups/
+country_data/Backups/"content_discovery.log" 

@@ -49,9 +49,7 @@ function lr_render_city_page_content($country_slug, $city_slug) {
     // Top Skate Spots
     // =================================================================
     $output .= '<h3>Top Skate Spots</h3>';
-    $bounding_box = lr_calculate_bounding_box($city_details['latitude'], $city_details['longitude'], $city_details['radius_km']);
-    $spots_list_params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
-    $spots_list = lr_fetch_api_data($access_token, 'spots/v2/inBox', $spots_list_params);
+    $spots_list = lr_get_spots_for_city($city_details);
 
     if (!is_wp_error($spots_list) && !empty($spots_list)) {
         usort($spots_list, function($a, $b) { return ($b->sessionsCount ?? 0) <=> ($a->sessionsCount ?? 0); });
@@ -92,11 +90,10 @@ function lr_render_city_page_content($country_slug, $city_slug) {
     // Local Skaters
     // =================================================================
     $output .= '<h3>Local Skaters</h3>';
-    $skaters_params = ['lat' => $city_details['latitude'], 'lng' => $city_details['longitude'], 'minDistance' => 0, 'maxAgeInDays' => 90, 'limit' => 20];
-    $skaters_data = lr_fetch_api_data($access_token, 'nearby-activities/v2/skaters', $skaters_params);
+    $skaters_data = lr_fetch_filtered_skaters_for_city($city_details, 90);
 
-    if (!is_wp_error($skaters_data) && !empty($skaters_data->userProfiles)) {
-        $top_skaters = array_slice($skaters_data->userProfiles, 0, 6);
+    if (!is_wp_error($skaters_data) && !empty($skaters_data)) {
+        $top_skaters = array_slice($skaters_data, 0, 6);
         $output .= $render_grid_start;
         foreach ($top_skaters as $profile) {
             if (!empty($profile->skateName)) {
@@ -125,12 +122,11 @@ function lr_render_city_page_content($country_slug, $city_slug) {
     // Upcoming Events
     // =================================================================
     $output .= '<h3>Upcoming Events</h3>';
-    $events_params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw']];
-    $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $events_params);
+    $events_data = lr_get_events_for_city($city_details);
 
-    if (!is_wp_error($events_data) && !empty($events_data->rollEvents)) {
+    if (!is_wp_error($events_data) && !empty($events_data)) {
         $now = new DateTime();
-        $upcoming_events = array_filter($events_data->rollEvents, function($event) use ($now) {
+        $upcoming_events = array_filter($events_data, function($event) use ($now) {
             return isset($event->event->endDate) && (new DateTime($event->event->endDate) > $now);
         });
         usort($upcoming_events, function($a, $b) { return strtotime($a->event->startDate) <=> strtotime($b->event->startDate); });

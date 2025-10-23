@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.6.0 - (Unreleased)
+
+### ✨ New Features
+
+*   **Content Discovery System (Layer 1):**
+    *   Introduced a new, daily background process that automatically scans the Let's Roll API to discover new content.
+    *   The system discovers five types of content: new spots, events, reviews, skate sessions, and newly seen skaters in a city.
+    *   It uses a combination of API `createdAt` timestamps and a local "memory" database to accurately detect new content.
+
+*   **Dedicated Admin Monitoring Page:**
+    *   Added a new **"Content Discovery"** admin page to monitor and test the new system.
+    *   The page includes a real-time **Activity Log** to provide visibility into the background discovery process.
+    *   It features a **"Run Content Discovery Now"** button that uses an asynchronous, queue-based AJAX process to allow for safe, on-demand testing without causing server timeouts.
+    *   A log of all permanently discovered content is displayed in a table, with controls to clear it for testing.
+
+*   **Robust Asynchronous Processing:**
+    *   The entire discovery process (both manual and scheduled) is now handled by a queue-based background worker. This breaks the task into small, per-city jobs to ensure it can run reliably without hitting execution time limits, even on a large number of cities.
+
+*   **Admin Menu Reorganization:**
+    *   All plugin admin pages ("SEO Settings," "Brevo Sync," and the new "Content Discovery") are now consolidated under a single, top-level **"Let's Roll"** menu with a custom icon for a cleaner, more organized interface.
+
+### 🛠 Under the Hood
+
+*   **Custom Database Tables:**
+    *   Added a new custom database table, `wp_lr_discovered_content`, to act as a permanent, "atomic ledger" of all content found by the discovery system.
+    *   Added a second table, `wp_lr_seen_skaters`, to track which skaters have been seen in which cities, enabling the "newly seen skater" discovery logic.
+
 ## 1.5.0
 *   **FIX(style):** Fixed a styling regression where the session list on single spot pages and the meta info box on single activity pages lost their borders and background. The specific CSS rules for these components have been moved to the global stylesheet to ensure they are applied consistently.
 

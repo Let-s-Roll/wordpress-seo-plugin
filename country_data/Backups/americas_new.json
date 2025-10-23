@@ -1,0 +1,332 @@
+{
+  "argentina": {
+    "name": "Argentina",
+    "cities": {
+      "buenos-aires": {
+        "name": "Buenos Aires",
+        "latitude": -34.6,
+        "longitude": -58.38,
+        "radius_km": 20,
+        "description": "The roller skating scene in Buenos Aires is a dynamic and thriving culture set against the city's grand, European-style architecture and sprawling parks, and is one of the largest in Latin America. The main hub for recreational skating is the Bosques de Palermo, while organized groups like Patin en Linea (PEL) host skates throughout the city, and the deserted financial district becomes a street skater's paradise on weekends."
+      }
+    }
+  },
+  "brazil": {
+    "name": "Brazil",
+    "cities": {
+      "sao-paulo": {
+        "name": "São Paulo",
+        "latitude": -23.55,
+        "longitude": -46.63,
+        "radius_km": 40,
+        "description": "The roller skating scene in São Paulo is a massive, sprawling, and deeply creative culture with a history of DIY resilience, as skaters built their own spots long before official parks existed. The vibe is a mix of urban exploration and classic rink grooving, with major hubs like the vast Ibirapuera Park for cruising and the retro-charmed Roller Jam for a roller-disco experience."
+      },
+      "rio-de-janeiro": {
+        "name": "Rio de Janeiro",
+        "latitude": -22.91,
+        "longitude": -43.17,
+        "radius_km": 30,
+        "description": "The roller skating scene in Rio de Janeiro is a breathtaking, open-air experience integrated into the city's world-famous landscape of beaches and mountains. The culture is defined by its stunning outdoor routes, where skaters can glide for miles along the iconic coastlines of Copacabana and Ipanema or circle the scenic Lagoa Rodrigo de Freitas with views of Christ the Redeemer."
+      }
+    }
+  },
+  "canada": {
+    "name": "Canada",
+    "cities": {
+      "vancouver": {
+        "name": "Vancouver",
+        "latitude": 49.25,
+        "longitude": -123.12,
+        "radius_km": 30,
+        "description": "The roller skating community in Vancouver is a welcoming, empowering, and exhilarating scene that blends fitness with fun. The culture is anchored by the Rolla Skate Club at the massive Rollerland at the PNE, which hosts inclusive, themed parties, classes, and fosters a strong connection to the roller derby community."
+      },
+      "calgary": {
+        "name": "Calgary",
+        "latitude": 51.05,
+        "longitude": -114.07,
+        "radius_km": 30,
+        "description": "The roller skating scene in Calgary is a vibrant and growing culture that utilizes the city's beautiful outdoor spaces and dedicated indoor rinks. The scene is defined by the Rotary Mattamy Greenway, a massive 145-kilometer urban pathway for long-distance skating, and community hubs like House of Skate, the city's only dedicated year-round roller rink."
+      },
+      "toronto": {
+        "name": "Toronto",
+        "latitude": 43.65,
+        "longitude": -79.38,
+        "radius_km": 40,
+        "description": "The roller skating scene in Toronto is a vibrant and creative culture that thrives in unique urban spaces and is propelled by a strong sense of community. The scene is best exemplified by The Bentway, a 220-meter skate trail underneath the Gardiner Expressway, which hosts themed parties and lessons, complemented by classic rinks and inclusive skate crews."
+      },
+      "montreal": {
+        "name": "Montreal",
+        "latitude": 45.5,
+        "longitude": -73.57,
+        "radius_km": 30,
+        "description": "The rollerskating scene in Montreal is well-established and diverse, offering a rich variety of options for enthusiasts. Central to the community are the city's dedicated indoor roller rinks, which function as year-round hubs for lessons, social gatherings, and themed skate nights. During the warmer months, the culture extends outdoors as skaters take full advantage of Montreal's numerous parks and extensive bike paths."
+      }
+    }
+  },
+  "chile": {
+    "name": "Chile",
+    "cities": {
+      "santiago": {
+        "name": "Santiago",
+        "latitude": -33.45,
+        "longitude": -70.65,
+        "radius_km": 30,
+        "description": "Santiago's rollerskating culture is characterized by its dynamic and street-oriented spirit, with the city's urban landscape serving as its primary playground. Skaters actively utilize public plazas, parks, and skateparks, creating a fluid scene that is deeply integrated with the metropolitan environment and often shares a creative synergy with the local skateboarding community. The culture is driven by grassroots groups, such as Patín Urbano, which organizes group skates and events that navigate the city's streets."
+      }
+    }
+  },
+  "colombia": {
+    "name": "Colombia",
+    "cities": {
+      "bogota": {
+        "name": "Bogotá",
+        "latitude": 4.61,
+        "longitude": -74.08,
+        "radius_km": 30,
+        "description": "The roller skating scene in Bogotá is a passionate, high-energy culture fueled by a new wave of world-class skateparks and a strong roller derby foundation. Situated at a high altitude, the community is known for its 'ganas' or 'fire,' a deep commitment to skating, whether training in new Olympic-grade bowls at parks like Fontanar and Tercer Milenio or competing on the flat track."
+      }
+    }
+  },
+  "mexico": {
+    "name": "Mexico",
+    "cities": {
+      "mexico-city": {
+        "name": "Mexico City",
+        "latitude": 19.43,
+        "radius_km": 40,
+        "description": "The roller skating scene in Mexico City (CDMX) is a vibrant and passionate movement that thrives in the city's public spaces, defined by a strong sense of community. Collectives organize everything from free lessons in public parks to massive group skates that take over major avenues like Paseo de la Reforma on Sundays when it's closed to traffic."
+      },
+      "guadalajara": {
+        "name": "Guadalajara",
+        "latitude": 20.67,
+        "longitude": -103.35,
+        "radius_km": 30,
+        "description": "The roller skating scene in Guadalajara is a relaxed and growing community, blending casual outdoor cruising in its beautiful parks with the energy of new indoor rinks. The vibe is less about intense street skating and more about enjoying the city's atmosphere at spots like the sprawling Metropolitan Park or the roller-disco-style Roooolling House Skating Rink."
+      },
+      "monterrey": {
+        "name": "Monterrey",
+        "latitude": 25.69,
+        "longitude": -100.32,
+        "radius_km": 30,
+        "description": "The roller skating scene in Monterrey is an epic urban adventure set against the city's dramatic industrial landscape, defined by its massive, organized street skates. The community's heart is Parque Fundidora, a former steel complex turned urban park, and its spirit is best seen in the annual Invasión Roller Monterrey, an event that brings skaters from all over Mexico to 'invade' the city's streets."
+      }
+    }
+  },
+  "united-states": {
+    "name": "United States",
+    "cities": {
+      "new-york-city": {
+        "name": "New York City",
+        "latitude": 40.76,
+        "radius_km": 40,
+        "description": "The roller skating scene in New York City is a study in spectacular contrasts, thriving at the intersection of high-profile, iconic venues and a raw, creative street energy. From the open-air Pier 2 Roller Rink with its skyline views to the legendary Rink at Rockefeller Center, the scene offers a unique duality of accessible community hubs and premium, destination experiences."
+      },
+      "los-angeles": {
+        "name": "Los Angeles",
+        "latitude": 34.05,
+        "longitude": -118.25,
+        "radius_km": 40,
+        "description": "Los Angeles is the global epicenter of sun-drenched, effortlessly cool skate culture where life on eight wheels is a lifestyle. The scene flows from historic indoor rinks like Moonlight Rollerway to the iconic Venice Beach boardwalks where modern roller dance was born. It's defined by deep roots in the 1970s and a powerfully inclusive, community-driven spirit."
+      },
+      "chicago": {
+        "name": "Chicago",
+        "latitude": 41.88,
+        "longitude": -87.63,
+        "radius_km": 40,
+        "description": "The Chicago roller skating scene is forged from resilience, rhythm, and a deep connection to the city's streets, a culture defined by a tight-knit community that transforms the urban grid into a rolling playground. At its core is the legendary JB skate style, a smooth, soulful dance on wheels inspired by James Brown that gives the city its unique skate identity."
+      },
+      "washington-d.c.": {
+        "name": "Washington, D.C.",
+        "latitude": 38.9,
+        "longitude": -77.04,
+        "radius_km": 30,
+        "description": "The roller skating scene in Washington, D.C. is a vibrant mix of community-focused accessibility and modern, energetic nightlife. It offers two distinct experiences: the free, open-air fellowship at the Anacostia Park Skating Pavilion, a national park treasure, and the stylish, contemporary vibe of an indoor rink like Kraken Bryant Street that doubles as a social hub."
+      },
+      "san-francisco": {
+        "name": "San Francisco",
+        "latitude": 37.76,
+        "longitude": -122.45,
+        "radius_km": 30,
+        "description": "The roller skating scene in San Francisco is a vibrant, spiritual, and slightly rebellious movement, embodied by its unconventional venues and the belief that skating is a 'Rolligion'. The culture has transformed a historic church into the legendary Church of 8 Wheels roller disco and taken skating to rooftops, driven by community, inclusivity, and the joy of congregation."
+      },
+      "boston": {
+        "name": "Boston",
+        "latitude": 42.37,
+        "radius_km": 30,
+        "description": "The roller skating scene in Boston is a hardy blend of dedicated street skaters who navigate the city's historic landscape and vibrant communities centered around cherished local rinks. Supported by organized groups like the Inline Club of Boston leading weekly skates and beloved institutions like Chez-Vous Roller Rink, the scene offers a welcoming, down-to-earth vibe for all skaters."
+      },
+      "philadelphia": {
+        "name": "Philadelphia",
+        "latitude": 40.01,
+        "longitude": -75.13,
+        "radius_km": 30,
+        "description": "The roller skating scene in Philadelphia is a testament to the city's grit and strong sense of community, defined by a robust and highly organized street skating culture. Groups like the Philly Landskaters reclaim the city's streets for non-competitive, recreational exploration, complemented by classic indoor rinks that serve as hubs for family fun."
+      },
+      "dallas": {
+        "name": "Dallas",
+        "latitude": 32.78,
+        "radius_km": 40,
+        "description": "The roller skating scene in Dallas is expansive and diverse, built on a strong foundation of classic indoor rinks like Southern Skates that have served their communities for decades. Beyond the rinks, Dallas boasts an impressive network of outdoor trails and parks, with White Rock Lake Park being a premier destination for skaters to enjoy the Texas skies."
+      },
+      "houston": {
+        "name": "Houston",
+        "latitude": 29.76,
+        "longitude": -95.37,
+        "radius_km": 40,
+        "description": "The roller skating scene in Houston is a dynamic blend of deep-rooted, family-owned institutions and slick, modern entertainment venues. It's a city where you can glide on the massive wood floor of the legendary Lockwood Skating Palace, an authentic, soulful rink open since 1982, or enjoy a modern party vibe at a venue like 180 Rodeo Rink and Lounge."
+      },
+      "miami": {
+        "name": "Miami",
+        "latitude": 25.77,
+        "longitude": -80.19,
+        "radius_km": 30,
+        "description": "The roller skating culture in Miami is a sizzling blend of retro nostalgia, high-energy rhythm, and sun-soaked style, with a rich history centered around one legendary rink. The scene's epicenter is the Miami Roller Rink, the last original rink in the city, complemented by beautiful outdoor cruising spots like South Pointe Park and a passionate community dedicated to keeping the culture alive."
+      },
+      "atlanta": {
+        "name": "Atlanta",
+        "latitude": 33.75,
+        "longitude": -84.39,
+        "radius_km": 30,
+        "description": "The roller skating scene in Atlanta is a legendary cultural institution and a global destination for skaters seeking the pinnacle of rhythm and style. The vibe is electric, deeply rooted in music, and centered around world-famous rinks like the iconic Cascade Skating, which has cemented Atlanta's status as a mecca for the sport."
+      },
+      "orlando": {
+        "name": "Orlando",
+        "latitude": 28.5383,
+        "radius_km": 30,
+        "description": "The Orlando roller skating scene is a vibrant mix of classic rink culture and active community groups. Long-standing institutions like Astro Skate and Semoran Skateway serve as local hubs, offering themed nights and lessons for all ages. The scene is also fueled by passionate local groups that organize events and foster a strong sense of community. For those who prefer to skate outdoors, the West Orange Trail provides a popular and scenic route for miles of cruising."
+      },
+      "seattle": {
+        "name": "Seattle",
+        "latitude": 47.61,
+        "longitude": -122.33,
+        "radius_km": 30,
+        "description": "The roller skating scene in Seattle is characterized by its warm, family-friendly atmosphere and a collection of classic rinks that feel like a nostalgic step back in time. The culture is less about intense street skating and more about community-oriented fun inside welcoming venues like Southgate Roller Rink, the original home of the Rat City Roller Derby."
+      },
+      "san-diego": {
+        "name": "San Diego",
+        "latitude": 32.73,
+        "longitude": -117.15,
+        "radius_km": 30,
+        "description": "The roller skating scene in San Diego perfectly embodies the city's laid-back, sun-drenched lifestyle, thriving outdoors along miles of coastal boardwalks and in scenic parks. The culture is rooted in the nostalgic charm of its iconic indoor rink, Skateworld, which has operated since 1975, and is energized by vibrant skate dance teams like the Old School Skaters."
+      },
+      "baltimore": {
+        "name": "Baltimore",
+        "latitude": 39.29,
+        "radius_km": 30,
+        "description": "The roller skating scene in Baltimore is built on a foundation of iconic, community-focused institutions, with a vibe that is authentic and deeply rooted in local history. At the heart of the city's scene is the legendary Shake & Bake Family Fun Center, a city-owned facility that has been a staple in West Baltimore since 1982."
+      },
+      "san-jose": {
+        "name": "San Jose",
+        "latitude": 37.3,
+        "longitude": -121.87,
+        "radius_km": 30,
+        "description": "The roller skating scene in San Jose offers a modern, family-friendly experience that reflects the innovative spirit of Silicon Valley. The culture is centered around the Aloha Fun Center, a brand with vibrant destinations in a mall and a seasonal outdoor rink downtown, mixing tiki-themed fun with classic roller energy."
+      },
+      "portland": {
+        "name": "Portland",
+        "latitude": 45.52,
+        "radius_km": 30,
+        "description": "The roller skating scene in Portland, Oregon is a rich and deeply ingrained culture with a history stretching back over a century, revering its institutions. The scene's hub is the iconic Oaks Park Roller Rink, one of the oldest in the country, complemented by a fiercely competitive and inclusive roller derby scene led by the Rose City Rollers."
+      },
+      "phoenix": {
+        "name": "Phoenix",
+        "latitude": 33.4484,
+        "radius_km": 40,
+        "description": "The Phoenix roller skating scene thrives in the city's sunny climate, with a strong mix of classic indoor rinks and popular outdoor spots. Rinks like Skateland and Great Skate serve as community hubs, while skaters also flock to scenic outdoor trails at Tempe Town Lake and the Phoenix Mountains Preserve. The scene is supported by a variety of active and welcoming skate groups that host meetups for all skill levels across the valley."
+      },
+      "denver": {
+        "name": "Denver",
+        "latitude": 39.7392,
+        "longitude": -104.9847,
+        "radius_km": 30,
+        "description": "The Denver roller skating scene is a year-round hub of activity, with multiple Skate City locations offering classic indoor rink experiences and seasonal outdoor rinks popping up in the summer. The community is also defined by its highly active street and trail skating culture, with groups like the Denver Urban Skate Troop organizing popular weekly skates that explore the city's extensive network of bike paths, like the Cherry Creek Trail."
+      },
+      "nashville": {
+        "name": "Nashville",
+        "latitude": 36.1745,
+        "longitude": -86.768,
+        "radius_km": 30,
+        "description": "The Nashville roller skating scene is a mix of classic rink skating and a strong outdoor community. Rinks like Rivergate Skate Center have been local staples for decades, while the Nashville Outdoor Roller Skating Meetup Group takes advantage of the city's many parks and greenways. The scene is also home to the Nashville Roller Derby, adding a competitive edge to the city's vibrant skate culture."
+      },
+      "las-vegas": {
+        "name": "Las Vegas",
+        "latitude": 36.175,
+        "longitude": -115.1372,
+        "radius_km": 30,
+        "description": "The Las Vegas roller skating scene is a unique blend of classic rink culture and dazzling entertainment. Historic rinks like Skate Rock City operate alongside seasonal pop-ups on the Strip, like the Flipper's Roller Boogie Palace. The city is also home to the Sin City Roller Derby and hosts major events like RollerCon, making it a vibrant destination for skaters of all kinds."
+      },
+      "charlotte": {
+        "name": "Charlotte",
+        "latitude": 35.2271,
+        "longitude": -80.8431,
+        "radius_km": 30,
+        "description": "The Charlotte roller skating scene is a dynamic mix of traditional rinks, such as the long-standing Kate's Skating Rinks, and innovative pop-up events hosted by groups like Rollin' Clt. The community is also served by a strong outdoor skating scene with active groups organizing meetups on the city's greenways, and a competitive spirit fueled by the Charlotte Roller Derby."
+      },
+      "detroit": {
+        "name": "Detroit",
+        "latitude": 42.3314,
+        "radius_km": 40,
+        "description": "Detroit's roller skating scene is legendary, with deep roots in the city's musical history. It's home to some of the nation's oldest Black-owned rinks, like the historic RollerCade, which have cultivated a unique 'Detroit style' of skating. The scene is also home to the formidable Detroit Roller Derby league, making it a city with a rich and influential skate culture."
+      },
+      "austin": {
+        "name": "Austin",
+        "latitude": 30.2672,
+        "longitude": -97.7431,
+        "radius_km": 30,
+        "description": "The Austin roller skating scene is a vibrant mix of indoor rinks, extensive outdoor trails, and a world-class roller derby community. The city, often credited with the modern revival of roller derby, is home to the Texas Rollergirls. Skaters can enjoy a classic rink experience or explore numerous trails like the Southern Walnut Creek Trail, supported by a welcoming and active community."
+      },
+      "cleveland": {
+        "name": "Cleveland",
+        "latitude": 41.4995,
+        "radius_km": 30,
+        "description": "The Cleveland roller skating scene is built around a strong foundation of classic indoor rinks and a passionate roller derby community. Venues like Zelma Watson George Skating provide a traditional rink experience, while the city is also home to both women's (Burning River Roller Derby) and men's (Cleveland Guardians) competitive flat-track leagues, fostering a diverse and energetic skate culture."
+      },
+      "raleigh": {
+        "name": "Raleigh",
+        "latitude": 35.7721,
+        "radius_km": 30,
+        "description": "The Raleigh roller skating scene is a healthy mix of traditional rink skating at venues like United Skates of America and a growing outdoor and park skating community. Groups like CIB Raleigh host inclusive meetups at local skateparks, while the city sometimes converts public spaces like Moore Square into pop-up roller discos, creating a diverse and accessible skate culture."
+      },
+      "indianapolis": {
+        "name": "Indianapolis",
+        "latitude": 39.7684,
+        "longitude": -86.1581,
+        "radius_km": 30,
+        "description": "The Indianapolis roller skating scene is centered around its classic indoor rinks like Skateland and the historic Roller Cave, which have served the community for decades. The scene is also home to the Circle City Roller Derby league and groups like Roller Skate Indiana that organize trail skating, providing a well-rounded mix of recreational and competitive skating opportunities."
+      },
+      "kansas-city": {
+        "name": "Kansas City",
+        "latitude": 39.0997,
+        "radius_km": 30,
+        "description": "The Kansas City roller skating scene is rich with history, featuring several long-standing, family-owned rinks like the Northland Rolladium and Winnwood Skate Center. These venues provide a classic skating experience that has been a tradition for generations. The community is also supported by active urban skate groups that organize meetups to explore the city's streets and parks."
+      },
+      "oklahoma-city": {
+        "name": "Oklahoma City",
+        "latitude": 35.4676,
+        "longitude": -97.5164,
+        "radius_km": 30,
+        "description": "The Oklahoma City roller skating scene offers a great mix of indoor and outdoor skating experiences. Classic rinks like Skate Galaxy and Southwestern Skate Center provide year-round fun and host popular adult skate nights. In the warmer months, the seasonal Sky Rink at Scissortail Park becomes a major hub for the community, offering a unique outdoor skating venue in the heart of the city."
+      },
+      "columbus": {
+        "name": "Columbus",
+        "latitude": 39.9612,
+        "radius_km": 30,
+        "description": "The Columbus roller skating scene is well-established, with popular rinks like Skate Zone 71 and the long-running Columbus Skateland serving the community. The city is also a hub for competitive roller derby, home to the Ohio Roller Derby league. For outdoor skaters, groups like the Clintonville Roller Club organize meetups on the city's extensive trail network, such as the Olentangy Trail."
+      },
+      "minneapolis": {
+        "name": "Minneapolis",
+        "latitude": 44.98,
+        "longitude": -93.26,
+        "radius_km": 30,
+        "description": "The Minneapolis roller skating scene is a vibrant mix of outdoor trail skating and a growing indoor rink culture. The city's famous Chain of Lakes and Midtown Greenway provide miles of scenic paths for skaters. Community hubs like the Twin Cities Skaters Studio and established rinks like Skateville offer year-round opportunities for classes, events, and social skating."
+      },
+      "sacramento": {
+        "name": "Sacramento",
+        "latitude": 38.5758,
+        "longitude": -121.4789,
+        "radius_km": 30,
+        "description": "The Sacramento roller skating scene is anchored by classic indoor rinks like Sunrise Rollerland and King's Skate Country, which have served the community for years. The city also embraces outdoor skating, with a seasonal downtown rink and active groups like SacQuadSquad organizing meetups. The scene is a blend of traditional rink fun and a passionate street skating community."
+      }
+    }
+  }
+}

@@ -20,69 +20,15 @@ function lr_get_server_ip() {
 }
 
 /**
- * Fetches a list of skaters for a specific city (without emails).
- * This is a fast, single API call per city.
+ * Fetches a list of skaters for a specific city for the Brevo sync.
+ * This wrapper calls the core function with a long maxAgeInDays for maximum reach.
  *
  * @param array $city_details The city data array from merged.json.
  * @return array|WP_Error An array of user profile objects or a WP_Error on failure.
  */
 function lr_fetch_skaters_for_city($city_details) {
-    $access_token = lr_get_api_access_token();
-    if (is_wp_error($access_token)) {
-        return $access_token;
-    }
-
-    $params = [
-        'lat'           => $city_details['latitude'],
-        'lng'           => $city_details['longitude'],
-        'minDistance'   => 0,
-        'maxAgeInDays'  => 365,
-        'limit'         => 1000 // Increased limit
-    ];
-    
-    $skaters_data = lr_fetch_api_data($access_token, 'nearby-activities/v2/skaters', $params);
-
-    if (is_wp_error($skaters_data)) {
-        return $skaters_data;
-    }
-
-    if (empty($skaters_data->activities) || empty($skaters_data->userProfiles)) {
-        return [];
-    }
-
-    $radius_meters = ($city_details['radius_km'] ?? 50) * 1000;
-    $user_distances = [];
-
-    // Find the minimum distance for each user within the radius
-    foreach ($skaters_data->activities as $activity) {
-        if (isset($activity->distance) && $activity->distance <= $radius_meters && !empty($activity->userId)) {
-            $userId = $activity->userId;
-            if (!isset($user_distances[$userId]) || $activity->distance < $user_distances[$userId]) {
-                $user_distances[$userId] = $activity->distance;
-            }
-        }
-    }
-
-    if (empty($user_distances)) {
-        return [];
-    }
-
-    // Create the final list of profiles, augmented with the distance
-    $filtered_profiles = [];
-    foreach ($skaters_data->userProfiles as $profile) {
-        if (!empty($profile->userId) && isset($user_distances[$profile->userId])) {
-            // Add the distance to the profile object
-            $profile->distance_km = round($user_distances[$profile->userId] / 1000, 2);
-            $filtered_profiles[] = $profile;
-        }
-    }
-    
-    // Sort by distance, closest first
-    usort($filtered_profiles, function($a, $b) {
-        return $a->distance_km <=> $b->distance_km;
-    });
-
-    return $filtered_profiles;
+    // Use a long time window to capture all potential contacts for marketing.
+    return lr_fetch_filtered_skaters_for_city($city_details, 365);
 }
 
 /**

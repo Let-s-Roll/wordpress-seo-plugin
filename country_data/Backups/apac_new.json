@@ -1,0 +1,140 @@
+{
+  "australia": {
+    "name": "Australia",
+    "cities": {
+      "sydney": {
+        "name": "Sydney",
+        "latitude": -33.8698,
+        "longitude": 151.21,
+        "radius_km": 30,
+        "description": "Sydney's roller skating scene is as vibrant and diverse as the city itself, blending sun-drenched coastal vibes with urban energy. For the ultimate outdoor roll, glide along the smooth 3.6 km Grand Drive in Centennial Park, a paradise for distance skaters. If you crave the classic bowl experience, the legendary Bondi Beach skate park awaits. The Sydney skate community thrives on social events, with pop-up open-air rinks at Darling Harbour hosting themed nights under the city lights. For all-weather fun, large indoor rinks like Maximum Skating offer everything from public sessions to inline hockey leagues. Roller skating in Sydney is an adventure, with iconic skate spots scattered from the parks to the Pacific."
+      },
+      "melbourne": {
+        "name": "Melbourne",
+        "latitude": -37.8142,
+        "longitude": 144.9631,
+        "radius_km": 30,
+        "description": "Welcome to Melbourne, the heart of Australia's indoor rink culture! This city is a haven for skaters who love the classic roller rink experience. Venues like Caribbean Rollerama and Skaterz are beloved community institutions, hosting everything from family skate sessions and birthday parties to competitive speed skating clubs. But the fun isn't just indoors. The premier Riverslide Skate Park, located right on the banks of the Yarra River, is a world-class outdoor facility for all wheeled sports. The Melbourne skate community is inclusive and vibrant, with events like the Wear It Purple Roller Disco celebrating diversity. For top-tier roller skating, Melbourne offers the perfect blend of nostalgic rinks and modern urban parks."
+      },
+      "brisbane": {
+        "name": "Brisbane",
+        "latitude": -27.4689,
+        "longitude": 153.0234,
+        "radius_km": 30,
+        "description": "The Brisbane roller skating scene is defined by its warm, community-driven spirit and incredible public infrastructure. The city is a trailblazer in roller derby, with the inclusive Brisbane City Rollers fostering a supportive, family-like atmosphere that welcomes skaters of all genders and skill levels. Thanks to strong municipal support, Brisbane is dotted with an extensive network of free, high-quality outdoor skateparks, from the bowls at Paddington to the plazas in Acacia Ridge. For those seeking structured learning, dedicated academies offer lessons for all abilities. Whether you're joining a derby bout, sessioning a local park, or enjoying a classic rink, the Brisbane skate community makes everyone feel at home."
+      }
+    }
+  },
+  "indonesia": {
+    "name": "Indonesia",
+    "cities": {
+      "jakarta": {
+        "name": "Jakarta",
+        "latitude": -6.175,
+        "longitude": 106.8266,
+        "radius_km": 30,
+        "description": "The soul of the Jakarta roller skating scene lies in its incredible network of grassroots communities. This is a city where the 'who' you skate with is as important as the 'where.' The scene is a vibrant tapestry of numerous local clubs and groups, like Jakarta Rolling and Batavia Quad Skate, each with its own unique vibe. The best way to experience skating here is to connect with a community online and join one of their meetups. You'll find them gathering at public spaces and dedicated venues like the Green Skatepark at TMII. For a truly authentic experience, dive into the Jakarta skate community and discover the passion that drives this social-first scene."
+      },
+      "denpasar": {
+        "radius_km": 20,
+        "description": "Skating in Bali is a unique 'skate-cation' experience, blending the island's relaxed, tropical paradise vibe with world-class events. Bali is the proud host of the Bali Roller Marathon, an annual international race that takes skaters on a breathtaking journey along the scenic Bali Mandara Toll Road, making it a bucket-list destination for skaters worldwide. Beyond this major event, the island has a strong board sports culture, with excellent skateparks like Titi Batu in Ubud offering a place to session in a beautiful setting. Roller skating in Bali is about combining your passion with travel, creating unforgettable memories of rolling through paradise with a friendly, international community."
+      }
+    }
+  },
+  "japan": {
+    "name": "Japan",
+    "cities": {
+      "tokyo": {
+        "name": "Tokyo",
+        "latitude": 35.6895,
+        "longitude": 139.6917,
+        "radius_km": 30,
+        "description": "Tokyo's roller skating scene is a thrilling blend of high-tech entertainment and dedicated park culture, perfectly reflecting the city's organized energy. The ultimate indoor experience is the Tokyo Dome Roller Skate Arena, a massive, modern facility offering a pristine rink, a beginner's area, and professional lessons. Due to urban density, outdoor skating is a destination activity confined to sanctioned spaces. Discover uniquely Tokyo spots like the rooftop skatepark at Miyashita Park in Shibuya, where you can carve a bowl against a backdrop of skyscrapers, or session the legendary Komazawa Olympic Park. For skaters in Tokyo, the scene is about embracing these world-class, purpose-built venues for an unforgettable urban roll."
+      }
+    }
+  },
+  "new_zealand": {
+    "name": "New Zealand",
+    "cities": {
+      "auckland": {
+        "name": "Auckland",
+        "latitude": -36.87,
+        "radius_km": 30,
+        "description": "Auckland is a skater's paradise, offering a dynamic scene with massive indoor arenas and an incredible number of outdoor parks. The city's 'super-venues' like ActivZone and Skateland are central hubs for the entire roller sports ecosystem, hosting public discos, artistic skating clubs, roller derby leagues, and inline hockey under one roof. For outdoor enthusiasts, the options are endless, with a local skatepark in almost every neighborhood, from the coastal vibes of Browns Bay to the pump track at Grey Lynn Park. The Auckland skate community is diverse and active, with strong pathways for learning and competition. For roller skating in Auckland, you're never far from your next great session."
+      },
+      "wellington": {
+        "name": "Wellington",
+        "latitude": -41.28,
+        "longitude": 174.76,
+        "radius_km": 20,
+        "description": "Wellington's roller skating scene is as vibrant and compact as the city itself, centered around its stunningly scenic waterfront. The crown jewel is the Waitangi Park Skatepark, a major hub with concrete bowls and street features right on the harbour, offering an unbeatable backdrop for a session. For all-weather, multi-discipline fun, the Kilbirnie Recreation Centre is a versatile indoor space designed for all wheeled sports. The local community is tight-knit, with clubs like the Upper Hutt Roller Skating Club providing structured lessons for all ages. Skating in Wellington means being part of an active, urban culture where the city's best public spaces are your playground."
+      },
+      "christchurch": {
+        "name": "Christchurch",
+        "latitude": -43.49,
+        "longitude": 172.53,
+        "radius_km": 20,
+        "description": "The Christchurch skate scene is resilient, creative, and deeply connected to the city's beautiful landscape. The community thrives on mobile, pop-up events, with Phatsk8's Roller Discos bringing the party to various community halls. This makes for a flexible and accessible social scene. For outdoor skating, Christchurch's famously flat terrain is a dream. Glide along the smooth, dedicated paths of the iconic Hagley Park or explore the scenic Northern Corridor cycleway. The city council supports a network of local skateparks and permits skating on footpaths, fostering a culture of freedom and exploration. Roller skating in Christchurch is about making the city your rink and joining a friendly, grassroots community."
+      }
+    }
+  },
+  "philippines": {
+    "name": "Philippines",
+    "cities": {
+      "manila": {
+        "name": "Manila",
+        "latitude": 14.594,
+        "radius_km": 30,
+        "description": "Metro Manila's roller skating scene is a thrilling study in contrasts, offering something for every type of skater. For a safe, fun, and family-friendly experience, head to the modern, retro-themed Roller Fever rinks located in major shopping malls. These polished indoor venues provide a perfect introduction to skating with rentals and coaching. At the same time, a passionate and resilient street skating culture thrives in the city's most iconic public spaces. Join local crews for a unique urban roll through the historic walled city of Intramuros, the university grounds of UP Diliman, or the sleek business districts of BGC and Makati. Skating in Manila is an urban adventure."
+      }
+    }
+  },
+  "singapore": {
+    "name": "Singapore",
+    "cities": {
+      "singapore": {
+        "name": "Singapore",
+        "latitude": 1.3521,
+        "longitude": 103.8198,
+        "radius_km": 20,
+        "description": "The Singapore roller skating scene is a model of organization, safety, and skill. The culture is driven by a strong focus on professional coaching, with world-class institutions like Hi Roller Academy offering structured programs to develop athletes from beginner to competitive levels. The central hub for the community is the massive Hi Roller Indoor Skating Rink, providing a pristine, all-weather environment for social skating and training. For lessons, academies make excellent use of Singapore's immaculate public parks, turning spaces like East Coast Park and Bishan-Ang Mo Kio Park into a network of outdoor classrooms. For a structured and high-quality skate experience, Singapore is unparalleled."
+      }
+    }
+  },
+  "south_korea": {
+    "name": "South Korea",
+    "cities": {
+      "seoul": {
+        "name": "Seoul",
+        "latitude": 37.57,
+        "longitude": 126.97,
+        "radius_km": 30,
+        "description": "Seoul offers two vibrant roller skating worlds in one city. Dive into the trendy, retro-themed indoor rinks like Retro Seoul, where neon lights flash, disco balls spin, and K-pop provides the soundtrack for a fun, social night out. These rinks are perfect for beginners and those seeking a unique cultural experience. In parallel, a dedicated and passionate community of inline skaters thrives outdoors. Join them for weekly gatherings and long-distance social skates along the scenic, continuous paths of the Han River and in the expansive Yeoido Park. Whether you're after a nostalgic quad skate party or a serious inline fitness session, the Seoul skate scene has you covered."
+      }
+    }
+  },
+  "taiwan": {
+    "name": "Taiwan",
+    "cities": {
+      "taipei": {
+        "name": "Taipei",
+        "latitude": 25.0375,
+        "longitude": 121.5272,
+        "radius_km": 20,
+        "description": "Taipei boasts one of the most balanced and well-supported roller skating scenes in Asia. For a futuristic, high-energy experience, head to the famous Roller186 rink at the Taipei Arena, a 'Psychedelic Space' themed venue with interactive tech that has become a social media sensation. But the true heart of the Taipei skate community is outdoors, thanks to incredible municipal support. The city is filled with numerous free, high-quality public rinks in its beautiful parks. Enjoy a relaxed roll in Da'an Park, explore the expansive Yingfeng Riverside Park, or watch experts at the competition-grade rink at Bailing Bridge. Skating in Taipei offers the best of both worlds."
+      }
+    }
+  },
+  "thailand": {
+    "name": "Thailand",
+    "cities": {
+      "bangkok": {
+        "name": "Bangkok",
+        "latitude": 13.7525,
+        "longitude": 100.4942,
+        "radius_km": 30,
+        "description": "Bangkok's roller skating scene is dynamic and rapidly growing, centered around impressive indoor rinks and new, dedicated outdoor parks. The go-to spot for an all-weather session is Roller Dome Thailand, the largest rink in Southeast Asia, offering a professional setup with experienced trainers. The outdoor scene is being transformed by modern facilities in the city's green spaces. The new, purpose-built skatepark in Benjakitti Park is a major hub, attracting skaters of all levels and hosting events backed by global brands. While casual street skating is less common, the Bangkok skate community connects online to share spots and organize meetups, making it an exciting and evolving scene to explore."
+      }
+    }
+  }
+}

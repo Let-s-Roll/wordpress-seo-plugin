@@ -77,21 +77,25 @@ function lr_render_nearby_grid($items, $type) {
 // Function to fetch and render the "Near You" section content
 function lr_get_and_render_nearby_content($access_token, $lat, $lon, $radius_km = 50, $country_slug = null, $city_slug = null) {
     if (is_wp_error($access_token)) {
-        // This is a fallback, the main function should prevent this.
         return '<p>An invalid access token was provided.</p>';
     }
 
-    $output = '';
-    $bounding_box = lr_calculate_bounding_box($lat, $lon, $radius_km);
+    // Create a temporary city_details array to conform to the new centralized functions
+    $city_details = [
+        'latitude' => $lat,
+        'longitude' => $lon,
+        'radius_km' => $radius_km
+    ];
 
+    $output = '';
+    
     // Helper for "View All" links
     $render_view_all = function($url, $text) {
         return '<p style="text-align: right; margin-top: 15px;"><a href="' . esc_url($url) . '">' . esc_html($text) . ' &raquo;</a></p>';
     };
 
     // Fetch Nearby Spots
-    $spots_params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
-    $spots_list = lr_fetch_api_data($access_token, 'spots/v2/inBox', $spots_params);
+    $spots_list = lr_get_spots_for_city($city_details);
     if (!is_wp_error($spots_list) && !empty($spots_list)) {
         usort($spots_list, function($a, $b) { return ($b->sessionsCount ?? 0) <=> ($a->sessionsCount ?? 0); });
         
@@ -103,11 +107,10 @@ function lr_get_and_render_nearby_content($access_token, $lat, $lon, $radius_km 
     }
 
     // Fetch Nearby Events
-    $events_params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
-    $events_data = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $events_params);
-    if (!is_wp_error($events_data) && !empty($events_data->rollEvents)) {
+    $events_data = lr_get_events_for_city($city_details);
+    if (!is_wp_error($events_data) && !empty($events_data)) {
         $now = new DateTime();
-        $upcoming_events = array_filter($events_data->rollEvents, function($event) use ($now) {
+        $upcoming_events = array_filter($events_data, function($event) use ($now) {
             return isset($event->event->endDate) && (new DateTime($event->event->endDate) > $now);
         });
         usort($upcoming_events, function($a, $b) { return strtotime($a->event->startDate) <=> strtotime($b->event->startDate); });
@@ -122,11 +125,10 @@ function lr_get_and_render_nearby_content($access_token, $lat, $lon, $radius_km 
     }
 
     // Fetch Nearby Skaters
-    $skaters_params = ['lat' => $lat, 'lng' => $lon, 'minDistance' => 0, 'maxAgeInDays' => 90, 'limit' => 20];
-    $skaters_data = lr_fetch_api_data($access_token, 'nearby-activities/v2/skaters', $skaters_params);
-    if (!is_wp_error($skaters_data) && !empty($skaters_data->userProfiles)) {
+    $skaters_data = lr_fetch_filtered_skaters_for_city($city_details, 90);
+    if (!is_wp_error($skaters_data) && !empty($skaters_data)) {
         $output .= '<hr style="margin: 20px 0;"><h3>Local Skaters</h3>';
-        $output .= '<div class="lr-grid">' . lr_render_nearby_grid($skaters_data->userProfiles, 'skaters') . '</div>';
+        $output .= '<div class="lr-grid">' . lr_render_nearby_grid($skaters_data, 'skaters') . '</div>';
         if ($country_slug && $city_slug) {
             $output .= $render_view_all(home_url('/' . $country_slug . '/' . $city_slug . '/skaters/'), 'View All Skaters');
         }

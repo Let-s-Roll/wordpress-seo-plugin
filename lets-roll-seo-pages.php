@@ -165,6 +165,68 @@ function lr_get_api_access_token($force_refresh = false) {
     return new WP_Error('token_missing', 'Access token not found in API response.');
 }
 
+/**
+ * Fetches a list of skaters for a specific city and filters them by the city's radius.
+ * This is the new, reusable core function.
+ *
+ * @param array $city_details The city data array from merged.json.
+ * @param int $max_age_days The maximum age in days for skater activity.
+ * @return array|WP_Error An array of user profile objects or a WP_Error on failure.
+ */
+function lr_fetch_filtered_skaters_for_city($city_details, $max_age_days = 90) {
+    $access_token = lr_get_api_access_token();
+    if (is_wp_error($access_token)) {
+        return $access_token;
+    }
+
+    $params = [
+        'lat'           => $city_details['latitude'],
+        'lng'           => $city_details['longitude'],
+        'minDistance'   => 0,
+        'maxAgeInDays'  => $max_age_days,
+        'limit'         => 1000
+    ];
+    
+    $skaters_data = lr_fetch_api_data($access_token, 'nearby-activities/v2/skaters', $params);
+
+    if (is_wp_error($skaters_data) || empty($skaters_data->activities) || empty($skaters_data->userProfiles)) {
+        return [];
+    }
+
+    $radius_meters = ($city_details['radius_km'] ?? 50) * 1000;
+    $user_distances = [];
+
+    // Step 1: Find the minimum distance for each user *within the radius*.
+    foreach ($skaters_data->activities as $activity) {
+        if (isset($activity->distance) && $activity->distance <= $radius_meters && !empty($activity->userId)) {
+            $userId = $activity->userId;
+            if (!isset($user_distances[$userId]) || $activity->distance < $user_distances[$userId]) {
+                $user_distances[$userId] = $activity->distance;
+            }
+        }
+    }
+
+    if (empty($user_distances)) {
+        return [];
+    }
+
+    // Step 2: Create the final list of profiles, augmented with their distance.
+    $filtered_profiles = [];
+    foreach ($skaters_data->userProfiles as $profile) {
+        if (!empty($profile->userId) && isset($user_distances[$profile->userId])) {
+            $profile->distance_km = round($user_distances[$profile->userId] / 1000, 2);
+            $filtered_profiles[] = $profile;
+        }
+    }
+    
+    // Sort by distance, closest first.
+    usort($filtered_profiles, function($a, $b) {
+        return $a->distance_km <=> $b->distance_km;
+    });
+
+    return $filtered_profiles;
+}
+
 function lr_get_single_event_data($event_id) {
     $event = false;
     $transient_key = LR_CACHE_VERSION . '_lr_event_data_v2_' . $event_id;
@@ -343,6 +405,48 @@ function lr_get_country_details($country_slug) {
 function lr_get_city_details($country_slug, $city_slug) {
     $country = lr_get_country_details($country_slug);
     return $country['cities'][$city_slug] ?? null;
+}
+
+/**
+ * Fetches a raw list of all spots for a given city by its bounding box.
+ *
+ * @param array $city_details The city data array from merged.json.
+ * @return array|WP_Error An array of spot objects or a WP_Error on failure.
+ */
+function lr_get_spots_for_city($city_details) {
+    $access_token = lr_get_api_access_token();
+    if (is_wp_error($access_token)) {
+        return $access_token;
+    }
+
+    $bounding_box = lr_calculate_bounding_box($city_details['latitude'], $city_details['longitude'], $city_details['radius_km']);
+    $params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
+    
+    return lr_fetch_api_data($access_token, 'spots/v2/inBox', $params);
+}
+
+/**
+ * Fetches a raw list of all events for a given city by its bounding box.
+ *
+ * @param array $city_details The city data array from merged.json.
+ * @return array|WP_Error An array of event objects or a WP_Error on failure.
+ */
+function lr_get_events_for_city($city_details) {
+    $access_token = lr_get_api_access_token();
+    if (is_wp_error($access_token)) {
+        return $access_token;
+    }
+
+    $bounding_box = lr_calculate_bounding_box($city_details['latitude'], $city_details['longitude'], $city_details['radius_km']);
+    $params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
+
+    $response = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $params);
+
+    if (is_wp_error($response) || empty($response->rollEvents)) {
+        return [];
+    }
+
+    return $response->rollEvents;
 }
 
 /**
