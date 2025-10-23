@@ -34,6 +34,8 @@ require_once plugin_dir_path(__FILE__) . 'templates/template-single-activity.php
 require_once plugin_dir_path(__FILE__) . 'cta-banner.php';
 require_once plugin_dir_path(__FILE__) . 'includes/database.php';
 require_once plugin_dir_path(__FILE__) . 'includes/content-discovery.php';
+require_once plugin_dir_path(__FILE__) . 'includes/city-updates.php';
+require_once plugin_dir_path(__FILE__) . 'includes/content-publication.php';
 
 // Hook for adding admin menus
 add_action('admin_menu', 'lr_setup_admin_menu');
@@ -521,20 +523,24 @@ function lr_get_breadcrumbs() {
 function lr_custom_rewrite_rules() { 
     add_rewrite_tag('%lr_single_type%', '(spots|events|skaters)');
     add_rewrite_tag('%lr_item_id%', '([^/]+)');
-    add_rewrite_tag('%lr_activity_id%', '([^/]+)'); // Add this line
+    add_rewrite_tag('%lr_activity_id%', '([^/]+)');
     add_rewrite_tag('%lr_country%','([^/]+)');
     add_rewrite_tag('%lr_city%','([^/]+)');
     add_rewrite_tag('%lr_page_type%','([^/]+)');
     add_rewrite_tag('%lr_is_explore_page%', '([0-9]+)');
+    add_rewrite_tag('%lr_update_feed%', '([^/]+)');
+    add_rewrite_tag('%lr_update_post%', '([^/]+)');
     
     add_rewrite_rule('^explore/?$', 'index.php?lr_is_explore_page=1', 'top');
-    add_rewrite_rule('^activity/([^/]+)/?$', 'index.php?lr_activity_id=$matches[1]', 'top'); // Add this line
+    add_rewrite_rule('^activity/([^/]+)/?$', 'index.php?lr_activity_id=$matches[1]', 'top');
     add_rewrite_rule('^(spots|events|skaters)/([^/]+)/?$', 'index.php?lr_single_type=$matches[1]&lr_item_id=$matches[2]', 'top');
     
     $locations = lr_get_location_data();
     if (empty($locations)) return;
+
     $country_slugs = array_map('preg_quote', array_keys($locations));
     $country_regex = implode('|', $country_slugs);
+
     if ($country_regex) {
         $city_slugs = [];
         foreach ($locations as $country_data) {
@@ -542,7 +548,13 @@ function lr_custom_rewrite_rules() {
         }
         $city_slugs = array_unique(array_map('preg_quote', $city_slugs));
         $city_regex = implode('|', $city_slugs);
+
         if ($city_regex) {
+            // --- NEW: City Update rules (most specific, so they go first) ---
+            add_rewrite_rule("^($country_regex)/($city_regex)/updates/([^/]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_update_post=$matches[3]', 'top');
+            add_rewrite_rule("^($country_regex)/($city_regex)/updates/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_update_feed=1', 'top');
+
+            // --- Existing city and detail page rules ---
             add_rewrite_rule("^($country_regex)/($city_regex)/([^/]+)/page/([0-9]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]&paged=$matches[4]', 'top');
             add_rewrite_rule("^($country_regex)/($city_regex)/([^/]+)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]&lr_page_type=$matches[3]', 'top');
             add_rewrite_rule("^($country_regex)/($city_regex)/?$", 'index.php?lr_country=$matches[1]&lr_city=$matches[2]', 'top');
@@ -566,6 +578,7 @@ add_action('init', 'lr_custom_rewrite_rules');
 function lr_activate_plugin() { 
     lr_create_discovered_content_table();
     lr_custom_rewrite_rules(); 
+    flush_rewrite_rules();
 }
 register_activation_hook(__FILE__, 'lr_activate_plugin');
 
@@ -636,9 +649,64 @@ function lr_calculate_distance($lat1, $lon1, $lat2, $lon2) {
 add_filter('the_posts', 'lr_virtual_page_controller', 10, 2);
 
 function lr_virtual_page_controller($posts, $query) {
-    if ( is_admin() || !$query->is_main_query() || (!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page') && !get_query_var('lr_activity_id')) ) {
+    global $wpdb;
+    // --- NEW: Unified Controller Logic ---
+    if (is_admin() || !$query->is_main_query()) {
         return $posts;
     }
+
+    // Check if this is a City Update URL first, as it's the most specific.
+    if (get_query_var('lr_update_feed') || get_query_var('lr_update_post')) {
+        $country_slug = get_query_var('lr_country');
+        $city_slug = get_query_var('lr_city');
+        $update_post_slug = get_query_var('lr_update_post');
+        $is_feed = get_query_var('lr_update_feed');
+        $table_name = $wpdb->prefix . 'lr_city_updates';
+
+        $post = new stdClass();
+        $post->ID = 0; $post->post_author = 1; $post->post_date = current_time('mysql');
+        $post->post_date_gmt = current_time('mysql', 1); $post->post_type = 'page';
+        $post->post_status = 'publish'; $post->comment_status = 'closed';
+        $post->ping_status = 'closed'; $post->post_name = ''; $post->post_parent = 0;
+        $post->menu_order = 0; $post->comment_count = 0;
+
+        if ($update_post_slug) {
+            $update_post = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE city_slug = %s AND post_slug = %s", $city_slug, $update_post_slug));
+            if ($update_post) {
+                $post->post_title = $update_post->post_title;
+                $post->post_content = $update_post->post_content;
+                $post->post_name = $update_post->post_slug;
+            } else {
+                $query->set_404(); status_header(404); return [];
+            }
+        } elseif ($is_feed) {
+            $city_details = lr_get_city_details_by_slug($city_slug);
+            $city_name = $city_details['name'] ?? ucfirst($city_slug);
+            $post->post_title = 'Skate Updates for ' . $city_name;
+            
+            $updates = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE city_slug = %s ORDER BY publish_date DESC LIMIT 20", $city_slug));
+            $content = '<h1>' . esc_html($post->post_title) . '</h1>';
+            if (empty($updates)) {
+                $content .= '<p>No updates found for this city yet.</p>';
+            } else {
+                $content .= '<ul>';
+                foreach ($updates as $update) {
+                    $update_url = home_url('/' . $country_slug . '/' . $city_slug . '/updates/' . $update->post_slug . '/');
+                    $content .= '<li><a href="' . esc_url($update_url) . '">' . esc_html($update->post_title) . '</a> - <small>' . date('F j, Y', strtotime($update->publish_date)) . '</small></li>';
+                }
+                $content .= '</ul>';
+            }
+            $post->post_content = $content;
+            $post->post_name = 'updates';
+        }
+        return [$post];
+    }
+
+    // --- Original Controller Logic ---
+    if ((!get_query_var('lr_country') && !get_query_var('lr_single_type') && !get_query_var('lr_is_explore_page') && !get_query_var('lr_activity_id'))) {
+        return $posts;
+    }
+    
     $single_type = get_query_var('lr_single_type');
     if ($single_type === 'skaters') {
         $item_id = get_query_var('lr_item_id');

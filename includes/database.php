@@ -32,7 +32,21 @@ function lr_create_discovered_content_table() {
         PRIMARY KEY  (user_api_id, city_slug)
     ) $charset_collate;";
 
+    // 3. Create the table to store the generated city update posts
+    $table_name_updates = $wpdb->prefix . 'lr_city_updates';
+    $sql_updates = "CREATE TABLE $table_name_updates (
+        id mediumint(9) NOT NULL AUTO_INCREMENT,
+        city_slug varchar(255) NOT NULL,
+        post_slug varchar(255) NOT NULL,
+        post_title text NOT NULL,
+        post_content longtext NOT NULL,
+        publish_date datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+        PRIMARY KEY  (id),
+        UNIQUE KEY city_post_slug (city_slug, post_slug)
+    ) $charset_collate;";
+
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql_content);
     dbDelta($sql_skaters);
+    dbDelta($sql_updates);
 }

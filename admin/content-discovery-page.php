@@ -10,6 +10,21 @@ function lr_render_content_discovery_page() {
     $table_name = $wpdb->prefix . 'lr_discovered_content';
 
     // Handle form submissions
+    if (isset($_POST['lr_run_publication_now']) && check_admin_referer('lr_discovery_actions')) {
+        lr_run_content_publication();
+        echo '<div class="notice notice-success is-dismissible"><p>Content Publication process has been run. Check the city update pages for new posts.</p></div>';
+    }
+
+    if (isset($_POST['lr_run_publication_for_city']) && check_admin_referer('lr_discovery_actions')) {
+        $city_slug = sanitize_text_field($_POST['city_select']);
+        if (!empty($city_slug)) {
+            lr_generate_city_update_post($city_slug);
+            echo '<div class="notice notice-success is-dismissible"><p>Generated a new update post for ' . esc_html($city_slug) . '. You can now view it on the front end.</p></div>';
+        } else {
+            echo '<div class="notice notice-error is-dismissible"><p>Please select a city first.</p></div>';
+        }
+    }
+
     if (isset($_POST['lr_clear_all_data']) && check_admin_referer('lr_discovery_actions')) {
         // Clear the discovered content table
         $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}lr_discovered_content");
@@ -78,7 +93,8 @@ function lr_render_content_discovery_page() {
             <form method="post" action="" style="margin-bottom: 15px;">
                 <?php wp_nonce_field('lr_discovery_actions'); ?>
                 <?php submit_button('Run Full Discovery Now', 'primary', 'lr_run_discovery_now', false); ?>
-                <p class="description">This will run the discovery for all cities in the background. It may take a long time.</p>
+                <?php submit_button('Generate City Update Posts', 'secondary', 'lr_run_publication_now', false); ?>
+                <p class="description">First, run discovery to find new content. Then, generate the posts for that content.</p>
             </form>
             <hr>
             <form method="post" action="">
@@ -97,6 +113,7 @@ function lr_render_content_discovery_page() {
                     ?>
                 </select>
                 <?php submit_button('Run Discovery for Selected City', 'secondary', 'lr_run_discovery_for_city', false); ?>
+                <?php submit_button('Generate Post for Selected City', 'primary', 'lr_run_publication_for_city', false); ?>
                  <p class="description">This will run the discovery for a single city and show the detailed output in the log file viewer below.</p>
             </form>
         </div>
