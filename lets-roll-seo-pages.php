@@ -411,6 +411,9 @@ function lr_get_city_details($country_slug, $city_slug) {
 
 /**
  * Fetches a raw list of all spots for a given city by its bounding box.
+ * Note: This uses a two-step process. First, it fetches all spots in a broad "square"
+ * bounding box from the API. Then, it manually filters them to a precise "circular"
+ * radius to ensure geographic accuracy.
  *
  * @param array $city_details The city data array from merged.json.
  * @return array|WP_Error An array of spot objects or a WP_Error on failure.
@@ -421,14 +424,42 @@ function lr_get_spots_for_city($city_details) {
         return $access_token;
     }
 
+    // Step 1: Fetch a broad list of spots using the square bounding box.
     $bounding_box = lr_calculate_bounding_box($city_details['latitude'], $city_details['longitude'], $city_details['radius_km']);
     $params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
+    $all_spots = lr_fetch_api_data($access_token, 'spots/v2/inBox', $params);
+
+    if (is_wp_error($all_spots) || empty($all_spots)) {
+        return [];
+    }
+
+    // Step 2: Filter the results to a precise circle based on the radius.
+    $filtered_spots = [];
+    $city_lat = $city_details['latitude'];
+    $city_lon = $city_details['longitude'];
+    $radius_km = $city_details['radius_km'];
+
+    foreach ($all_spots as $spot) {
+        if (!empty($spot->location->coordinates)) {
+            $spot_lon = $spot->location->coordinates[0];
+            $spot_lat = $spot->location->coordinates[1];
+            $distance = lr_calculate_distance($city_lat, $city_lon, $spot_lat, $spot_lon);
+
+            if ($distance <= $radius_km) {
+                $filtered_spots[] = $spot;
+            }
+        }
+    }
     
-    return lr_fetch_api_data($access_token, 'spots/v2/inBox', $params);
+    return $filtered_spots;
 }
 
 /**
- * Fetches a raw list of all events for a given city by its bounding box.
+ * Fetches a raw list of all events for a given city.
+ * Note: This uses a complex, multi-step process to ensure accuracy. It fetches
+ * a primary list from a geographic search and then supplements it with "orphan"
+ * events (those without a spot ID) from the user-centric local feed, as these
+ * would otherwise be missed.
  *
  * @param array $city_details The city data array from merged.json.
  * @return array|WP_Error An array of event objects or a WP_Error on failure.
@@ -439,16 +470,33 @@ function lr_get_events_for_city($city_details) {
         return $access_token;
     }
 
+    $all_events_by_id = [];
+
+    // Step 1: Fetch the reliable, geographically-correct events from the inBox endpoint.
     $bounding_box = lr_calculate_bounding_box($city_details['latitude'], $city_details['longitude'], $city_details['radius_km']);
-    $params = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
+    $params_inbox = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
+    $response_inbox = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $params_inbox);
 
-    $response = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $params);
-
-    if (is_wp_error($response) || empty($response->rollEvents)) {
-        return [];
+    if (!is_wp_error($response_inbox) && !empty($response_inbox->rollEvents)) {
+        foreach ($response_inbox->rollEvents as $event) {
+            $all_events_by_id[$event->_id] = $event;
+        }
     }
 
-    return $response->rollEvents;
+    // Step 2: Fetch from the local feed to find and append "true orphan" events.
+    $params_feed = ['lat' => $city_details['latitude'], 'lng' => $city_details['longitude'], 'limit' => 500];
+    $feed_data = lr_fetch_api_data($access_token, 'local-feed', $params_feed);
+
+    if (!is_wp_error($feed_data) && !empty($feed_data->sessions)) {
+        foreach ($feed_data->sessions as $activity) {
+            // A "true orphan" is an Event, has no spotId, and is not already in our primary list.
+            if (($activity->type ?? 'Roll') === 'Event' && empty($activity->spotId) && !isset($all_events_by_id[$activity->_id])) {
+                $all_events_by_id[$activity->_id] = $activity;
+            }
+        }
+    }
+
+    return array_values($all_events_by_id);
 }
 
 /**

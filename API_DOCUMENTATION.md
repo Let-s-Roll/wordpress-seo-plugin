@@ -50,7 +50,7 @@ This document outlines the known API endpoints used by the Let's Roll SEO Pages 
 *   **Purpose:** Fetches recent skate sessions that occurred at a specific spot.
 *   **Known Parameters:**
     *   `limit`: The maximum number of sessions to return (e.g., `50`).
-    *   `skip`: The number of sessions to skip (for pagination, e.g., `0`).
+    *   `skip`: The number of sessions to skip for pagination (e.g., `0`).
 *   **Expected Response Structure:**
     *   An object containing a `sessions` property, which is an **array** of session objects.
     *   Each session object contains details like `userId`, `name`, `description`, and `visibilityLevel`.
@@ -148,6 +148,21 @@ This document outlines the known API endpoints used by the Let's Roll SEO Pages 
 *   **Known Parameters:** None (ID is in the path).
 *   **Expected Response Structure:**
     *   A full user profile object, including an `email` property.
+
+---
+
+### 6. Local Feed (Sessions & Events)
+
+*   **Endpoint:** `local-feed`
+*   **Purpose:** Fetches a combined feed of recent sessions and events near a specific geographical point. This is the most efficient way to discover new activities in an area.
+*   **Known Parameters:**
+    *   `lat`: The latitude of the search center.
+    *   `lng`: The longitude of the search center.
+    *   `limit`: The maximum number of items to return (e.g., `100`).
+    *   `skip`: The number of items to skip for pagination.
+*   **Expected Response Structure:**
+    *   An object containing a `sessions` array.
+    *   Each object in the array is a full session or event object, complete with a `_id`, `createdAt`, and a `type` ('Roll' or 'Event').
 
 ---
 

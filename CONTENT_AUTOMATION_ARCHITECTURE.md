@@ -22,7 +22,13 @@ This is the foundational layer. Its sole purpose is to be a comprehensive, perma
     *   `city_slug` (e.g., 'berlin')
     *   `discovered_at` (Timestamp)
     *   `data_cache` (A JSON blob containing the raw API data for the item)
-*   **Function:** A daily background job ("Content Discovery") scans the Let's Roll API for new spots, events, and reviews. For every single new item it finds, it creates one new row in this table. This table is built for internal querying and is never displayed directly to the public.
+*   **Function:** A daily background job ("Content Discovery") scans the Let's Roll API. It uses a combination of endpoints to ensure both accuracy and efficiency:
+    *   **Spots:** Fetches from `spots/v2/inBox` and then filters by a precise circular radius.
+    *   **Events:** Fetches a primary list from `roll-session/event/inBox` and supplements it with "orphan" events (those without a `spotId`) from the `local-feed` to ensure comprehensive coverage.
+    *   **Sessions:** Fetches efficiently from the `local-feed` endpoint, ignoring any items of type 'Event'.
+    *   **Reviews:** Fetches all spots and then queries the `ratings-opinions` endpoint for each one.
+    *   **Skaters:** Fetches from `nearby-activities/v2/skaters` and compares against the `wp_lr_seen_skaters` table to find new skaters in a city.
+    *   For every single new item it finds, it creates one new row in this table.
 
 ---
 

@@ -57,6 +57,8 @@ function lr_generate_city_update_post($city_slug) {
     $updates_table = $wpdb->prefix . 'lr_city_updates';
     $one_day_ago = date('Y-m-d H:i:s', strtotime('-1 day'));
 
+    lr_log_discovery_message("--- Starting Post Generation for $city_slug ---");
+
     // 1. Fetch all new content for this city.
     $new_content_items = $wpdb->get_results($wpdb->prepare(
         "SELECT * FROM $discovered_table WHERE city_slug = %s AND discovered_at >= %s",
@@ -65,17 +67,21 @@ function lr_generate_city_update_post($city_slug) {
     ));
 
     if (empty($new_content_items)) {
-        return; // Should not happen based on the calling function, but a good safeguard.
+        lr_log_discovery_message("No new content found for $city_slug. Aborting post generation.");
+        return;
     }
+    lr_log_discovery_message("Found " . count($new_content_items) . " new items to process for $city_slug.");
 
     // 2. Group content by type.
     $grouped_content = [];
     foreach ($new_content_items as $item) {
         $grouped_content[$item->content_type][] = json_decode($item->data_cache);
     }
+    lr_log_discovery_message("Grouped content types found: " . implode(', ', array_keys($grouped_content)));
+
 
     // 3. Generate a simple title and HTML content.
-    $city_details = lr_get_city_details_by_slug($city_slug); // Assumes a helper function to get city name
+    $city_details = lr_get_city_details_by_slug($city_slug);
     $city_name = $city_details['name'] ?? ucfirst($city_slug);
     $post_title = $city_name . ' Skate Update: ' . date('F j, Y');
     $post_slug = sanitize_title($post_title);
@@ -83,34 +89,51 @@ function lr_generate_city_update_post($city_slug) {
     $post_content .= '<p>Here are the latest updates from the ' . esc_html($city_name) . ' skate scene.</p>';
 
     if (!empty($grouped_content['spot'])) {
+        lr_log_discovery_message("Generating HTML for " . count($grouped_content['spot']) . " new spots.");
         $post_content .= '<h2>New Skate Spots</h2><ul>';
         foreach ($grouped_content['spot'] as $spot) {
-            $post_content .= '<li><a href="' . home_url('/spots/' . $spot->_id) . '">' . esc_html($spot->name) . '</a></li>';
+            // The name is nested in the full spot object, which we don't have here.
+            // We will link to the spot page, which can fetch the full details.
+            if (!empty($spot->_id)) {
+                $post_content .= '<li>A new spot has been discovered! View it here: <a href="' . home_url('/spots/' . $spot->_id) . '">Spot ' . esc_html($spot->_id) . '</a></li>';
+            }
         }
         $post_content .= '</ul>';
     }
     if (!empty($grouped_content['event'])) {
+        lr_log_discovery_message("Generating HTML for " . count($grouped_content['event']) . " new events.");
         $post_content .= '<h2>New Events</h2><ul>';
         foreach ($grouped_content['event'] as $event) {
-            $post_content .= '<li><a href="' . home_url('/events/' . $event->_id) . '">' . esc_html($event->name) . '</a></li>';
+            if (!empty($event->_id)) {
+                // Handle inconsistent API data: name can be at the top level or nested.
+                $event_name = $event->name ?? $event->event->name ?? 'Event ' . $event->_id;
+                $post_content .= '<li><a href="' . home_url('/events/' . $event->_id) . '">' . esc_html($event_name) . '</a></li>';
+            }
         }
         $post_content .= '</ul>';
     }
     if (!empty($grouped_content['review'])) {
+        lr_log_discovery_message("Generating HTML for " . count($grouped_content['review']) . " new reviews.");
         $post_content .= '<h2>New Spot Reviews</h2><ul>';
         foreach ($grouped_content['review'] as $review) {
-            $post_content .= '<li>A new review for spot ' . esc_html($review->spotId) . ': "' . esc_html($review->comment) . '"</li>';
+            if (!empty($review->spotId) && isset($review->comment)) {
+                $post_content .= '<li>A new review for spot <a href="' . home_url('/spots/' . $review->spotId) . '">' . esc_html($review->spotId) . '</a>: "' . esc_html($review->comment) . '"</li>';
+            }
         }
         $post_content .= '</ul>';
     }
     if (!empty($grouped_content['session'])) {
+        lr_log_discovery_message("Generating HTML for " . count($grouped_content['session']) . " new sessions.");
         $post_content .= '<h2>New Sessions</h2><ul>';
         foreach ($grouped_content['session'] as $session) {
-            $post_content .= '<li><a href="' . home_url('/activity/' . $session->sessions[0]->_id) . '">' . esc_html($session->sessions[0]->name) . '</a></li>';
+            if (!empty($session) && !empty($session->_id) && !empty($session->name)) {
+                $post_content .= '<li><a href="' . home_url('/activity/' . $session->_id) . '">' . esc_html($session->name) . '</a></li>';
+            }
         }
         $post_content .= '</ul>';
     }
     if (!empty($grouped_content['skater'])) {
+        lr_log_discovery_message("Generating HTML for " . count($grouped_content['skater']) . " new skaters.");
         $post_content .= '<h2>Newly Seen Skaters</h2><ul>';
         foreach ($grouped_content['skater'] as $skater) {
             $post_content .= '<li><a href="' . home_url('/skaters/' . $skater->skateName) . '">' . esc_html($skater->skateName) . '</a></li>';
@@ -118,8 +141,8 @@ function lr_generate_city_update_post($city_slug) {
         $post_content .= '</ul>';
     }
 
-    // 4. Save the result into the wp_lr_city_updates table.
-    $wpdb->insert(
+    // 4. Save the result into the wp_lr_city_updates table using REPLACE.
+    $wpdb->replace(
         $updates_table,
         [
             'city_slug'    => $city_slug,
@@ -130,6 +153,7 @@ function lr_generate_city_update_post($city_slug) {
         ],
         ['%s', '%s', '%s', '%s', '%s']
     );
+    lr_log_discovery_message("Successfully generated and saved new post for $city_slug.");
 }
 
 /**
