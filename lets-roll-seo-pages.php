@@ -36,6 +36,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/database.php';
 require_once plugin_dir_path(__FILE__) . 'includes/content-discovery.php';
 require_once plugin_dir_path(__FILE__) . 'includes/city-updates.php';
 require_once plugin_dir_path(__FILE__) . 'includes/content-publication.php';
+require_once plugin_dir_path(__FILE__) . 'includes/rendering-functions.php';
 
 // Hook for adding admin menus
 add_action('admin_menu', 'lr_setup_admin_menu');

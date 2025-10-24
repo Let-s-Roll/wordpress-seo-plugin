@@ -187,27 +187,8 @@ function lr_render_single_spot_content($spot_id) {
                 $output .= '<h4>Recent Roll Sessions</h4>';
                 $output .= '<div class="lr-sessions-list">';
                 foreach ($roll_sessions as $session) {
-                    $user = $user_profiles[$session->userId] ?? null;
-                    if (!$user) continue;
-                    $display_name = esc_html($user->skateName ?? $user->firstName ?? 'A skater');
-                    $skater_url = home_url('/skaters/' . esc_attr($user->skateName ?? $user->userId) . '/');
-                    $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . esc_attr($user->userId) . '/avatar/content/processed?width=40&height=40&quality=75';
-                    $activity_url = home_url('/activity/' . esc_attr($session->_id) . '/');
-
-                    $output .= '<div class="lr-session-item">';
-                                                            $output .= '<div class="lr-session-header">';
-                                                            $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . esc_attr($display_name) . '" class="lr-session-avatar" loading="lazy" width="40" height="40">';
-                                                                                $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $display_name . '</a></strong>&nbsp;logged a session:';
-                                                                                $output .= '</div>';
-                                                                                $output .= '<div class="lr-session-body">';
-                                                                                $output .= '<p class="lr-session-title"><a href="' . esc_url($activity_url) . '">' . esc_html($session->name) . '</a></p>';
-                                                                                $session_date = new DateTime($session->createdAt);
-                                                                                $output .= '<p class="lr-session-date">' . $session_date->format('F j, Y') . '</p>';
-                                                                                if (!empty($session->description)) {
-                                                                                    $output .= '<p class="lr-session-description">"' . esc_html($session->description) . '"</p>';
-                                                                                }
-                                                                                $output .= '</div>';
-                                                                                $output .= '</div>';                }
+                    $output .= lr_render_spot_session_list_item($session, $user_profiles);
+                }
                 $output .= '</div>';
             }
         }

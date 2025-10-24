@@ -57,26 +57,8 @@ function lr_render_city_page_content($country_slug, $city_slug) {
         $output .= $render_grid_start;
         foreach ($top_spots as $spot) {
             $spot_details = lr_fetch_api_data($access_token, 'spots/' . $spot->_id, []);
-            if ($spot_details && isset($spot_details->spotWithAddress)) {
-                $spot_name = esc_attr($spot_details->spotWithAddress->name);
-                $proxy_url = plugin_dir_url(__FILE__) . '../image-proxy.php';
-                $image_url = 'https://placehold.co/400x240/e0e0e0/757575?text=Spot';
-                if (!empty($spot_details->spotWithAddress->satelliteAttachment)) {
-                    // OPTIMIZATION 1: Request a smaller image size from the proxy.
-                    $image_url = add_query_arg(['type' => 'spot_satellite', 'id' => $spot_details->spotWithAddress->satelliteAttachment, 'width' => 400, 'quality' => 75], $proxy_url);
-                }
-                $spot_url = home_url('/spots/' . $spot->_id . '/');
-
-                $output .= '<div class="lr-grid-item">';
-                $output .= '<a href="' . esc_url($spot_url) . '">';
-                // OPTIMIZATION 2: Add descriptive alt text.
-                $output .= '<img src="' . esc_url($image_url) . '" alt="Satellite view of ' . $spot_name . '" width="200" height="120" />';
-                $output .= '<div class="lr-grid-item-content">';
-                $output .= '<h4>' . esc_html($spot_details->spotWithAddress->name) . '</h4>';
-                $output .= '</div></a>';
-                // --- ADDED: Display spot stats using the helper function ---
-                $output .= lr_get_spot_stats_html($spot_details);
-                $output .= '</div>';
+            if ($spot_details) {
+                $output .= lr_render_spot_card($spot_details);
             }
         }
         $output .= $render_grid_end;
@@ -96,20 +78,7 @@ function lr_render_city_page_content($country_slug, $city_slug) {
         $top_skaters = array_slice($skaters_data, 0, 6);
         $output .= $render_grid_start;
         foreach ($top_skaters as $profile) {
-            if (!empty($profile->skateName)) {
-                $display_name = esc_attr($profile->skateName);
-                // OPTIMIZATION 1: Request a smaller, optimized avatar directly.
-                $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $profile->userId . '/avatar/content/processed?width=120&height=120&quality=75';
-                $placeholder_url = 'https://placehold.co/120x120/e0e0e0/757575?text=Skater';
-                $skater_url = home_url('/skaters/' . $profile->skateName . '/');
-                $output .= '<div class="lr-grid-item lr-grid-item-skater">';
-                $output .= '<a href="' . esc_url($skater_url) . '">';
-                // OPTIMIZATION 2 & 3: Add descriptive alt text and lazy loading.
-                $output .= '<img src="' . esc_url($avatar_url) . '" onerror="this.onerror=null;this.src=\'' . esc_url($placeholder_url) . '\';" alt="Avatar for ' . $display_name . '" loading="lazy" width="120" height="120" />';
-                $output .= '<div class="lr-grid-item-content">';
-                $output .= '<h4>' . esc_html($profile->skateName) . '</h4>';
-                $output .= '</div></a></div>';
-            }
+            $output .= lr_render_skater_card($profile);
         }
         $output .= $render_grid_end;
         $output .= $render_view_all(home_url('/' . $country_slug . '/' . $city_slug . '/skaters/'), 'View All Skaters');
@@ -135,25 +104,8 @@ function lr_render_city_page_content($country_slug, $city_slug) {
         if (!empty($top_events)) {
             $output .= $render_grid_start;
             foreach ($top_events as $event) {
-                $event_name = esc_attr($event->name);
-                $attachments = lr_fetch_api_data($access_token, 'roll-session/' . $event->_id . '/attachments', []);
-                $image_url = 'https://placehold.co/400x240/e0e0e0/757575?text=Event';
-                if (!is_wp_error($attachments) && !empty($attachments)) {
-                    $proxy_url = plugin_dir_url(__FILE__) . '../image-proxy.php';
-                    // OPTIMIZATION 1: Request a smaller image size.
-                    $image_url = add_query_arg(['type' => 'event_attachment', 'id' => $attachments[0]->_id, 'session_id' => $event->_id, 'width' => 400, 'quality' => 75], $proxy_url);
-                }
-                
-                $event_url = home_url('/events/' . $event->_id . '/');
-
-                $output .= '<div class="lr-grid-item">';
-                $output .= '<a href="' . esc_url($event_url) . '">';
-                // OPTIMIZATION 2 & 3: Add descriptive alt text and lazy loading.
-                $output .= '<img src="' . esc_url($image_url) . '" alt="Image for ' . $event_name . '" loading="lazy" width="200" height="120" />';
-                $output .= '<div class="lr-grid-item-content">';
-                $output .= '<h4>' . esc_html($event->name) . '</h4>';
-                $output .= '</div></a></div>';
-            }
+            $output .= lr_render_event_card($event);
+        }
             $output .= $render_grid_end;
         } else {
              $output .= '<p>No upcoming events found for this location.</p>';

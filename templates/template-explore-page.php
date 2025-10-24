@@ -22,42 +22,15 @@ function lr_render_nearby_grid($items, $type) {
                 if (is_wp_error($access_token)) continue 2;
 
                 $spot_details = lr_fetch_api_data($access_token, 'spots/' . $item->_id, []);
-                if (!$spot_details || !isset($spot_details->spotWithAddress)) {
-                    continue 2; // Skip this item if details can't be fetched
+                if ($spot_details) {
+                    $output .= lr_render_spot_card($spot_details);
                 }
-                
-                $name = $spot_details->spotWithAddress->name ?? 'Skate Spot';
-                $url = home_url('/spots/' . $spot_details->spotWithAddress->_id . '/');
-                $alt_text = 'Satellite view of ' . esc_attr($name);
-                if (!empty($spot_details->spotWithAddress->satelliteAttachment)) {
-                    $image_url = plugin_dir_url(__FILE__) . '../image-proxy.php?type=spot_satellite&id=' . $spot_details->spotWithAddress->satelliteAttachment . '&width=400&quality=75';
-                }
-                break;
+                continue 2; // Continue the parent foreach loop
             case 'events':
-                $name = $item->name ?? 'Skate Event';
-                $url = home_url('/events/' . $item->_id . '/');
-                $alt_text = 'Image for ' . esc_attr($name);
-                // --- FIX: Fetch attachments separately, like the city page does ---
-                $access_token = lr_get_api_access_token();
-                if (!is_wp_error($access_token)) {
-                    $attachments = lr_fetch_api_data($access_token, 'roll-session/' . $item->_id . '/attachments', []);
-                    if (!is_wp_error($attachments) && !empty($attachments)) {
-                        $image_url = plugin_dir_url(__FILE__) . '../image-proxy.php?type=event_attachment&id=' . $attachments[0]->_id . '&session_id=' . $item->_id . '&width=400&quality=75';
-                    }
-                }
-                break;
+                $output .= lr_render_event_card($item);
+                continue 2;
             case 'skaters':
-                $name = $item->skateName ?? 'Local Skater';
-                $url = home_url('/skaters/' . $item->skateName . '/');
-                $alt_text = 'Avatar for ' . esc_attr($name);
-                $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $item->userId . '/avatar/content/processed?width=120&height=120&quality=75';
-                $placeholder_url = 'https://placehold.co/120x120/e0e0e0/757575?text=Skater';
-
-                $output .= '<div class="lr-grid-item lr-grid-item-skater">';
-                $output .= '<a href="' . esc_url($url) . '">';
-                $output .= '<img src="' . esc_url($avatar_url) . '" onerror="this.onerror=null;this.src=\''. esc_url($placeholder_url) .'\'"';
-                $output .= ' alt="' . $alt_text . '" loading="lazy" width="120" height="120" />';
-                $output .= '<div class="lr-grid-item-content"><h4>' . esc_html($name) . '</h4></div></a></div>';
+                $output .= lr_render_skater_card($item);
                 continue 2; // Continue the parent foreach loop
         }
 

@@ -10,6 +10,16 @@ function lr_render_content_discovery_page() {
     $table_name = $wpdb->prefix . 'lr_discovered_content';
 
     // Handle form submissions
+    if (isset($_POST['lr_seed_historical_posts']) && check_admin_referer('lr_discovery_actions')) {
+        $city_slug = sanitize_text_field($_POST['city_select']);
+        if (!empty($city_slug)) {
+            lr_run_historical_seeding_for_city($city_slug);
+            echo '<div class="notice notice-success is-dismissible"><p>Finished seeding historical posts for ' . esc_html($city_slug) . '. See results in the log file and on the front end.</p></div>';
+        } else {
+            echo '<div class="notice notice-error is-dismissible"><p>Please select a city first.</p></div>';
+        }
+    }
+
     if (isset($_POST['lr_run_publication_now']) && check_admin_referer('lr_discovery_actions')) {
         lr_run_content_publication();
         echo '<div class="notice notice-success is-dismissible"><p>Content Publication process has been run. Check the city update pages for new posts.</p></div>';
@@ -25,6 +35,11 @@ function lr_render_content_discovery_page() {
         }
     }
 
+    if (isset($_POST['lr_clear_update_posts']) && check_admin_referer('lr_discovery_actions')) {
+        $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}lr_city_updates");
+        echo '<div class="notice notice-success is-dismissible"><p>All generated city update posts have been cleared.</p></div>';
+    }
+
     if (isset($_POST['lr_clear_all_data']) && check_admin_referer('lr_discovery_actions')) {
         // Clear the discovered content table
         $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}lr_discovered_content");
@@ -32,7 +47,9 @@ function lr_render_content_discovery_page() {
         $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}lr_seen_skaters");
         // Clear the log file
         lr_clear_discovery_log_file();
-        echo '<div class="notice notice-success is-dismissible"><p>All discovery data (database logs, seen skaters, and log file) has been cleared.</p></div>';
+        // Sledgehammer: Clear all transients to ensure no bad API responses are cached
+        $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_%'");
+        echo '<div class="notice notice-success is-dismissible"><p>All discovery data (database logs, seen skaters, log file, and all site transients) has been cleared.</p></div>';
     }
 
     if (isset($_POST['lr_run_discovery_now']) && check_admin_referer('lr_discovery_actions')) {
@@ -114,6 +131,7 @@ function lr_render_content_discovery_page() {
                 </select>
                 <?php submit_button('Run Discovery for Selected City', 'secondary', 'lr_run_discovery_for_city', false); ?>
                 <?php submit_button('Generate Post for Selected City', 'primary', 'lr_run_publication_for_city', false); ?>
+                <?php submit_button('Seed Historical Posts', 'secondary', 'lr_seed_historical_posts', false); ?>
                  <p class="description">This will run the discovery for a single city and show the detailed output in the log file viewer below.</p>
             </form>
         </div>
@@ -232,12 +250,19 @@ function lr_render_content_discovery_page() {
             </div>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 20px;"><!-- Clear All Data Button -->
-        <form method="post" action="" style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
-             <?php wp_nonce_field('lr_discovery_actions'); ?>
-             <?php submit_button('Clear All Discovery Data', 'delete', 'lr_clear_all_data', false); ?>
-             <p class="description">This will permanently delete all discovered content, the log of seen skaters, and the text log file. Use this to reset the system for a clean test.</p>
-        </form>            <!-- Clear Seen Skaters Button -->            <form method="post" action="">                 <?php wp_nonce_field('lr_discovery_actions'); ?>                 <?php submit_button('Clear Seen Skaters Log', 'delete', 'lr_clear_seen_skaters_log', false); ?>            </form>        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <!-- Clear All Data Button -->
+            <form method="post" action="">
+                 <?php wp_nonce_field('lr_discovery_actions'); ?>
+                 <?php submit_button('Clear All Discovery Data', 'delete', 'lr_clear_all_data', false); ?>
+            </form>
+            <!-- Clear Generated Posts Button -->
+            <form method="post" action="">
+                 <?php wp_nonce_field('lr_discovery_actions'); ?>
+                 <?php submit_button('Clear All Generated Posts', 'delete', 'lr_clear_update_posts', false); ?>
+            </form>
+        </div>
+        <p class="description">"Clear All Discovery Data" wipes the raw discovered content (Layer 1). "Clear All Generated Posts" wipes the public-facing posts created from that data (Layer 2).</p>
 
     </div>
 
