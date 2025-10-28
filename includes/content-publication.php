@@ -89,6 +89,7 @@ function lr_generate_city_update_post($city_slug) {
     $post_content = '<style>
         .lr-update-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 15px; }
         .lr-update-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
+        .lr-grid-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
         .lr-grid-item-skater { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
         .lr-update-item a { text-decoration: none; color: inherit; }
         .lr-update-item img { width: 100%; height: 180px; object-fit: cover; background-color: #f0f0f0; }
@@ -115,7 +116,7 @@ function lr_generate_city_update_post($city_slug) {
         $post_content .= '</div>';
     }
 
-if (!empty($grouped_content['event'])) {
+    if (!empty($grouped_content['event'])) {
         $post_content .= '<h2>Events Coming Up</h2><div class="lr-update-grid">';
         foreach ($grouped_content['event'] as $event) {
             $post_content .= lr_render_event_card($event);
@@ -132,11 +133,10 @@ if (!empty($grouped_content['event'])) {
     }
 
     if (!empty($grouped_content['review'])) {
-        $post_content .= '<h2>New Spot Reviews</h2><ul>';
+        $post_content .= '<h2>New Spot Reviews</h2>';
         foreach ($grouped_content['review'] as $review) {
-            $post_content .= lr_render_review_list_item($review);
+            $post_content .= lr_render_review_card($review);
         }
-        $post_content .= '</ul>';
     }
 
     // 4. Save the result into the wp_lr_city_updates table.
@@ -230,6 +230,7 @@ function lr_run_historical_seeding_for_city($city_slug) {
         $post_content = '<style>
             .lr-update-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 15px; }
             .lr-update-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
+            .lr-grid-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
             .lr-grid-item-skater { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
             .lr-update-item a { text-decoration: none; color: inherit; }
             .lr-update-item img { width: 100%; height: 180px; object-fit: cover; background-color: #f0f0f0; }
@@ -267,14 +268,11 @@ function lr_run_historical_seeding_for_city($city_slug) {
         }
 
         if (!empty($grouped_content['event'])) {
-            $post_content .= '<h2>Events Coming Up</h2><ul>';
+            $post_content .= '<h2>Events Coming Up</h2><div class="lr-update-grid">';
             foreach ($grouped_content['event'] as $event) {
-                if (empty($event->_id)) continue;
-                $event_name = $event->name ?? $event->event->name ?? 'Event ' . $event->_id;
-                $start_date = !empty($event->event->startDate) ? date('F j, Y', strtotime($event->event->startDate)) : 'Date TBD';
-                $post_content .= '<li class="lr-update-list-item"><strong><a href="' . home_url('/events/' . $event->_id) . '">' . esc_html($event_name) . '</a></strong><br><small>' . $start_date . '</small></li>';
+                $post_content .= lr_render_event_card($event);
             }
-            $post_content .= '</ul>';
+            $post_content .= '</div>';
         }
         
         if (!empty($grouped_content['session'])) {
@@ -287,12 +285,10 @@ function lr_run_historical_seeding_for_city($city_slug) {
         }
 
         if (!empty($grouped_content['review'])) {
-            $post_content .= '<h2>New Spot Reviews</h2><ul>';
+            $post_content .= '<h2>New Spot Reviews</h2>';
             foreach ($grouped_content['review'] as $review) {
-                if (empty($review->spotId) || !isset($review->comment)) continue;
-                $post_content .= '<li class="lr-update-list-item">A new review for spot <a href="' . home_url('/spots/' . $review->spotId) . '"><strong>' . esc_html($review->spotId) . '</strong></a>: <em>"' . esc_html($review->comment) . '"</em></li>';
+                $post_content .= lr_render_review_card($review);
             }
-            $post_content .= '</ul>';
         }
 
         $wpdb->replace(

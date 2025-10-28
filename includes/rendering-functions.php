@@ -166,3 +166,42 @@ function lr_render_spot_session_list_item($session, $user_profiles) {
     
     return $output;
 }
+
+/**
+ * Renders a rich HTML card for a single review, suitable for update pages.
+ *
+ * @param object $review The enriched review object.
+ * @return string The HTML for the review card.
+ */
+function lr_render_review_card($review) {
+    if (empty($review->spot_id) || empty($review->user_id)) {
+        return '';
+    }
+
+    $spot_url = home_url('/spots/' . $review->spot_id . '/');
+    $skater_url = home_url('/skaters/' . $review->skate_name . '/');
+    $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $review->user_id . '/avatar/content/processed?width=50&height=50&quality=75';
+    
+    $stars_html = str_repeat('★', $review->rating) . str_repeat('☆', 5 - $review->rating);
+
+    $output = '<div class="lr-review-card" style="border: 1px solid #eee; border-radius: 5px; padding: 15px; margin-bottom: 20px;">';
+    $output .= '<h4 style="margin-top: 0; margin-bottom: 15px; font-size: 1.2em;"><a href="' . esc_url($spot_url) . '">' . esc_html($review->spot_name) . '</a></h4>';
+    
+    $output .= '<div class="lr-review-box" style="background-color: #f9f9f9; padding: 15px; border-radius: 4px;">';
+    $output .= '<div class="lr-review-header" style="display: flex; align-items: center; margin-bottom: 10px;">';
+    $output .= '<img src="' . esc_url($avatar_url) . '" alt="' . esc_attr($review->skate_name) . '" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px;">';
+    $output .= '<div class="lr-review-meta">';
+    $output .= '<strong style="font-size: 1.1em;"><a href="' . esc_url($skater_url) . '">' . esc_html($review->skate_name) . '</a></strong>';
+    $output .= '<div class="lr-review-stars" style="color: #ffb400;">' . $stars_html . '</div>';
+    $output .= '</div></div>'; // .lr-review-meta, .lr-review-header
+    
+    if (!empty($review->comment)) {
+        $output .= '<div class="lr-review-body" style="font-style: italic; color: #333;">';
+        $output .= '<p style="margin: 0;">"' . esc_html($review->comment) . '"</p>';
+        $output .= '</div>'; // .lr-review-body
+    }
+    
+    $output .= '</div></div>'; // .lr-review-box, .lr-review-card
+
+    return $output;
+}

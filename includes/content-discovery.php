@@ -173,12 +173,22 @@ function lr_discover_new_activities($city_slug, $city_details) {
 
         $existing = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table_name WHERE api_id = %s AND content_type = 'event'", $event->_id));
         if (!$existing) {
+            // --- ADDED: Enrich event data before caching ---
+            $data_to_cache = $event;
+            $enriched_data = lr_fetch_api_data($access_token, 'roll-session/' . $event->_id . '/aggregates', []);
+            if ($enriched_data && !is_wp_error($enriched_data) && !empty($enriched_data->sessions[0])) {
+                // The aggregates endpoint returns a 'sessions' array, even for a single event.
+                $data_to_cache = $enriched_data->sessions[0];
+                // Manually add attachments to the main object for easier access in templates.
+                $data_to_cache->attachments = $enriched_data->attachments ?? [];
+            }
+
             $wpdb->insert($table_name, [
                 'content_type'  => 'event',
                 'api_id'        => $event->_id,
                 'city_slug'     => $city_slug,
                 'discovered_at' => current_time('mysql'),
-                'data_cache'    => json_encode($event)
+                'data_cache'    => json_encode($data_to_cache)
             ], ['%s', '%s', '%s', '%s', '%s']);
             $new_events_found++;
         }
@@ -220,7 +230,7 @@ function lr_discover_new_activities($city_slug, $city_details) {
 }
 
 /**
- * Discovers and records new reviews for a single city.
+ * Discovers and records new reviews for a single city, enriching them with spot and user data.
  */
 function lr_discover_new_reviews($city_slug, $rich_spots) {
     global $wpdb;
@@ -244,13 +254,45 @@ function lr_discover_new_reviews($city_slug, $rich_spots) {
             continue;
         }
 
-        $review_data = lr_fetch_api_data($access_token, 'spots/' . $spot_details->spotWithAddress->_id . '/ratings-opinions', ['limit' => 100]);
-        if (!is_wp_error($review_data) && !empty($review_data->ratingsAndOpinions)) {
-            foreach ($review_data->ratingsAndOpinions as $review) {
+        $response_data = lr_fetch_api_data($access_token, 'spots/' . $spot_details->spotWithAddress->_id . '/ratings-opinions', ['limit' => 100]);
+        
+        if (!is_wp_error($response_data) && !empty($response_data->ratingsAndOpinions)) {
+            
+            // --- CORRECTED ENRICHMENT ---
+            // Step 1: Create a lookup map for user profiles.
+            $user_profiles_map = [];
+            if (!empty($response_data->userProfiles)) {
+                foreach ($response_data->userProfiles as $profile) {
+                    $user_profiles_map[$profile->userId] = $profile;
+                }
+            }
+
+            // Step 2: Iterate through reviews and enrich them using the map.
+            foreach ($response_data->ratingsAndOpinions as $review) {
                 if (empty($review->_id)) continue;
+
                 $existing = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table_name WHERE api_id = %s AND content_type = 'review'", $review->_id));
                 if (!$existing) {
-                    $wpdb->insert($table_name, ['content_type' => 'review', 'api_id' => $review->_id, 'city_slug' => $city_slug, 'discovered_at' => current_time('mysql'), 'data_cache' => json_encode($review)], ['%s', '%s', '%s', '%s', '%s']);
+                    $user_profile = $user_profiles_map[$review->userId] ?? null;
+
+                    $data_to_cache = [
+                        'review_id' => $review->_id,
+                        'spot_id'   => $spot_details->spotWithAddress->_id,
+                        'spot_name' => $spot_details->spotWithAddress->name,
+                        'rating'    => $review->rating,
+                        'comment'   => $review->comment,
+                        'user_id'   => $review->userId,
+                        'skate_name'=> $user_profile->skateName ?? 'A Skater',
+                        'createdAt' => $review->createdAt,
+                    ];
+
+                    $wpdb->insert($table_name, [
+                        'content_type'  => 'review',
+                        'api_id'        => $review->_id,
+                        'city_slug'     => $city_slug,
+                        'discovered_at' => current_time('mysql'),
+                        'data_cache'    => json_encode($data_to_cache)
+                    ], ['%s', '%s', '%s', '%s', '%s']);
                     $new_reviews_found++;
                 }
             }
