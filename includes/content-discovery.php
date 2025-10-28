@@ -135,43 +135,87 @@ function lr_discover_new_activities($city_slug, $city_details) {
         return;
     }
 
-    $params = ['lat' => $city_details['latitude'], 'lng' => $city_details['longitude'], 'limit' => 500];
-    $feed_data = lr_fetch_api_data($access_token, 'local-feed', $params);
-
-    if (is_wp_error($feed_data) || empty($feed_data->sessions)) {
-        lr_log_discovery_message("No activities found in local-feed response for $city_slug.");
-        return;
-    }
-
     $table_name = $wpdb->prefix . 'lr_discovered_content';
-    $new_events_found = 0;
-    $new_sessions_found = 0;
+    $all_events_by_id = [];
 
-    foreach ($feed_data->sessions as $activity) {
-        if (empty($activity->_id)) continue;
+    // --- CORRECTED HYBRID EVENT DISCOVERY ---
+    // Step 1: Fetch events from the reliable inBox endpoint.
+    $bounding_box = lr_calculate_bounding_box($city_details['latitude'], $city_details['longitude'], $city_details['radius_km']);
+    $params_inbox = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
+    $response_inbox = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $params_inbox);
 
-        $content_type = ($activity->type ?? 'Roll') === 'Event' ? 'event' : 'session';
+    if (!is_wp_error($response_inbox) && !empty($response_inbox->rollEvents)) {
+        foreach ($response_inbox->rollEvents as $event) {
+            $all_events_by_id[$event->_id] = $event;
+        }
+    }
+    lr_log_discovery_message("Found " . count($all_events_by_id) . " events from inBox endpoint.");
 
-        $existing = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table_name WHERE api_id = %s AND content_type = %s", $activity->_id, $content_type));
-        if (!$existing) {
-            $data_to_cache = $activity;
-            if ($content_type === 'session') {
-                $enriched_data = lr_fetch_api_data($access_token, 'roll-session/' . $activity->_id . '/aggregates', []);
-                if ($enriched_data && !is_wp_error($enriched_data)) {
-                    $data_to_cache = $enriched_data;
-                }
-            }
-            
-            $wpdb->insert($table_name, ['content_type' => $content_type, 'api_id' => $activity->_id, 'city_slug' => $city_slug, 'discovered_at' => current_time('mysql'), 'data_cache' => json_encode($data_to_cache)], ['%s', '%s', '%s', '%s', '%s']);
-            
-            if ($content_type === 'event') {
-                $new_events_found++;
-            } else {
-                $new_sessions_found++;
+    // Step 2: Fetch from local feed to find and append true "orphan" events.
+    $params_feed = ['lat' => $city_details['latitude'], 'lng' => $city_details['longitude'], 'limit' => 500];
+    $feed_data = lr_fetch_api_data($access_token, 'local-feed', $params_feed);
+
+    $initial_event_count = count($all_events_by_id);
+    if (!is_wp_error($feed_data) && !empty($feed_data->sessions)) {
+        foreach ($feed_data->sessions as $activity) {
+            // A true "orphan" is an Event, has NO spotId, and is not already in our list.
+            if (($activity->type ?? 'Roll') === 'Event' && empty($activity->spotId) && !isset($all_events_by_id[$activity->_id])) {
+                $all_events_by_id[$activity->_id] = $activity;
             }
         }
     }
-    lr_log_discovery_message("Finished event discovery for $city_slug. Found $new_events_found new events.");
+    lr_log_discovery_message("Found " . (count($all_events_by_id) - $initial_event_count) . " new orphan events from local-feed.");
+
+    // Step 3: Process the combined list of all events for newness.
+    $new_events_found = 0;
+    foreach ($all_events_by_id as $event) {
+        if (empty($event->_id)) continue;
+
+        $existing = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table_name WHERE api_id = %s AND content_type = 'event'", $event->_id));
+        if (!$existing) {
+            $wpdb->insert($table_name, [
+                'content_type'  => 'event',
+                'api_id'        => $event->_id,
+                'city_slug'     => $city_slug,
+                'discovered_at' => current_time('mysql'),
+                'data_cache'    => json_encode($event)
+            ], ['%s', '%s', '%s', '%s', '%s']);
+            $new_events_found++;
+        }
+    }
+    lr_log_discovery_message("Finished event discovery for $city_slug. Found $new_events_found new total events.");
+
+    // --- PRESERVED SESSION DISCOVERY (from the same local-feed call) ---
+    if (is_wp_error($feed_data) || empty($feed_data->sessions)) {
+        lr_log_discovery_message("No sessions found in local-feed response for $city_slug.");
+        return;
+    }
+
+    $new_sessions_found = 0;
+    foreach ($feed_data->sessions as $activity) {
+        if (empty($activity->_id) || ($activity->type ?? 'Roll') === 'Event') {
+            continue; // Skip events, as they are now handled above.
+        }
+
+        $existing = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table_name WHERE api_id = %s AND content_type = 'session'", $activity->_id));
+        if (!$existing) {
+            $data_to_cache = $activity;
+            $enriched_data = lr_fetch_api_data($access_token, 'roll-session/' . $activity->_id . '/aggregates', []);
+            if ($enriched_data && !is_wp_error($enriched_data)) {
+                $data_to_cache = $enriched_data;
+            }
+            
+            $wpdb->insert($table_name, [
+                'content_type'  => 'session',
+                'api_id'        => $activity->_id,
+                'city_slug'     => $city_slug,
+                'discovered_at' => current_time('mysql'),
+                'data_cache'    => json_encode($data_to_cache)
+            ], ['%s', '%s', '%s', '%s', '%s']);
+            
+            $new_sessions_found++;
+        }
+    }
     lr_log_discovery_message("Finished session discovery for $city_slug. Found $new_sessions_found new sessions.");
 }
 
