@@ -2,6 +2,14 @@
 
 ## 1.6.0 - (Unreleased)
 
+### ✨ Enhancements
+*   **Rich Content Cards:** Events and Reviews on the city update pages are now displayed as rich, visual cards, matching the style of the main city pages for a consistent user experience.
+*   **Enriched Discovery Data:** The content discovery process now fetches and stores full, detailed data for events (including images) and reviews (including user profiles and star ratings) to power the new card-based layouts.
+
+### 🐛 Bug Fixes
+*   **Unified Card Styling:** Fixed a bug where skater, spot, and event cards on the update pages were missing the correct border and styling. All cards now have a consistent appearance.
+*   **Event Discovery Logic:** Corrected a critical bug in the event discovery process that caused events to appear in the wrong city. The logic now correctly uses a hybrid approach, fetching geo-located events and supplementing them with true "orphan" events (those without a spot ID) from the local feed.
+
 ### ✨ New Features
 
 *   **Content Discovery System (Layer 1):**

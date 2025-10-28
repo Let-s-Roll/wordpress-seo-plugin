@@ -170,7 +170,7 @@ function lr_render_spot_session_list_item($session, $user_profiles) {
 /**
  * Renders a rich HTML card for a single review, suitable for update pages.
  *
- * @param object $review The enriched review object.
+ * @param object $review The enriched review object, containing spot_name, skate_name, user_id, etc.
  * @return string The HTML for the review card.
  */
 function lr_render_review_card($review) {

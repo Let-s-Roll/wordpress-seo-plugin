@@ -61,9 +61,9 @@ This document outlines the known API endpoints used by the Let's Roll SEO Pages 
     *   `limit`: The maximum number of opinions to return (e.g., `20`).
     *   `skip`: The number of opinions to skip for pagination (e.g., `0`).
 *   **Expected Response Structure:**
-    *   An object containing two arrays: `ratingsAndOpinions` and `userProfiles`.
-    *   Each object in `ratingsAndOpinions` contains the review `comment`, `rating`, a unique `_id`, and a `createdAt` timestamp.
-    *   The `userProfiles` array contains the public profiles of the users who left the opinions.
+    *   An object containing two primary arrays: `ratingsAndOpinions` and `userProfiles`.
+    *   Each object in `ratingsAndOpinions` contains the full review data, including the `comment`, `rating`, a unique `_id`, the `createdAt` timestamp, and the `userId` of the author.
+    *   The `userProfiles` array contains the complete public profile objects for each user who has left a review in the `ratingsAndOpinions` list. This data can be mapped to the corresponding review via the `userId`.
 
 ---
 

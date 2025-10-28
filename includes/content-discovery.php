@@ -139,7 +139,8 @@ function lr_discover_new_activities($city_slug, $city_details) {
     $all_events_by_id = [];
 
     // --- CORRECTED HYBRID EVENT DISCOVERY ---
-    // Step 1: Fetch events from the reliable inBox endpoint.
+    // This uses a two-step process to create a comprehensive list of events.
+    // 1. Get all events geographically located within the city's bounding box. These are reliable.
     $bounding_box = lr_calculate_bounding_box($city_details['latitude'], $city_details['longitude'], $city_details['radius_km']);
     $params_inbox = ['ne' => $bounding_box['ne'], 'sw' => $bounding_box['sw'], 'limit' => 1000];
     $response_inbox = lr_fetch_api_data($access_token, 'roll-session/event/inBox', $params_inbox);
@@ -151,7 +152,9 @@ function lr_discover_new_activities($city_slug, $city_details) {
     }
     lr_log_discovery_message("Found " . count($all_events_by_id) . " events from inBox endpoint.");
 
-    // Step 2: Fetch from local feed to find and append true "orphan" events.
+    // 2. Supplement the list with "orphan" events from the local feed. These are events
+    //    posted by users nearby that are not attached to a specific skate spot, and would
+    //    otherwise be missed. This prevents incorrectly including events from other cities.
     $params_feed = ['lat' => $city_details['latitude'], 'lng' => $city_details['longitude'], 'limit' => 500];
     $feed_data = lr_fetch_api_data($access_token, 'local-feed', $params_feed);
 
@@ -254,12 +257,13 @@ function lr_discover_new_reviews($city_slug, $rich_spots) {
             continue;
         }
 
+        // The ratings-opinions endpoint conveniently returns both the reviews and the profiles
+        // of the users who wrote them. This is much more efficient than fetching each profile individually.
         $response_data = lr_fetch_api_data($access_token, 'spots/' . $spot_details->spotWithAddress->_id . '/ratings-opinions', ['limit' => 100]);
         
         if (!is_wp_error($response_data) && !empty($response_data->ratingsAndOpinions)) {
             
-            // --- CORRECTED ENRICHMENT ---
-            // Step 1: Create a lookup map for user profiles.
+            // Create a lookup map of user profiles keyed by userId for efficient access.
             $user_profiles_map = [];
             if (!empty($response_data->userProfiles)) {
                 foreach ($response_data->userProfiles as $profile) {
@@ -267,7 +271,7 @@ function lr_discover_new_reviews($city_slug, $rich_spots) {
                 }
             }
 
-            // Step 2: Iterate through reviews and enrich them using the map.
+            // Iterate through the reviews and enrich them with data from the spot and the user map.
             foreach ($response_data->ratingsAndOpinions as $review) {
                 if (empty($review->_id)) continue;
 
@@ -275,6 +279,8 @@ function lr_discover_new_reviews($city_slug, $rich_spots) {
                 if (!$existing) {
                     $user_profile = $user_profiles_map[$review->userId] ?? null;
 
+                    // This consolidated object is what gets saved to the database.
+                    // It contains all necessary info to render a rich review card later.
                     $data_to_cache = [
                         'review_id' => $review->_id,
                         'spot_id'   => $spot_details->spotWithAddress->_id,
