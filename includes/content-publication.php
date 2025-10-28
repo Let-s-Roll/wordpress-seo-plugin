@@ -89,6 +89,7 @@ function lr_generate_city_update_post($city_slug) {
     $post_content = '<style>
         .lr-update-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 15px; }
         .lr-update-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
+        .lr-grid-item-skater { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
         .lr-update-item a { text-decoration: none; color: inherit; }
         .lr-update-item img { width: 100%; height: 180px; object-fit: cover; background-color: #f0f0f0; }
         .lr-update-item h4 { margin: 10px; font-size: 1.1em; }
@@ -229,6 +230,7 @@ function lr_run_historical_seeding_for_city($city_slug) {
         $post_content = '<style>
             .lr-update-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 15px; }
             .lr-update-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
+            .lr-grid-item-skater { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
             .lr-update-item a { text-decoration: none; color: inherit; }
             .lr-update-item img { width: 100%; height: 180px; object-fit: cover; background-color: #f0f0f0; }
             .lr-update-item h4 { margin: 10px; font-size: 1.1em; }
@@ -241,12 +243,7 @@ function lr_run_historical_seeding_for_city($city_slug) {
         if (!empty($grouped_content['skater'])) {
             $post_content .= '<h2>New Skaters in ' . esc_html($city_name) . ' - Say Hello!</h2><div class="lr-update-grid">';
             foreach ($grouped_content['skater'] as $skater) {
-                if (empty($skater->skateName)) continue;
-                $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $skater->userId . '/avatar/content/processed?width=250&height=250&quality=75';
-                $post_content .= '<div class="lr-update-item"><a href="' . home_url('/skaters/' . $skater->skateName) . '">';
-                $post_content .= '<img src="' . esc_url($avatar_url) . '" alt="' . esc_attr($skater->skateName) . '">';
-                $post_content .= '<h4>' . esc_html($skater->skateName) . '</h4>';
-                $post_content .= '</a></div>';
+                $post_content .= lr_render_skater_card($skater);
             }
             $post_content .= '</div>';
         }
