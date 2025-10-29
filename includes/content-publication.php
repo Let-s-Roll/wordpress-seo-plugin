@@ -78,7 +78,7 @@ function lr_generate_city_update_post($city_slug) {
     $city_name = $city_details['name'] ?? ucfirst($city_slug);
 
     // --- AI CONTENT "GLUE" ---
-    $ai_snippets = lr_prepare_and_get_ai_content($city_name, $grouped_content);
+    $ai_snippets = lr_prepare_and_get_ai_content($city_name, $grouped_content, current_time('mysql'));
     if (is_wp_error($ai_snippets)) {
         lr_log_discovery_message("AI Error: " . $ai_snippets->get_error_message() . ". Using fallback.");
         $post_title = $city_name . ' Skate Update: ' . date('F j, Y');
@@ -91,13 +91,14 @@ function lr_generate_city_update_post($city_slug) {
     // --- END AI ---
 
     $post_slug = sanitize_title($post_title);
+    $featured_image_url = lr_select_featured_image($grouped_content);
     
     // --- TEMPLATE RENDERING ---
     $post_content = lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets);
 
     $wpdb->replace( $updates_table,
-        [ 'city_slug' => $city_slug, 'post_slug' => $post_slug, 'post_title' => $post_title, 'post_summary' => $post_summary, 'post_content' => $post_content, 'publish_date' => current_time('mysql') ],
-        ['%s', '%s', '%s', '%s', '%s', '%s']
+        [ 'city_slug' => $city_slug, 'post_slug' => $post_slug, 'post_title' => $post_title, 'post_summary' => $post_summary, 'featured_image_url' => $featured_image_url, 'post_content' => $post_content, 'publish_date' => current_time('mysql') ],
+        ['%s', '%s', '%s', '%s', '%s', '%s', '%s']
     );
     lr_log_discovery_message("Successfully saved post for $city_slug.");
 }
@@ -105,9 +106,12 @@ function lr_generate_city_update_post($city_slug) {
 /**
  * Prepares the data and calls the AI content generation function.
  */
-function lr_prepare_and_get_ai_content($city_name, $grouped_content) {
+function lr_prepare_and_get_ai_content($city_name, $grouped_content, $publication_date) {
     // Prepare a clean data structure for the AI prompt
-    $ai_data = ['city_name' => $city_name];
+    $ai_data = [
+        'city_name' => $city_name,
+        'publication_date' => $publication_date,
+    ];
     if (!empty($grouped_content['spot'])) {
         $ai_data['spots'] = array_map(function($spot) {
             return ['name' => $spot->spotWithAddress->name, 'url' => home_url('/spots/' . $spot->spotWithAddress->_id)];
@@ -149,22 +153,37 @@ function lr_generate_fallback_post_content($city_name, $grouped_content, $post_t
     }
 
     if (!empty($grouped_content['spot'])) {
-        $post_content .= '<h2>' . esc_html($ai_snippets['spots_intro'] ?? 'New Skate Spots') . '</h2><div class="lr-update-grid">';
+        $post_content .= '<h2>' . esc_html($ai_snippets['spots_section']['heading'] ?? 'New Skate Spots') . '</h2>';
+        if (!empty($ai_snippets['spots_section']['intro'])) {
+            $post_content .= '<p>' . esc_html($ai_snippets['spots_section']['intro']) . '</p>';
+        }
+        $post_content .= '<div class="lr-update-grid">';
         foreach ($grouped_content['spot'] as $spot) { $post_content .= lr_render_spot_card($spot); }
         $post_content .= '</div>';
     }
     if (!empty($grouped_content['event'])) {
-        $post_content .= '<h2>' . esc_html($ai_snippets['events_intro'] ?? 'Upcoming Events') . '</h2><div class="lr-update-grid">';
+        $post_content .= '<h2>' . esc_html($ai_snippets['events_section']['heading'] ?? 'Upcoming Events') . '</h2>';
+        if (!empty($ai_snippets['events_section']['intro'])) {
+            $post_content .= '<p>' . esc_html($ai_snippets['events_section']['intro']) . '</p>';
+        }
+        $post_content .= '<div class="lr-update-grid">';
         foreach ($grouped_content['event'] as $event) { $post_content .= lr_render_event_card($event); }
         $post_content .= '</div>';
     }
     if (!empty($grouped_content['skater'])) {
-        $post_content .= '<h2>' . esc_html($ai_snippets['skaters_intro'] ?? 'New Skaters') . '</h2><div class="lr-update-grid">';
+        $post_content .= '<h2>' . esc_html($ai_snippets['skaters_section']['heading'] ?? 'New Skaters') . '</h2>';
+        if (!empty($ai_snippets['skaters_section']['intro'])) {
+            $post_content .= '<p>' . esc_html($ai_snippets['skaters_section']['intro']) . '</p>';
+        }
+        $post_content .= '<div class="lr-update-grid">';
         foreach ($grouped_content['skater'] as $skater) { $post_content .= lr_render_skater_card($skater); }
         $post_content .= '</div>';
     }
     if (!empty($grouped_content['review'])) {
-        $post_content .= '<h2>' . esc_html($ai_snippets['reviews_intro'] ?? 'New Reviews') . '</h2>';
+        $post_content .= '<h2>' . esc_html($ai_snippets['reviews_section']['heading'] ?? 'New Reviews') . '</h2>';
+        if (!empty($ai_snippets['reviews_section']['intro'])) {
+            $post_content .= '<p>' . esc_html($ai_snippets['reviews_section']['intro']) . '</p>';
+        }
         foreach ($grouped_content['review'] as $review) { $post_content .= lr_render_review_card($review); }
     }
     if (!empty($grouped_content['session'])) {
@@ -231,7 +250,7 @@ function lr_run_historical_seeding_for_city($city_slug) {
         $city_name = $city_details['name'] ?? ucfirst($city_slug);
 
         // --- AI CONTENT "GLUE" ---
-        $ai_snippets = lr_prepare_and_get_ai_content($city_name, $grouped_content);
+        $ai_snippets = lr_prepare_and_get_ai_content($city_name, $grouped_content, $publish_date_str);
         if (is_wp_error($ai_snippets)) {
             lr_log_discovery_message("AI Error for week $week_key: " . $ai_snippets->get_error_message() . ". Using fallback.");
             $post_title = $city_name . ' Skate Update: Week of ' . $publish_date->format('F j, Y');
@@ -244,6 +263,7 @@ function lr_run_historical_seeding_for_city($city_slug) {
         // --- END AI ---
 
         $post_slug = sanitize_title($post_title);
+        $featured_image_url = lr_select_featured_image($grouped_content);
         $post_content = lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets); // Re-use the fallback renderer
 
         $wpdb->replace(
@@ -253,10 +273,11 @@ function lr_run_historical_seeding_for_city($city_slug) {
                 'post_slug'    => $post_slug,
                 'post_title'   => $post_title,
                 'post_summary' => $post_summary,
+                'featured_image_url' => $featured_image_url,
                 'post_content' => $post_content,
                 'publish_date' => $publish_date_str,
             ],
-            ['%s', '%s', '%s', '%s', '%s', '%s']
+            ['%s', '%s', '%s', '%s', '%s', '%s', '%s']
         );
         lr_log_discovery_message("Generated and saved historical post for week: $week_key");
     }
@@ -271,6 +292,45 @@ function lr_get_city_details_by_slug($city_slug_to_find) {
     foreach ($all_locations as $country_data) {
         if (isset($country_data['cities'][$city_slug_to_find])) {
             return $country_data['cities'][$city_slug_to_find];
+        }
+    }
+    return null;
+}
+
+/**
+ * Selects a featured image URL from the available content.
+ *
+ * @param array $grouped_content The content grouped by type.
+ * @return string|null The URL of the best available image, or null if none.
+ */
+function lr_select_featured_image($grouped_content) {
+    // Priority: Event > Spot > Reviewer Avatar > Skater Avatar
+    if (!empty($grouped_content['event'])) {
+        foreach ($grouped_content['event'] as $event) {
+            if (!empty($event->attachments[0]->_id)) {
+                return plugin_dir_url(__DIR__) . 'image-proxy.php?type=event_attachment&id=' . $event->attachments[0]->_id . '&session_id=' . $event->_id . '&width=400&quality=75';
+            }
+        }
+    }
+    if (!empty($grouped_content['spot'])) {
+        foreach ($grouped_content['spot'] as $spot) {
+            if (!empty($spot->spotWithAddress->satelliteAttachment)) {
+                return plugin_dir_url(__DIR__) . 'image-proxy.php?type=spot_satellite&id=' . $spot->spotWithAddress->satelliteAttachment . '&width=400&quality=75';
+            }
+        }
+    }
+    if (!empty($grouped_content['review'])) {
+        foreach ($grouped_content['review'] as $review) {
+            if (!empty($review->user_id)) {
+                return 'https://beta.web.lets-roll.app/api/user/' . $review->user_id . '/avatar/content/processed?width=250&height=250&quality=75';
+            }
+        }
+    }
+    if (!empty($grouped_content['skater'])) {
+        foreach ($grouped_content['skater'] as $skater) {
+            if (!empty($skater->userId)) {
+                return 'https://beta.web.lets-roll.app/api/user/' . $skater->userId . '/avatar/content/processed?width=250&height=250&quality=75';
+            }
         }
     }
     return null;

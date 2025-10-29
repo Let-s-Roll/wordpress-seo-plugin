@@ -62,22 +62,22 @@ function lr_get_ai_generated_content($content_data) {
 function lr_build_ai_prompt($content_data) {
     $city_name = $content_data['city_name'];
 
-    $prompt = "You are an expert SEO content writer and a passionate, authentic roller skater for the Let's Roll community website. Your tone is enthusiastic and helpful.
+    $prompt = "You are an expert SEO content writer and a passionate, authentic roller skater for the Let's Roll community website. Your tone is enthusiastic and helpful.\n\n"
+            . "Based on the following JSON data for {$city_name}, generate several text snippets for a webpage.\n\n"
+            . "**Instructions:**\n"
+            . "1.  **Generate a Title:** Create a catchy, SEO-friendly `post_title`. Incorporate the `publication_date` to give it a time-based context (e.g., \"September Update:\", \"What's New in Early October:\").\n"
+            . "2.  **Generate an Introduction:** Write a `top_summary` (1-2 paragraphs) for the top of the page to introduce the updates.\n"
+            . "3.  **Generate Section Content:** For each content type with data (spots, events, skaters, reviews), create an object with two keys:\n"
+            . "    *   `heading`: A short, descriptive heading (2-4 words).\n"
 
-Based on the following JSON data for {$city_name}, generate several short, engaging text snippets.
-
-**Instructions:**
-1.  **Analyze the Data:** Look at the number and type of new items to understand the context.
-2.  **Generate a Title:** Create a catchy, SEO-friendly `post_title`.
-3.  **Generate an Introduction:** Write a `top_summary` (1-2 paragraphs) for the top of the page to introduce the updates.
-4.  **Generate Section Intros:** For each of the following sections that has data, write a very short (1-sentence) introductory text snippet: `spots_intro`, `events_intro`, `skaters_intro`, `reviews_intro`. If a section has no data, return an empty string for that key.
-5.  **Generate an Archive Summary:** Write a `post_summary` (1-2 sentences) for use on archive pages.
-6.  **Format the Output:** Return your response as a single, clean JSON object inside a ```json code block. The JSON object must have these exact keys: `post_title`, `top_summary`, `spots_intro`, `events_intro`, `skaters_intro`, `reviews_intro`, `post_summary`.
-
-**JSON Data:**
-```json
-" . json_encode($content_data, JSON_PRETTY_PRINT) . "
-```";
+            . "    *   `intro`: A slightly longer (1-2 sentence) introductory text for that section.\n"
+            . "    *   If a section has no data, return null for its value.\n"
+            . "4.  **Generate an Archive Summary:** Write a `post_summary` (1-2 sentences) for use on archive pages. This should also incorporate the `publication_date`.\n"
+            . "5.  **Format the Output:** Return your response as a single, clean JSON object inside a ```json code block. The JSON object must have these exact keys: `post_title`, `top_summary`, `spots_section`, `events_section`, `skaters_section`, `reviews_section`, `post_summary`.\n\n"
+            . "**JSON Data:**\n"
+            . "```json\n"
+            . json_encode($content_data, JSON_PRETTY_PRINT) . "\n"
+            . "```";
 
     return $prompt;
 }

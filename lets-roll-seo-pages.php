@@ -743,8 +743,11 @@ function lr_virtual_page_controller($posts, $query) {
                 $content .= '<ul style="list-style: none; padding: 0;">';
                 foreach ($updates as $update) {
                     $update_url = home_url('/' . $country_slug . '/' . $city_slug . '/updates/' . $update->post_slug . '/');
-                    $content .= '<li style="margin-bottom: 20px;">';
-                    $content .= '<h2><a href="' . esc_url($update_url) . '">' . esc_html($update->post_title) . '</a></h2>';
+                    $content .= '<li style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; overflow: hidden;">';
+                    if (!empty($update->featured_image_url)) {
+                        $content .= '<img src="' . esc_url($update->featured_image_url) . '" alt="' . esc_attr($update->post_title) . '" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; float: left; margin-right: 20px;">';
+                    }
+                    $content .= '<h2 style="margin-top: 0;"><a href="' . esc_url($update_url) . '">' . esc_html($update->post_title) . '</a></h2>';
                     $content .= '<p>' . esc_html($update->post_summary) . '</p>';
                     $content .= '<a href="' . esc_url($update_url) . '">Read More &raquo;</a>';
                     $content .= '</li>';

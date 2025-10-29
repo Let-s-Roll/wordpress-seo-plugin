@@ -70,4 +70,14 @@ function lr_update_city_updates_table() {
     if (empty($column)) {
         $wpdb->query("ALTER TABLE $table_name ADD $column_name text NOT NULL AFTER post_title");
     }
+
+    // Add featured_image_url column if it doesn't exist
+    $image_column_name = 'featured_image_url';
+    $image_column = $wpdb->get_results($wpdb->prepare(
+        "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+        DB_NAME, $table_name, $image_column_name
+    ));
+    if (empty($image_column)) {
+        $wpdb->query("ALTER TABLE $table_name ADD $image_column_name text NOT NULL AFTER post_summary");
+    }
 }
