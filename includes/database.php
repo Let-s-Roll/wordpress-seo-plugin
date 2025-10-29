@@ -50,3 +50,24 @@ function lr_create_discovered_content_table() {
     dbDelta($sql_skaters);
     dbDelta($sql_updates);
 }
+
+/**
+ * Updates the city updates table to include new columns if they don't exist.
+ * This is a non-destructive way to update the table structure after the initial creation.
+ */
+function lr_update_city_updates_table() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'lr_city_updates';
+    $column_name = 'post_summary';
+
+    // Check if the column already exists
+    $column = $wpdb->get_results($wpdb->prepare(
+        "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+        DB_NAME, $table_name, $column_name
+    ));
+
+    // If the column does not exist, add it.
+    if (empty($column)) {
+        $wpdb->query("ALTER TABLE $table_name ADD $column_name text NOT NULL AFTER post_title");
+    }
+}

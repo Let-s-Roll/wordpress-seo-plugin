@@ -66,6 +66,8 @@ function lr_settings_init() {
     add_settings_section('lr_api_section', 'API Credentials', null, 'lr_options_group');
     add_settings_field('lr_api_email', 'API Email', 'lr_api_email_render', 'lr_options_group', 'lr_api_section');
     add_settings_field('lr_api_pass', 'API Password', 'lr_api_pass_render', 'lr_options_group', 'lr_api_section');
+    add_settings_field('lr_gemini_api_key', 'Gemini API Key', 'lr_gemini_api_key_render', 'lr_options_group', 'lr_api_section');
+    add_settings_field('lr_gemini_model', 'AI Model', 'lr_gemini_model_render', 'lr_options_group', 'lr_api_section');
 
     // New Section for Testing Mode
     add_settings_section('lr_testing_section', 'Development & Testing', null, 'lr_options_group');
@@ -84,6 +86,39 @@ function lr_api_email_render() {
 function lr_api_pass_render() {
     $options = get_option('lr_options');
     echo "<input type='password' name='lr_options[api_pass]' value='" . esc_attr($options['api_pass'] ?? '') . "' style='width: 300px;'>";
+}
+
+function lr_gemini_api_key_render() {
+    $options = get_option('lr_options');
+    echo "<input type='password' name='lr_options[gemini_api_key]' value='" . esc_attr($options['gemini_api_key'] ?? '') . "' style='width: 300px;'>";
+    echo '<p class="description">Enter your API key for the Gemini AI content generation.</p>';
+}
+
+function lr_gemini_model_render() {
+    $options = get_option('lr_options');
+    $api_key = $options['gemini_api_key'] ?? '';
+    $selected_model = $options['gemini_model'] ?? '';
+
+    if (empty($api_key)) {
+        echo '<p style="color: red;">Please enter and save your Gemini API Key above to see the list of available models.</p>';
+        return;
+    }
+
+    $models = lr_get_gemini_models($api_key);
+
+    if (is_wp_error($models)) {
+        echo '<p style="color: red;"><strong>Error:</strong> Could not fetch models. ' . esc_html($models->get_error_message()) . '</p>';
+        return;
+    }
+
+    echo "<select name='lr_options[gemini_model]' style='width: 300px;'>";
+    echo "<option value=''>-- Select a Model --</option>";
+    foreach ($models as $model) {
+        $selected = selected($selected_model, $model, false);
+        echo "<option value='" . esc_attr($model) . "' " . $selected . ">" . esc_html($model) . "</option>";
+    }
+    echo "</select>";
+    echo '<p class="description">Select the Gemini model to use for content generation.</p>';
 }
 
 

@@ -36,10 +36,12 @@ require_once plugin_dir_path(__FILE__) . 'includes/database.php';
 require_once plugin_dir_path(__FILE__) . 'includes/content-discovery.php';
 require_once plugin_dir_path(__FILE__) . 'includes/city-updates.php';
 require_once plugin_dir_path(__FILE__) . 'includes/content-publication.php';
+require_once plugin_dir_path(__FILE__) . 'includes/ai-content.php';
 require_once plugin_dir_path(__FILE__) . 'includes/rendering-functions.php';
 
 // Hook for adding admin menus
 add_action('admin_menu', 'lr_setup_admin_menu');
+add_action('admin_init', 'lr_update_city_updates_table');
 
 function lr_setup_admin_menu() {
     // Add the top-level menu page
@@ -738,10 +740,14 @@ function lr_virtual_page_controller($posts, $query) {
             if (empty($updates)) {
                 $content .= '<p>No updates found for this city yet.</p>';
             } else {
-                $content .= '<ul>';
+                $content .= '<ul style="list-style: none; padding: 0;">';
                 foreach ($updates as $update) {
                     $update_url = home_url('/' . $country_slug . '/' . $city_slug . '/updates/' . $update->post_slug . '/');
-                    $content .= '<li><a href="' . esc_url($update_url) . '">' . esc_html($update->post_title) . '</a> - <small>' . date('F j, Y', strtotime($update->publish_date)) . '</small></li>';
+                    $content .= '<li style="margin-bottom: 20px;">';
+                    $content .= '<h2><a href="' . esc_url($update_url) . '">' . esc_html($update->post_title) . '</a></h2>';
+                    $content .= '<p>' . esc_html($update->post_summary) . '</p>';
+                    $content .= '<a href="' . esc_url($update_url) . '">Read More &raquo;</a>';
+                    $content .= '</li>';
                 }
                 $content .= '</ul>';
             }
