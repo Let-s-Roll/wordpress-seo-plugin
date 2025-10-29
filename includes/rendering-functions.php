@@ -55,7 +55,7 @@ function lr_render_skater_card($profile) {
 
     $display_name = esc_attr($profile->skateName);
     $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $profile->userId . '/avatar/content/processed?width=250&height=250&quality=75';
-    $placeholder_url = 'https://placehold.co/250x250/e0e0e0/757575?text=Skater';
+    $placeholder_url = plugin_dir_url(__DIR__) . 'icon.png'; // Using the plugin icon as a placeholder
     $skater_url = home_url('/skaters/' . $profile->skateName . '/');
 
     $output = '<div class="lr-grid-item lr-grid-item-skater">';
@@ -81,9 +81,9 @@ function lr_render_event_card($event) {
     $event_url = home_url('/events/' . $event->_id . '/');
     $image_url = 'https://placehold.co/400x240/e0e0e0/757575?text=Event';
 
-    $attachments = lr_fetch_api_data($access_token, 'roll-session/' . $event->_id . '/attachments', []);
-    if (!is_wp_error($attachments) && !empty($attachments)) {
-        $image_url = plugin_dir_url(__DIR__) . 'image-proxy.php?type=event_attachment&id=' . $attachments[0]->_id . '&session_id=' . $event->_id . '&width=400&quality=75';
+    // Use the attachments that were already enriched during discovery.
+    if (!empty($event->attachments[0]->_id)) {
+        $image_url = plugin_dir_url(__DIR__) . 'image-proxy.php?type=event_attachment&id=' . $event->attachments[0]->_id . '&session_id=' . $event->_id . '&width=400&quality=75';
     }
 
     $output = '<div class="lr-grid-item">';
@@ -97,9 +97,9 @@ function lr_render_event_card($event) {
 }
 
 /**
- * Renders a standardized HTML list item for a single session.
+ * Renders a standardized HTML card for a single session.
  */
-function lr_render_session_list_item($session_data) {
+function lr_render_session_card($session_data) {
     if (empty($session_data->sessions[0]->_id) || empty($session_data->userProfiles[0])) return '';
     
     $session = $session_data->sessions[0];
@@ -110,7 +110,7 @@ function lr_render_session_list_item($session_data) {
     $skater_url = home_url('/skaters/' . ($user->skateName ?? $user->userId) . '/');
     $activity_url = home_url('/activity/' . $session->_id . '/');
 
-    $output = '<li class="lr-update-list-item">';
+    $output = '<div class="lr-session-card" style="border: 1px solid #eee; border-radius: 5px; padding: 15px; margin-bottom: 15px;">';
     $output .= '<div style="display: flex; align-items: center; margin-bottom: 10px;">';
     $output .= '<img src="' . esc_url($avatar_url) . '" alt="' . esc_attr($skater_name) . '" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">';
     $output .= '<strong><a href="' . esc_url($skater_url) . '">' . $skater_name . '</a></strong>&nbsp;logged a session:';
@@ -120,7 +120,7 @@ function lr_render_session_list_item($session_data) {
     if (!empty($session->description)) {
         $output .= '<p style="font-style: italic; color: #555; margin-top: 5px;">"' . esc_html(wp_trim_words($session->description, 20, '...')) . '"</p>';
     }
-    $output .= '</div></li>';
+    $output .= '</div></div>';
 
     return $output;
 }

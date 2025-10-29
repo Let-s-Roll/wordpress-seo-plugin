@@ -187,9 +187,11 @@ function lr_generate_fallback_post_content($city_name, $grouped_content, $post_t
         foreach ($grouped_content['review'] as $review) { $post_content .= lr_render_review_card($review); }
     }
     if (!empty($grouped_content['session'])) {
-        $post_content .= '<h2>Latest Sessions</h2><ul>';
-        foreach ($grouped_content['session'] as $session) { $post_content .= lr_render_session_list_item($session); }
-        $post_content .= '</ul>';
+        $post_content .= '<h2>' . esc_html($ai_snippets['sessions_section']['heading'] ?? 'Latest Sessions') . '</h2>';
+        if (!empty($ai_snippets['sessions_section']['intro'])) {
+            $post_content .= '<p>' . esc_html($ai_snippets['sessions_section']['intro']) . '</p>';
+        }
+        foreach ($grouped_content['session'] as $session) { $post_content .= lr_render_session_card($session); }
     }
     return $post_content;
 }
@@ -210,20 +212,18 @@ function lr_run_historical_seeding_for_city($city_slug) {
 
     lr_log_discovery_message("--- Starting Historical Seeding for $city_slug (Frequency: $frequency) ---");
 
-    // 1. Fetch content from the last 6 months only.
-    $six_months_ago = date('Y-m-d H:i:s', strtotime('-6 months'));
-    $all_content_items = $wpdb->get_results($wpdb->prepare(
-        "SELECT * FROM $discovered_table WHERE city_slug = %s AND discovered_at >= %s",
-        $city_slug, $six_months_ago
-    ));
+    // 1. Fetch ALL content for the city. The 6-month filter will be applied in PHP.
+    $all_content_items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $discovered_table WHERE city_slug = %s", $city_slug));
 
     if (empty($all_content_items)) {
-        lr_log_discovery_message("No content found in the last 6 months for $city_slug. Nothing to seed.");
+        lr_log_discovery_message("No content found for $city_slug. Nothing to seed.");
         return;
     }
 
-    // 2. Group content into buckets based on the selected frequency.
+    // 2. Group content into buckets, applying the 6-month filter here.
     $buckets = [];
+    $six_months_ago_ts = strtotime('-6 months');
+
     foreach ($all_content_items as $item) {
         $data = json_decode($item->data_cache);
         $created_at = null;
@@ -234,10 +234,16 @@ function lr_run_historical_seeding_for_city($city_slug) {
             case 'review': $created_at = $data->createdAt ?? null; break;
             case 'session': $created_at = $data->sessions[0]->createdAt ?? null; break;
         }
-        if ($created_at) {
+        
+        if ($created_at && strtotime($created_at) >= $six_months_ago_ts) {
             $key = ($frequency === 'monthly') ? date('Y-m', strtotime($created_at)) : date('o-W', strtotime($created_at));
             $buckets[$key][] = $item;
         }
+    }
+
+    if (empty($buckets)) {
+        lr_log_discovery_message("No content found in the last 6 months for $city_slug. Nothing to seed.");
+        return;
     }
 
     // 3. Generate a post for each bucket.

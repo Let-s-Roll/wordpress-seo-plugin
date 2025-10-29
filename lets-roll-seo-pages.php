@@ -727,6 +727,8 @@ function lr_virtual_page_controller($posts, $query) {
                 $post->post_title = $update_post->post_title;
                 $post->post_content = $update_post->post_content;
                 $post->post_name = $update_post->post_slug;
+                $post->post_date = $update_post->publish_date; // Use the historical publish date
+                $post->post_date_gmt = get_gmt_from_date($update_post->publish_date);
             } else {
                 $query->set_404(); status_header(404); return [];
             }
@@ -736,7 +738,7 @@ function lr_virtual_page_controller($posts, $query) {
             $post->post_title = 'Skate Updates for ' . $city_name;
             
             $updates = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE city_slug = %s ORDER BY publish_date DESC LIMIT 20", $city_slug));
-            $content = '<h1>' . esc_html($post->post_title) . '</h1>';
+            $content = ''; // Remove the H1 from here
             if (empty($updates)) {
                 $content .= '<p>No updates found for this city yet.</p>';
             } else {
@@ -748,6 +750,7 @@ function lr_virtual_page_controller($posts, $query) {
                         $content .= '<img src="' . esc_url($update->featured_image_url) . '" alt="' . esc_attr($update->post_title) . '" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; float: left; margin-right: 20px;">';
                     }
                     $content .= '<h2 style="margin-top: 0;"><a href="' . esc_url($update_url) . '">' . esc_html($update->post_title) . '</a></h2>';
+                    $content .= '<small style="color: #777;">' . date('F j, Y', strtotime($update->publish_date)) . '</small>';
                     $content .= '<p>' . esc_html($update->post_summary) . '</p>';
                     $content .= '<a href="' . esc_url($update_url) . '">Read More &raquo;</a>';
                     $content .= '</li>';

@@ -73,7 +73,7 @@ function lr_build_ai_prompt($content_data) {
             . "    *   `intro`: A slightly longer (1-2 sentence) introductory text for that section.\n"
             . "    *   If a section has no data, return null for its value.\n"
             . "4.  **Generate an Archive Summary:** Write a `post_summary` (1-2 sentences) for use on archive pages. This should also incorporate the `publication_date`.\n"
-            . "5.  **Format the Output:** Return your response as a single, clean JSON object inside a ```json code block. The JSON object must have these exact keys: `post_title`, `top_summary`, `spots_section`, `events_section`, `skaters_section`, `reviews_section`, `post_summary`.\n\n"
+            . "5.  **Format the Output:** Return your response as a single, clean JSON object inside a ```json code block. The JSON object must have these exact keys: `post_title`, `top_summary`, `spots_section`, `events_section`, `skaters_section`, `reviews_section`, `sessions_section`, `post_summary`.\n\n"
             . "**JSON Data:**\n"
             . "```json\n"
             . json_encode($content_data, JSON_PRETTY_PRINT) . "\n"
