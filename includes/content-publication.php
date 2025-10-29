@@ -205,18 +205,25 @@ function lr_run_historical_seeding_for_city($city_slug) {
     global $wpdb;
     $discovered_table = $wpdb->prefix . 'lr_discovered_content';
     $updates_table = $wpdb->prefix . 'lr_city_updates';
+    $options = get_option('lr_options');
+    $frequency = $options['update_frequency'] ?? 'weekly';
 
-    lr_log_discovery_message("--- Starting Historical Seeding for $city_slug ---");
+    lr_log_discovery_message("--- Starting Historical Seeding for $city_slug (Frequency: $frequency) ---");
 
-    $all_content_items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $discovered_table WHERE city_slug = %s", $city_slug));
+    // 1. Fetch content from the last 6 months only.
+    $six_months_ago = date('Y-m-d H:i:s', strtotime('-6 months'));
+    $all_content_items = $wpdb->get_results($wpdb->prepare(
+        "SELECT * FROM $discovered_table WHERE city_slug = %s AND discovered_at >= %s",
+        $city_slug, $six_months_ago
+    ));
 
     if (empty($all_content_items)) {
-        lr_log_discovery_message("No content found for $city_slug. Nothing to seed.");
+        lr_log_discovery_message("No content found in the last 6 months for $city_slug. Nothing to seed.");
         return;
     }
 
-    // Group content into weekly buckets
-    $weekly_buckets = [];
+    // 2. Group content into buckets based on the selected frequency.
+    $buckets = [];
     foreach ($all_content_items as $item) {
         $data = json_decode($item->data_cache);
         $created_at = null;
@@ -228,18 +235,23 @@ function lr_run_historical_seeding_for_city($city_slug) {
             case 'session': $created_at = $data->sessions[0]->createdAt ?? null; break;
         }
         if ($created_at) {
-            $week_key = date('o-W', strtotime($created_at));
-            $weekly_buckets[$week_key][] = $item;
+            $key = ($frequency === 'monthly') ? date('Y-m', strtotime($created_at)) : date('o-W', strtotime($created_at));
+            $buckets[$key][] = $item;
         }
     }
 
-    // Generate a post for each weekly bucket
-    foreach ($weekly_buckets as $week_key => $items) {
-        $year = substr($week_key, 0, 4);
-        $week = substr($week_key, 5, 2);
-        $publish_date = new DateTime();
-        $publish_date->setISODate($year, $week, 7);
-        $publish_date_str = $publish_date->format('Y-m-d H:i:s');
+    // 3. Generate a post for each bucket.
+    foreach ($buckets as $key => $items) {
+        if ($frequency === 'monthly') {
+            $publish_date = new DateTime($key . '-01');
+            $publish_date_str = $publish_date->format('Y-m-t 23:59:59'); // End of the month
+        } else {
+            $year = substr($key, 0, 4);
+            $week = substr($key, 5, 2);
+            $publish_date = new DateTime();
+            $publish_date->setISODate($year, $week, 7); // End of the week
+            $publish_date_str = $publish_date->format('Y-m-d H:i:s');
+        }
 
         $grouped_content = [];
         foreach ($items as $item) {
@@ -249,22 +261,21 @@ function lr_run_historical_seeding_for_city($city_slug) {
         $city_details = lr_get_city_details_by_slug($city_slug);
         $city_name = $city_details['name'] ?? ucfirst($city_slug);
 
-        // --- AI CONTENT "GLUE" ---
         $ai_snippets = lr_prepare_and_get_ai_content($city_name, $grouped_content, $publish_date_str);
         if (is_wp_error($ai_snippets)) {
-            lr_log_discovery_message("AI Error for week $week_key: " . $ai_snippets->get_error_message() . ". Using fallback.");
-            $post_title = $city_name . ' Skate Update: Week of ' . $publish_date->format('F j, Y');
-            $post_summary = 'A summary of skate activity in ' . $city_name . ' for the week of ' . $publish_date->format('F j, Y') . '.';
+            lr_log_discovery_message("AI Error for bucket $key: " . $ai_snippets->get_error_message() . ". Using fallback.");
+            $title_date = ($frequency === 'monthly') ? $publish_date->format('F Y') : 'Week of ' . $publish_date->format('F j, Y');
+            $post_title = $city_name . ' Skate Update: ' . $title_date;
+            $post_summary = 'A summary of skate activity in ' . $city_name . ' for ' . $title_date . '.';
             $ai_snippets = [];
         } else {
             $post_title = $ai_snippets['post_title'];
             $post_summary = $ai_snippets['post_summary'];
         }
-        // --- END AI ---
 
         $post_slug = sanitize_title($post_title);
         $featured_image_url = lr_select_featured_image($grouped_content);
-        $post_content = lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets); // Re-use the fallback renderer
+        $post_content = lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets);
 
         $wpdb->replace(
             $updates_table,
@@ -279,7 +290,7 @@ function lr_run_historical_seeding_for_city($city_slug) {
             ],
             ['%s', '%s', '%s', '%s', '%s', '%s', '%s']
         );
-        lr_log_discovery_message("Generated and saved historical post for week: $week_key");
+        lr_log_discovery_message("Generated and saved historical post for bucket: $key");
     }
     lr_log_discovery_message("--- Finished Historical Seeding for $city_slug ---");
 }

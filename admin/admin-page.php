@@ -69,6 +69,10 @@ function lr_settings_init() {
     add_settings_field('lr_gemini_api_key', 'Gemini API Key', 'lr_gemini_api_key_render', 'lr_options_group', 'lr_api_section');
     add_settings_field('lr_gemini_model', 'AI Model', 'lr_gemini_model_render', 'lr_options_group', 'lr_api_section');
 
+    // New Section for Content Generation
+    add_settings_section('lr_content_section', 'Content Generation', null, 'lr_options_group');
+    add_settings_field('lr_update_frequency', 'Update Frequency', 'lr_update_frequency_render', 'lr_options_group', 'lr_content_section');
+
     // New Section for Testing Mode
     add_settings_section('lr_testing_section', 'Development & Testing', null, 'lr_options_group');
     add_settings_field('lr_testing_mode', 'Testing Mode', 'lr_testing_mode_render', 'lr_options_group', 'lr_testing_section');
@@ -119,6 +123,18 @@ function lr_gemini_model_render() {
     }
     echo "</select>";
     echo '<p class="description">Select the Gemini model to use for content generation.</p>';
+}
+
+function lr_update_frequency_render() {
+    $options = get_option('lr_options');
+    $frequency = $options['update_frequency'] ?? 'weekly';
+    ?>
+    <select name="lr_options[update_frequency]" style="width: 300px;">
+        <option value="weekly" <?php selected($frequency, 'weekly'); ?>>Weekly</option>
+        <option value="monthly" <?php selected($frequency, 'monthly'); ?>>Monthly</option>
+    </select>
+    <p class="description">Select the bucketing frequency for historical seeding and future cron jobs.</p>
+    <?php
 }
 
 
