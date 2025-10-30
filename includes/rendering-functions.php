@@ -55,7 +55,7 @@ function lr_render_skater_card($profile) {
 
     $display_name = esc_attr($profile->skateName);
     $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $profile->userId . '/avatar/content/processed?width=250&height=250&quality=75';
-    $placeholder_url = plugin_dir_url(__DIR__) . 'icon.png'; // Using the plugin icon as a placeholder
+    $placeholder_url = plugin_dir_url(__DIR__) . 'avatar.png';
     $skater_url = home_url('/skaters/' . $profile->skateName . '/');
 
     $output = '<div class="lr-grid-item lr-grid-item-skater">';

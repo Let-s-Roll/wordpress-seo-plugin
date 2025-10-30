@@ -132,6 +132,11 @@ function lr_prepare_and_get_ai_content($city_name, $grouped_content, $publicatio
             return ['spot_name' => $review->spot_name, 'rating' => $review->rating, 'comment' => $review->comment, 'url' => home_url('/spots/' . $review->spot_id)];
         }, $grouped_content['review']);
     }
+    if (!empty($grouped_content['session'])) {
+        $ai_data['sessions'] = array_map(function($session) {
+            return ['name' => $session->sessions[0]->name, 'url' => home_url('/activity/' . $session->sessions[0]->_id)];
+        }, $grouped_content['session']);
+    }
 
     return lr_get_ai_generated_content($ai_data);
 }
