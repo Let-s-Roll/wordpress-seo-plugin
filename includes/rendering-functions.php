@@ -55,12 +55,14 @@ function lr_render_skater_card($profile) {
 
     $display_name = esc_attr($profile->skateName);
     $avatar_url = 'https://beta.web.lets-roll.app/api/user/' . $profile->userId . '/avatar/content/processed?width=250&height=250&quality=75';
-    $placeholder_url = plugin_dir_url(__DIR__) . 'avatar.png';
     $skater_url = home_url('/skaters/' . $profile->skateName . '/');
 
     $output = '<div class="lr-grid-item lr-grid-item-skater">';
     $output .= '<a href="' . esc_url($skater_url) . '">';
-    $output .= '<img src="' . esc_url($avatar_url) . '" onerror="this.onerror=null;this.src=\'' . esc_url($placeholder_url) . '\';" alt="Avatar for ' . $display_name . '" loading="lazy" width="120" height="120" style="width: 120px; height: 120px; border-radius: 50%; margin: 10px auto 0;" />';
+    // Pure CSS fallback: grey circle background will show if image fails to load
+    $output .= '<div style="width: 120px; height: 120px; border-radius: 50%; margin: 10px auto 0; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;">';
+    $output .= '<img src="' . esc_url($avatar_url) . '" alt="Avatar for ' . $display_name . '" loading="lazy" width="120" height="120" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; background-color: transparent;" />';
+    $output .= '</div>'; // Close the div with grey background
     $output .= '<div class="lr-grid-item-content">';
     $output .= '<h4>' . esc_html($profile->skateName) . '</h4>';
     $output .= '</div></a></div>';
