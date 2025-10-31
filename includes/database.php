@@ -39,6 +39,8 @@ function lr_create_discovered_content_table() {
         city_slug varchar(255) NOT NULL,
         post_slug varchar(255) NOT NULL,
         post_title text NOT NULL,
+        post_summary text NOT NULL,
+        featured_image_url text NULL,
         post_content longtext NOT NULL,
         publish_date datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
         PRIMARY KEY  (id),
@@ -52,32 +54,35 @@ function lr_create_discovered_content_table() {
 }
 
 /**
- * Updates the city updates table to include new columns if they don't exist.
- * This is a non-destructive way to update the table structure after the initial creation.
+ * Updates the city updates table to include new columns or modify existing ones.
+ * This is a non-destructive way to update the table structure.
  */
 function lr_update_city_updates_table() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'lr_city_updates';
-    $column_name = 'post_summary';
 
-    // Check if the column already exists
-    $column = $wpdb->get_results($wpdb->prepare(
-        "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s",
-        DB_NAME, $table_name, $column_name
+    // --- Check and fix post_summary column ---
+    $summary_column_info = $wpdb->get_row($wpdb->prepare(
+        "SELECT COLUMN_NAME, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+        DB_NAME, $table_name, 'post_summary'
     ));
 
-    // If the column does not exist, add it.
-    if (empty($column)) {
-        $wpdb->query("ALTER TABLE $table_name ADD $column_name text NOT NULL AFTER post_title");
+    if (empty($summary_column_info)) {
+        // Column doesn't exist, so add it.
+        $wpdb->query("ALTER TABLE $table_name ADD post_summary text NOT NULL AFTER post_title");
     }
 
-    // Add featured_image_url column if it doesn't exist
-    $image_column_name = 'featured_image_url';
-    $image_column = $wpdb->get_results($wpdb->prepare(
-        "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s",
-        DB_NAME, $table_name, $image_column_name
+    // --- Check and fix featured_image_url column ---
+    $image_column_info = $wpdb->get_row($wpdb->prepare(
+        "SELECT COLUMN_NAME, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+        DB_NAME, $table_name, 'featured_image_url'
     ));
-    if (empty($image_column)) {
-        $wpdb->query("ALTER TABLE $table_name ADD $image_column_name text NOT NULL AFTER post_summary");
+
+    if (empty($image_column_info)) {
+        // Column doesn't exist, so add it correctly allowing NULLs.
+        $wpdb->query("ALTER TABLE $table_name ADD featured_image_url text NULL AFTER post_summary");
+    } elseif ($image_column_info->IS_NULLABLE === 'NO') {
+        // Column exists but is incorrectly set to NOT NULL, so modify it.
+        $wpdb->query("ALTER TABLE $table_name MODIFY COLUMN featured_image_url text NULL");
     }
 }

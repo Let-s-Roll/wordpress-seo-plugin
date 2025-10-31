@@ -90,8 +90,7 @@ function lr_generate_city_update_post($city_slug) {
     }
     // --- END AI ---
 
-    $post_slug = sanitize_title($post_title);
-    $featured_image_url = lr_select_featured_image($grouped_content);
+            $post_slug = sanitize_title($post_title) . '-' . $key;    $featured_image_url = lr_select_featured_image($grouped_content);
     
     // --- TEMPLATE RENDERING ---
     $post_content = lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets);
@@ -236,25 +235,48 @@ function lr_run_historical_seeding_for_city($city_slug) {
         return;
     }
 
-    // 2. Group content into buckets, applying the 6-month filter here.
-    $buckets = [];
+    // 2. Group content into buckets using a two-step process for recaps and previews.
+    $recap_buckets = [];
+    $preview_buckets = []; // For events
     $six_months_ago_ts = strtotime('-6 months');
 
     foreach ($all_content_items as $item) {
         $data = json_decode($item->data_cache);
         $created_at = null;
-        switch ($item->content_type) {
-            case 'skater': $created_at = $data->lastOnline ?? null; break;
-            case 'event': $created_at = $data->event->startDate ?? $data->createdAt ?? null; break;
-            case 'spot': $created_at = $data->spotWithAddress->createdAt ?? null; break;
-            case 'review': $created_at = $data->createdAt ?? null; break;
-            case 'session': $created_at = $data->sessions[0]->createdAt ?? null; break;
+
+        if ($item->content_type === 'event') {
+            $created_at = $data->event->startDate ?? $data->createdAt ?? null;
+            if ($created_at && strtotime($created_at) >= $six_months_ago_ts) {
+                if ($frequency === 'monthly') {
+                    $key = date('Y-m', strtotime($created_at . ' -1 month'));
+                } else { // weekly
+                    $key = date('o-W', strtotime($created_at . ' -1 week'));
+                }
+                $preview_buckets[$key][] = $item;
+            }
+        } else {
+            // Standard handling for all other content types (recap)
+            switch ($item->content_type) {
+                case 'skater': $created_at = $data->lastOnline ?? null; break;
+                case 'spot': $created_at = $data->spotWithAddress->createdAt ?? null; break;
+                case 'review': $created_at = $data->createdAt ?? null; break;
+                case 'session': $created_at = $data->sessions[0]->createdAt ?? null; break;
+            }
+            
+            if ($created_at && strtotime($created_at) >= $six_months_ago_ts) {
+                $key = ($frequency === 'monthly') ? date('Y-m', strtotime($created_at)) : date('o-W', strtotime($created_at));
+                $recap_buckets[$key][] = $item;
+            }
         }
-        
-        if ($created_at && strtotime($created_at) >= $six_months_ago_ts) {
-            $key = ($frequency === 'monthly') ? date('Y-m', strtotime($created_at)) : date('o-W', strtotime($created_at));
-            $buckets[$key][] = $item;
+    }
+
+    // Merge the recap and preview buckets to create the final list.
+    $buckets = $recap_buckets;
+    foreach ($preview_buckets as $key => $items) {
+        if (!isset($buckets[$key])) {
+            $buckets[$key] = [];
         }
+        $buckets[$key] = array_merge($buckets[$key], $items);
     }
 
     if (empty($buckets)) {
@@ -295,7 +317,7 @@ function lr_run_historical_seeding_for_city($city_slug) {
             $post_summary = $ai_snippets['post_summary'];
         }
 
-        $post_slug = sanitize_title($post_title);
+        $post_slug = sanitize_title($post_title) . '-' . $key;
         $featured_image_url = lr_select_featured_image($grouped_content);
         $post_content = lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets);
 
