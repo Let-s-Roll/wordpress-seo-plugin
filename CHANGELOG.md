@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.7.0 - (Date)
+
+### ✨ Features & Enhancements
+
+*   **AI-Powered Content Generation:** Implemented a full-featured AI content generation system for city update pages.
+    *   The AI acts as "content glue," generating engaging, SEO-friendly titles, summaries, and section intros that wrap around the visual content cards.
+    *   Includes a robust fallback system that reverts to template-only rendering if the AI call fails, ensuring reliability.
+    *   Adds a new admin setting to select the Gemini AI model, with a dynamic fetch to list available models.
+*   **Flexible Update Frequency:** Adds a global setting to switch content bucketing between **Weekly** and **Monthly**, allowing for better handling of cities with different activity levels.
+*   **Enhanced Visuals & UX:**
+    *   The `/updates/` archive page now has a blog-style layout with a **Featured Image** for each post.
+    *   AI-generated summaries and historical post dates are now displayed on the archive page.
+    *   Sessions are now displayed in a clean, "boxed-in" card format instead of a simple list.
+    *   Historical seeding is now correctly limited to content from the last 6 months.
+
+### 🐛 Bug Fixes
+
+*   **AMP-Compliant Avatar Placeholders:** Implemented a robust, server-side fallback for skater avatars using the image proxy. This fixes the issue where placeholders were not appearing on AMP pages.
+*   **Fixed AI Fatal Error:** Resolved a PHP Parse Error in the AI prompt construction.
+*   **Fixed AI Content Integration:** Corrected multiple bugs to ensure AI-generated text snippets are correctly fetched, parsed, and displayed in the templates.
+
 ## 1.6.0 - (Unreleased)
 
 ### ✨ Enhancements

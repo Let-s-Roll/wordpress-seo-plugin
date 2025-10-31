@@ -104,7 +104,12 @@ function lr_generate_city_update_post($city_slug) {
 }
 
 /**
- * Prepares the data and calls the AI content generation function.
+ * Prepares a clean data structure from discovered content and calls the AI generation function.
+ *
+ * @param string $city_name The name of the city.
+ * @param array $grouped_content The content grouped by type.
+ * @param string $publication_date The date to be used for time context.
+ * @return array|WP_Error An array of AI-generated snippets or a WP_Error on failure.
  */
 function lr_prepare_and_get_ai_content($city_name, $grouped_content, $publication_date) {
     // Prepare a clean data structure for the AI prompt
@@ -142,7 +147,13 @@ function lr_prepare_and_get_ai_content($city_name, $grouped_content, $publicatio
 }
 
 /**
- * Generates the post content using the original template-based method as a fallback.
+ * Generates the post content using a template-based method. Acts as a fallback when AI fails.
+ *
+ * @param string $city_name The name of the city.
+ * @param array $grouped_content The content grouped by type.
+ * @param string $post_title The title of the post.
+ * @param array $ai_snippets (Optional) The AI-generated snippets to inject.
+ * @return string The full HTML content of the post.
  */
 function lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets = []) {
     $post_content = '<style>

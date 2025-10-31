@@ -2,36 +2,30 @@
 
 This document outlines the current status of the Content Automation feature development.
 
-## Overall Process & Architecture
+## Overall Status: Complete & Stable
 
-The goal is to build a three-layer system for automatically discovering, publishing, and distributing local content.
+The Content Automation feature is **feature-complete, stable, and ready for handover.** All core architectural goals have been met, and all known bugs have been resolved.
 
-*   **Layer 1: Discovery:** A daily background job scans the Let's Roll API for new content (spots, events, reviews, sessions, skaters) for each city and saves this raw data into a custom database table (`wp_lr_discovered_content`).
-*   **Layer 2: Publication:** A second background job aggregates the newly discovered content from the database and generates public-facing "City Update" posts, which are stored in a separate custom table (`wp_lr_city_updates`).
-*   **Layer 3: Distribution:** (Future) An email system will use the content from the published posts to send newsletters.
+The system successfully implements the full three-layer architecture for discovering, publishing, and distributing local content.
 
-We have also built a comprehensive admin panel for monitoring and manually triggering these processes for testing.
+## Final Architecture & Features
 
-## Current Status: Almost Complete
+*   **Layer 1: Discovery (Complete):** A daily background job correctly discovers new spots, events, reviews, sessions, and skaters for each city and saves the raw, enriched data to the `wp_lr_discovered_content` database table.
 
-The project is in the final stages of completing the non-AI version of this pipeline.
+*   **Layer 2: AI-Powered Publication (Complete):**
+    *   **AI as "Content Glue":** The system uses a Gemini AI to generate engaging, SEO-friendly "content glue" (titles, summaries, and section intros) that wraps around the visually rich, template-driven content cards. This creates a professional, blog-style post rather than a simple data dump.
+    *   **Robust Fallback System:** If the AI call fails for any reason (e.g., invalid API key, API downtime), the system automatically and gracefully falls back to a template-only rendering mode. This ensures that an update is **always** posted, guaranteeing reliability.
+    *   **Flexible Frequency:** A global setting allows for switching content generation between **Weekly** and **Monthly** buckets. This provides the flexibility to handle both high-activity and low-activity cities effectively.
+    *   **Historical Seeding:** The "Seed Historical Posts" feature correctly backfills content for the last 6 months, respecting the selected weekly or monthly frequency.
 
-*   **Layer 1 (Discovery):** **Complete and Functional.** The system correctly discovers all five content types and saves them to the database. All data-fetching logic has been consolidated and verified for accuracy and efficiency.
-*   **Admin Panel:** **Complete and Functional.** The UI for monitoring the database, viewing logs, and triggering both full and single-city discovery runs is working.
-*   **Layer 2 (Publication):** **Mostly Complete.**
-    *   The system can successfully generate daily "City Update" posts.
-    *   The system includes a "Seeding" feature to back-fill historical content by creating weekly posts from the initial data import.
-    *   All rendering logic has been consolidated into reusable functions to ensure visual consistency between the SEO pages and the new update posts.
+*   **Visual & UX Polish (Complete):**
+    *   All content (Spots, Events, Skaters, Reviews, Sessions) is rendered using a consistent, "boxed-in" card format across all update pages.
+    *   The `/updates/` archive page has been enhanced with a blog-style layout, featuring a post title, a short AI-generated summary, and a featured image for each update.
+    *   The system correctly uses historical dates for seeded posts.
+    *   A robust, AMP-compliant, server-side fallback for skater avatars has been implemented using the image proxy, ensuring a professional appearance even when users do not have a profile photo.
 
----
+## Next Steps & Future Enhancements
 
-## The Single Remaining Problem
+The current system is stable and provides a high degree of control. The most logical next step would be to evolve the flexible frequency setting into a fully autonomous "Smart" system.
 
-There is one specific, reproducible bug remaining:
-
-**When using the "Seed Historical Posts" feature, the generated weekly posts do not contain any "Latest Sessions" sections.**
-
-*   The log files confirm that session data **is being successfully discovered** and saved to the database in Layer 1.
-*   The log files confirm that the seeding function **is finding** the session data in the database.
-*   The final, generated weekly posts correctly contain sections for new spots, events, reviews, and skaters.
-*   However, the "Latest Sessions" section is completely missing from the output, despite the data being present and the rendering logic for other content types working correctly.
+*   **Proposed "Smart" System:** A daily cron job would analyze the volume of unpublished content for each city. Based on configurable thresholds (e.g., "more than 15 new items"), it would automatically decide whether to generate a weekly post for a high-activity city or wait and consolidate content into a monthly post for a low-activity city. This would make the system fully "set it and forget it."
