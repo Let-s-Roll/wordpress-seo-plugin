@@ -203,6 +203,8 @@ function lr_render_review_card($review) {
         $output .= '</div>'; // .lr-review-body
     }
     
+    $output .= '</div></div>'; // .lr-review-box, .lr-review-card
+
     return $output;
 }
 
@@ -225,7 +227,7 @@ function lr_get_latest_city_update($city_slug) {
 }
 
 /**
- * Renders a banner featuring the latest city update post.
+ * Renders a banner featuring the latest city update post on a city page.
  *
  * @param string $country_slug The slug of the country.
  * @param string $city_slug The slug of the city for which to display the latest update.
@@ -264,7 +266,8 @@ function lr_render_latest_city_update_banner($country_slug, $city_slug) {
 }
 
 /**
- * Generates and returns the HTML for breadcrumbs based on the current URL.
+ * Generates and returns the HTML for breadcrumbs based on WordPress query variables.
+ * This function is the central source of truth for all breadcrumbs in the plugin.
  *
  * @return string The breadcrumb HTML.
  */

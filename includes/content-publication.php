@@ -236,6 +236,10 @@ function lr_run_historical_seeding_for_city($city_slug) {
     }
 
     // 2. Group content into buckets using a two-step process for recaps and previews.
+    // This is the core logic for ensuring posts are timely and relevant.
+    // Step A: All "recap" content (spots, reviews, skaters, sessions) is placed into a bucket for the month it was created (e.g., a spot from September goes into the "2025-09" bucket).
+    // Step B: All "preview" content (events) is placed into a bucket for the *previous* month (e.g., an event happening in October goes into the "2025-09" bucket).
+    // This ensures that the post generated at the end of September serves as a preview for October's events, while recapping September's discoveries.
     $recap_buckets = [];
     $preview_buckets = []; // For events
     $six_months_ago_ts = strtotime('-6 months');

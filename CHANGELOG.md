@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.8.0 - 2025-10-31
+
+### ✨ Features & Enhancements
+
+*   **"Latest Update" Banner on City Pages:**
+    *   Displays a prominent banner on each city page featuring the most recent city update post.
+    *   The banner includes the post's featured image, title, summary, a "Read More" link to the full post, and a "See all updates" link to the city's update archive.
+*   **Site-Wide Breadcrumb Navigation:**
+    *   Implemented a new, centralized breadcrumb system for all front-end pages.
+    *   The breadcrumbs correctly start from the `/explore/` page and handle all page types, including country, city, detail pages, and the new city update archives and single posts.
+*   **Improved AI Content Strategy:**
+    *   Enhanced the AI prompt to be more strategic, teaching it to find a "hook" in the content to create more authentic, specific titles.
+    *   The AI now correctly frames posts as a forward-looking guide for the upcoming month while gracefully recapping past discoveries in the summary.
+*   **Correct Event Timing in Updates:**
+    *   Updated the content aggregation logic to treat events as "previews." An event happening in October will now correctly be included in the post generated at the end of September, making the content more timely and useful.
+
+### 🐛 Bug Fixes
+
+*   **Fixed Historical Seeding Duplicates & Missing Posts:**
+    *   Resolved a critical bug where historical seeding would create fewer posts than expected or generate duplicates. This was traced to two issues:
+        1.  **Slug Collisions:** Post slugs are now made unique by appending the date bucket (e.g., `-2025-09`), preventing overwrites.
+        2.  **Database Errors:** The `featured_image_url` column in the `wp_lr_city_updates` table is now correctly set to allow `NULL` values, preventing posts without images from failing to save.
+*   **Resolved Fatal Error on Breadcrumb Implementation:** Fixed a "Cannot redeclare function" fatal error by removing the old, duplicate breadcrumb function from the main plugin file.
+
 ## 1.7.0 - (Date)
 
 ### ✨ Features & Enhancements

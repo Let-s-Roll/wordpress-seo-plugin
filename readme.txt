@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -73,6 +73,14 @@ AMP-Compatible CTA Banner: A dismissible "Install the App" banner that works cor
 Robust Caching Strategy: The plugin is designed to work with caching plugins like W3 Total Cache. By pre-warming the cache (using the caching plugin's sitemap feature), the dynamically generated pages can be served as fast, static HTML files to all users.
 
 == Changelog ==
+
+= 1.8.0 =
+*   **Feature:** "Latest Update" Banner on City Pages. Displays a prominent banner on each city page featuring the most recent city update post, complete with featured image, title, summary, and relevant links.
+*   **Feature:** Site-Wide Breadcrumb Navigation. Implemented a new, centralized breadcrumb system for all front-end pages, correctly rooting all paths from the `/explore/` page.
+*   **Enhancement:** Improved AI Content Strategy. The AI prompt is now more strategic, teaching the AI to find a "hook" in the content to create more authentic, specific titles and to correctly handle mixed-tense (past and future) content.
+*   **Enhancement:** Correct Event Timing in Updates. The content aggregation logic now treats events as "previews," ensuring that a post generated at the end of one month correctly features events for the upcoming month.
+*   **Fix:** Resolved Historical Seeding Bugs. Fixed critical issues where historical seeding would create duplicates or miss posts due to slug collisions and database errors with `NULL` image URLs.
+*   **Fix:** Resolved Fatal Error on Breadcrumb Implementation. Fixed a "Cannot redeclare function" fatal error by removing the old, duplicate breadcrumb function.
 
 = 1.5.0 =
 * FIX(style): Fixed a styling regression where the session list on single spot pages and the meta info box on single activity pages lost their borders and background. The specific CSS rules for these components have been moved to the global stylesheet to ensure they are applied consistently.
