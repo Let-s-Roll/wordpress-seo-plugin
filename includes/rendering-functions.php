@@ -203,7 +203,62 @@ function lr_render_review_card($review) {
         $output .= '</div>'; // .lr-review-body
     }
     
-    $output .= '</div></div>'; // .lr-review-box, .lr-review-card
+    return $output;
+}
+
+/**
+ * Retrieves the single latest city update post for a given city slug.
+ *
+ * @param string $city_slug The slug of the city.
+ * @return object|null The latest city update post object, or null if not found.
+ */
+function lr_get_latest_city_update($city_slug) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'lr_city_updates';
+
+    $query = $wpdb->prepare(
+        "SELECT * FROM $table_name WHERE city_slug = %s ORDER BY publish_date DESC LIMIT 1",
+        $city_slug
+    );
+
+    return $wpdb->get_row($query);
+}
+
+/**
+ * Renders a banner featuring the latest city update post.
+ *
+ * @param string $country_slug The slug of the country.
+ * @param string $city_slug The slug of the city for which to display the latest update.
+ * @return string The HTML for the banner, or an empty string if no update is found.
+ */
+function lr_render_latest_city_update_banner($country_slug, $city_slug) {
+    $latest_update = lr_get_latest_city_update($city_slug);
+
+    if (empty($latest_update)) {
+        return '';
+    }
+
+    // Corrected URLs to include country slug
+    $post_url = home_url('/' . esc_attr($country_slug) . '/' . esc_attr($city_slug) . '/updates/' . esc_attr($latest_update->post_slug) . '/');
+    $all_updates_url = home_url('/' . esc_attr($country_slug) . '/' . esc_attr($city_slug) . '/updates/');
+
+    $output = '';
+
+    // Add featured image if available
+    if (!empty($latest_update->featured_image_url)) {
+        $output .= '<div style="margin-top: 30px; margin-bottom: 20px; text-align: center;">';
+        $output .= '<a href="' . esc_url($post_url) . '">';
+        $output .= '<img src="' . esc_url($latest_update->featured_image_url) . '" alt="' . esc_attr($latest_update->post_title) . '" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" loading="lazy" />';
+        $output .= '</a>';
+        $output .= '</div>';
+    }
+
+    $output .= '<h3 style="margin-top: 20px;">Latest Update: <a href="' . esc_url($post_url) . '">' . esc_html($latest_update->post_title) . '</a></h3>';
+    $output .= '<p>' . esc_html($latest_update->post_summary) . '</p>';
+    $output .= '<p style="text-align: right; margin-top: 15px;">';
+    $output .= '<a href="' . esc_url($post_url) . '">Read More &raquo;</a> | ';
+    $output .= '<a href="' . esc_url($all_updates_url) . '">See all updates &raquo;</a>';
+    $output .= '</p>';
 
     return $output;
 }

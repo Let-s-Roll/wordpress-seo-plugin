@@ -39,6 +39,9 @@ function lr_render_city_page_content($country_slug, $city_slug) {
     else { $output .= '<p>Explore everything the ' . esc_html($city_details['name']) . ' roller skating scene has to offer.</p>'; }
     $output .= '<hr style="margin: 20px 0;">';
 
+    $output .= lr_render_latest_city_update_banner($country_slug, $city_slug);
+    $output .= '<hr style="margin: 20px 0;">';
+
     $render_grid_start = '<div class="lr-grid">';
     $render_grid_end = '</div>';
     $render_view_all = function($url, $text) {
