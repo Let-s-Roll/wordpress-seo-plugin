@@ -262,3 +262,54 @@ function lr_render_latest_city_update_banner($country_slug, $city_slug) {
 
     return $output;
 }
+
+/**
+ * Generates and returns the HTML for breadcrumbs based on the current URL.
+ *
+ * @return string The breadcrumb HTML.
+ */
+function lr_get_breadcrumbs() {
+    global $wpdb;
+    $output = '<div class="lr-breadcrumbs"><a href="' . home_url('/explore/') . '">Explore</a>';
+
+    $country_slug = get_query_var('lr_country');
+    $city_slug = get_query_var('lr_city');
+    $page_type = get_query_var('lr_page_type');
+    $update_feed = get_query_var('lr_update_feed');
+    $update_post_slug = get_query_var('lr_update_post');
+
+    if ($country_slug) {
+        $country_details = lr_get_country_details($country_slug);
+        if ($country_details) {
+            $output .= ' &raquo; <a href="' . home_url('/' . $country_slug . '/') . '">' . esc_html($country_details['name']) . '</a>';
+        }
+    }
+
+    if ($city_slug) {
+        $city_details = lr_get_city_details($country_slug, $city_slug);
+        if ($city_details) {
+            $output .= ' &raquo; <a href="' . home_url('/' . $country_slug . '/' . $city_slug . '/') . '">' . esc_html($city_details['name']) . '</a>';
+        }
+    }
+
+    if ($page_type) {
+        $output .= ' &raquo; <span>' . esc_html(ucfirst(str_replace('-', ' ', $page_type))) . '</span>';
+    }
+
+    if ($update_feed) {
+        $output .= ' &raquo; <span>Updates</span>';
+    }
+
+    if ($update_post_slug) {
+        $table_name = $wpdb->prefix . 'lr_city_updates';
+        $post_title = $wpdb->get_var($wpdb->prepare("SELECT post_title FROM $table_name WHERE post_slug = %s", $update_post_slug));
+        if ($post_title) {
+            $output .= ' &raquo; <a href="' . home_url('/' . $country_slug . '/' . $city_slug . '/updates/') . '">Updates</a>';
+            $output .= ' &raquo; <span>' . esc_html($post_title) . '</span>';
+        }
+    }
+
+    $output .= '</div>';
+    return $output;
+}
+

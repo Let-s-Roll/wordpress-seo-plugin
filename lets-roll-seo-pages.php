@@ -532,41 +532,6 @@ function lr_get_spot_stats_html($spot_details) {
 }
 
 /**
- * Generates and displays breadcrumb navigation for the SEO pages.
- *
- * @return string HTML for the breadcrumbs.
- */
-function lr_get_breadcrumbs() {
-    $breadcrumbs = '<nav class="lr-breadcrumbs">';
-    $breadcrumbs .= '<a href="' . home_url('/explore/') . '">Explore</a>';
-
-    $country_slug = get_query_var('lr_country');
-    $city_slug = get_query_var('lr_city');
-    $page_type = get_query_var('lr_page_type');
-
-    if ($country_slug) {
-        $country_details = lr_get_country_details($country_slug);
-        if ($country_details) {
-            $breadcrumbs .= ' &gt; <a href="' . home_url('/' . $country_slug . '/') . '">' . esc_html($country_details['name']) . '</a>';
-        }
-    }
-
-    if ($city_slug) {
-        $city_details = lr_get_city_details($country_slug, $city_slug);
-        if ($city_details) {
-            $breadcrumbs .= ' &gt; <a href="' . home_url('/' . $country_slug . '/' . $city_slug . '/') . '">' . esc_html($city_details['name']) . '</a>';
-        }
-    }
-
-    if ($page_type) {
-        $breadcrumbs .= ' &gt; <span>' . esc_html(ucfirst($page_type)) . '</span>';
-    }
-
-    $breadcrumbs .= '</nav>';
-    return $breadcrumbs;
-}
-
-/**
  * =================================================================================
  * WordPress Integration (Hooks & Rewrites)
  * =================================================================================
@@ -725,7 +690,7 @@ function lr_virtual_page_controller($posts, $query) {
             $update_post = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE city_slug = %s AND post_slug = %s", $city_slug, $update_post_slug));
             if ($update_post) {
                 $post->post_title = $update_post->post_title;
-                $post->post_content = $update_post->post_content;
+                $post->post_content = lr_get_breadcrumbs() . $update_post->post_content;
                 $post->post_name = $update_post->post_slug;
                 $post->post_date = $update_post->publish_date; // Use the historical publish date
                 $post->post_date_gmt = get_gmt_from_date($update_post->publish_date);
@@ -733,12 +698,12 @@ function lr_virtual_page_controller($posts, $query) {
                 $query->set_404(); status_header(404); return [];
             }
         } elseif ($is_feed) {
-            $city_details = lr_get_city_details_by_slug($city_slug);
+            $city_details = lr_get_city_details($country_slug, $city_slug);
             $city_name = $city_details['name'] ?? ucfirst($city_slug);
             $post->post_title = 'Skate Updates for ' . $city_name;
             
             $updates = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE city_slug = %s ORDER BY publish_date DESC LIMIT 20", $city_slug));
-            $content = ''; // Remove the H1 from here
+            $content = lr_get_breadcrumbs(); // Add breadcrumbs here
             if (empty($updates)) {
                 $content .= '<p>No updates found for this city yet.</p>';
             } else {
