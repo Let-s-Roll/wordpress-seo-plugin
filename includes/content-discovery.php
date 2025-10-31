@@ -51,30 +51,81 @@ function lr_log_discovery_message($message) {
 
 /**
  * Main function to orchestrate the full content discovery process.
+ * Processes cities in batches to prevent timeouts on large datasets.
  */
 function lr_run_content_discovery() {
-    lr_clear_discovery_log_file();
-    lr_log_discovery_message("Starting full content discovery run...");
+    global $wpdb;
+    
+    // Define batch size (e.g., 5 cities per cron run)
+    define('LR_DISCOVERY_BATCH_SIZE', 5);
 
+    // Get all locations (countries and their cities)
     $locations = lr_get_location_data();
     if (empty($locations)) {
         lr_log_discovery_message("ERROR: Could not load location data. Aborting run.");
         return;
     }
 
-    lr_log_discovery_message("Found " . count($locations) . " countries to process.");
-
+    // Flatten the cities into a single array for easier batch processing
+    $all_cities = [];
     foreach ($locations as $country_data) {
-        if (empty($country_data['cities'])) continue;
-
-        foreach ($country_data['cities'] as $city_slug => $city_details) {
-            lr_log_discovery_message("--- Processing city: $city_slug ---");
-            lr_discover_new_content_for_city($city_slug, $city_details);
+        if (!empty($country_data['cities'])) {
+            foreach ($country_data['cities'] as $city_slug => $city_details) {
+                $all_cities[$city_slug] = $city_details;
+            }
         }
     }
-    lr_log_discovery_message("Full content discovery run finished.");
+
+    if (empty($all_cities)) {
+        lr_log_discovery_message("No cities found in location data. Aborting run.");
+        return;
+    }
+
+    $total_cities = count($all_cities);
+    $processed_cities_count = get_option('lr_discovery_batch_progress', 0);
+
+    // If starting a new full run, clear the log and reset progress
+    if ($processed_cities_count === 0) {
+        lr_clear_discovery_log_file();
+        lr_log_discovery_message("Starting full content discovery run...");
+        lr_log_discovery_message("Total cities to process: " . $total_cities);
+    } else {
+        lr_log_discovery_message("Resuming full content discovery run...");
+    }
+
+    $cities_to_process_in_batch = array_slice($all_cities, $processed_cities_count, LR_DISCOVERY_BATCH_SIZE, true);
+
+    if (empty($cities_to_process_in_batch)) {
+        lr_log_discovery_message("All cities processed. Full content discovery run finished.");
+        update_option('lr_discovery_batch_progress', 0); // Reset for next full run
+        return;
+    }
+
+    lr_log_discovery_message("--- Processing batch starting from city " . ($processed_cities_count + 1) . " of " . $total_cities . " ---");
+    foreach ($cities_to_process_in_batch as $city_slug => $city_details) {
+        lr_log_discovery_message("--- Processing city: $city_slug ---");
+        lr_discover_new_content_for_city($city_slug, $city_details);
+        $processed_cities_count++;
+    }
+
+    update_option('lr_discovery_batch_progress', $processed_cities_count);
+
+    if ($processed_cities_count < $total_cities) {
+        lr_log_discovery_message("Batch finished. Rescheduling next batch in 5 minutes.");
+        // Reschedule the cron event to run again in 5 minutes for the next batch
+        wp_schedule_single_event(time() + (5 * MINUTE_IN_SECONDS), 'lr_content_discovery_cron');
+    } else {
+        lr_log_discovery_message("All cities processed. Full content discovery run finished.");
+        update_option('lr_discovery_batch_progress', 0); // Reset for next full run
+    }
 }
 
+/**
+ * Discovers new content (spots, activities, reviews, skaters) for a single city.
+ *
+ * @param string $city_slug The slug of the city.
+ * @param array $city_details The details of the city from merged.json.
+ */
 function lr_discover_new_content_for_city($city_slug, $city_details) {
     $rich_spots = lr_discover_new_spots_and_get_details($city_slug, $city_details);
     lr_discover_new_activities($city_slug, $city_details);
