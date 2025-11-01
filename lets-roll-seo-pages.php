@@ -42,6 +42,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/rendering-functions.php';
 // Hook for adding admin menus
 add_action('admin_menu', 'lr_setup_admin_menu');
 add_action('admin_init', 'lr_update_city_updates_table');
+add_action('admin_init', 'lr_update_discovered_content_table');
 
 function lr_setup_admin_menu() {
     // Add the top-level menu page

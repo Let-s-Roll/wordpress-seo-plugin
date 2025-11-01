@@ -19,8 +19,10 @@ function lr_create_discovered_content_table() {
         city_slug varchar(255) NOT NULL,
         discovered_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
         data_cache longtext NOT NULL,
+        is_published tinyint(1) NOT NULL DEFAULT 0,
         PRIMARY KEY  (id),
-        UNIQUE KEY api_id_type (api_id, content_type)
+        UNIQUE KEY api_id_type (api_id, content_type),
+        KEY is_published (is_published)
     ) $charset_collate;";
 
     // 2. Create the table to track seen skaters
@@ -84,5 +86,24 @@ function lr_update_city_updates_table() {
     } elseif ($image_column_info->IS_NULLABLE === 'NO') {
         // Column exists but is incorrectly set to NOT NULL, so modify it.
         $wpdb->query("ALTER TABLE $table_name MODIFY COLUMN featured_image_url text NULL");
+    }
+}
+
+/**
+ * Adds the is_published column to the discovered content table for existing installations.
+ */
+function lr_update_discovered_content_table() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'lr_discovered_content';
+    $column_name = 'is_published';
+
+    $column_info = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+        DB_NAME, $table_name, $column_name
+    ));
+
+    if (empty($column_info)) {
+        $wpdb->query("ALTER TABLE $table_name ADD $column_name tinyint(1) NOT NULL DEFAULT 0");
+        $wpdb->query("ALTER TABLE $table_name ADD INDEX `is_published` (`is_published`)");
     }
 }

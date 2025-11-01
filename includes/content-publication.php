@@ -20,86 +20,178 @@ add_action('init', function() {
 add_action('lr_publication_cron', 'lr_run_content_publication');
 
 /**
- * Main function to orchestrate the content publication process.
- * It finds discovered content and generates "City Update" posts for it.
+ * Main function to orchestrate the ongoing content publication process.
+ * This function is designed to run daily. It finds all unpublished content,
+ * groups it into completed time buckets (weekly or monthly), and generates
+ * a post for each bucket that is ready.
  */
 function lr_run_content_publication() {
     global $wpdb;
     $discovered_table = $wpdb->prefix . 'lr_discovered_content';
     $updates_table = $wpdb->prefix . 'lr_city_updates';
+    $options = get_option('lr_options');
+    $frequency = $options['update_frequency'] ?? 'weekly';
 
-    // Find all cities that have new content discovered in the last 24 hours.
-    $one_day_ago = date('Y-m-d H:i:s', strtotime('-1 day'));
-    $cities_with_new_content = $wpdb->get_col($wpdb->prepare(
-        "SELECT DISTINCT city_slug FROM $discovered_table WHERE discovered_at >= %s",
-        $one_day_ago
-    ));
+    // 1. Fetch all unpublished recap content and all future events.
+    $unpublished_recap = $wpdb->get_results("SELECT * FROM $discovered_table WHERE is_published = 0 AND content_type != 'event'");
+    $future_events = $wpdb->get_results($wpdb->prepare("SELECT * FROM $discovered_table WHERE content_type = 'event' AND discovered_at >= %s", date('Y-m-d H:i:s', strtotime('-6 months'))));
+    
+    $all_content_items = array_merge($unpublished_recap, $future_events);
 
-    if (empty($cities_with_new_content)) {
-        return; // No new content to publish
+    if (empty($all_content_items)) {
+        lr_log_discovery_message("No new content to publish.");
+        return;
     }
 
-    foreach ($cities_with_new_content as $city_slug) {
-        // In a more robust system, we would queue these as separate jobs.
-        // For now, we'll process them sequentially.
-        lr_generate_city_update_post($city_slug);
+    // 2. Group content into buckets using the same recap/preview logic as the seeder.
+    $recap_buckets = [];
+    $preview_buckets = [];
+
+    foreach ($all_content_items as $item) {
+        $data = json_decode($item->data_cache);
+        $created_at = null;
+
+        if ($item->content_type === 'event') {
+            $created_at = $data->event->startDate ?? $data->createdAt ?? null;
+            if ($created_at) {
+                if ($frequency === 'monthly') {
+                    $key = date('Y-m', strtotime($created_at . ' -1 month'));
+                } else {
+                    $key = date('o-W', strtotime($created_at . ' -1 week'));
+                }
+                $preview_buckets[$key][] = $item;
+            }
+        } else {
+            switch ($item->content_type) {
+                case 'skater': $created_at = $data->lastOnline ?? null; break;
+                case 'spot': $created_at = $data->spotWithAddress->createdAt ?? null; break;
+                case 'review': $created_at = $data->createdAt ?? null; break;
+                case 'session': $created_at = $data->sessions[0]->createdAt ?? null; break;
+            }
+            if ($created_at) {
+                $key = ($frequency === 'monthly') ? date('Y-m', strtotime($created_at)) : date('o-W', strtotime($created_at));
+                $recap_buckets[$key][] = $item;
+            }
+        }
+    }
+
+    $buckets = $recap_buckets;
+    foreach ($preview_buckets as $key => $items) {
+        if (!isset($buckets[$key])) $buckets[$key] = [];
+        $buckets[$key] = array_merge($buckets[$key], $items);
+    }
+
+    if (empty($buckets)) {
+        lr_log_discovery_message("No completed buckets to publish.");
+        return;
+    }
+
+    // 3. Identify which buckets are "complete" and need to be published.
+    $current_monthly_key = date('Y-m');
+    $current_weekly_key = date('o-W');
+
+    foreach ($buckets as $key => $items) {
+        // A bucket is "complete" if its key is from a past time period.
+        $is_complete = ($frequency === 'monthly' && $key < $current_monthly_key) || ($frequency === 'weekly' && $key < $current_weekly_key);
+
+        if ($is_complete) {
+            // Since items can be from different cities, we need to group them by city within the bucket.
+            $cities_in_bucket = [];
+            foreach ($items as $item) {
+                $cities_in_bucket[$item->city_slug][] = $item;
+            }
+
+            foreach ($cities_in_bucket as $city_slug => $city_items) {
+                lr_generate_city_update_post($city_slug, $city_items, $key, $frequency);
+            }
+        }
     }
 }
 
 /**
- * Generates and saves a "City Update" post for a single city.
+ * Generates and saves a "City Update" post for a single city from a given set of items.
  *
  * @param string $city_slug The slug of the city.
+ * @param array $items The content items to include in the post.
+ * @param string $key The bucket key (e.g., '2025-10' or '2025-42').
+ * @param string $frequency The publishing frequency ('weekly' or 'monthly').
  */
-function lr_generate_city_update_post($city_slug) {
+function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
     global $wpdb;
     $discovered_table = $wpdb->prefix . 'lr_discovered_content';
     $updates_table = $wpdb->prefix . 'lr_city_updates';
-    $one_day_ago = date('Y-m-d H:i:s', strtotime('-1 day'));
 
-    lr_log_discovery_message("--- Starting Post Generation for $city_slug ---");
+    lr_log_discovery_message("--- Starting Post Generation for $city_slug (Bucket: $key) ---");
 
-    $new_content_items = $wpdb->get_results($wpdb->prepare(
-        "SELECT * FROM $discovered_table WHERE city_slug = %s AND discovered_at >= %s",
-        $city_slug, $one_day_ago
-    ));
-
-    if (empty($new_content_items)) {
-        lr_log_discovery_message("No new content found. Aborting.");
+    if (empty($items)) {
+        lr_log_discovery_message("No items provided for post generation. Aborting.");
         return;
     }
 
     $grouped_content = [];
-    foreach ($new_content_items as $item) {
+    foreach ($items as $item) {
         $grouped_content[$item->content_type][] = json_decode($item->data_cache);
     }
 
     $city_details = lr_get_city_details_by_slug($city_slug);
     $city_name = $city_details['name'] ?? ucfirst($city_slug);
 
-    // --- AI CONTENT "GLUE" ---
-    $ai_snippets = lr_prepare_and_get_ai_content($city_name, $grouped_content, current_time('mysql'));
+    // Determine the publish date based on the bucket key
+    if ($frequency === 'monthly') {
+        $publish_date = new DateTime($key . '-01');
+        $publish_date_str = $publish_date->format('Y-m-t 23:59:59');
+    } else {
+        $year = substr($key, 0, 4);
+        $week = substr($key, 5, 2);
+        $publish_date = new DateTime();
+        $publish_date->setISODate($year, $week, 7);
+        $publish_date_str = $publish_date->format('Y-m-d H:i:s');
+    }
+
+    $ai_snippets = lr_prepare_and_get_ai_content($city_name, $grouped_content, $publish_date_str);
     if (is_wp_error($ai_snippets)) {
-        lr_log_discovery_message("AI Error: " . $ai_snippets->get_error_message() . ". Using fallback.");
-        $post_title = $city_name . ' Skate Update: ' . date('F j, Y');
-        $post_summary = 'A summary of the latest skate activity in ' . $city_name . '.';
-        $ai_snippets = []; // Ensure snippets are empty for fallback
+        lr_log_discovery_message("AI Error for bucket $key: " . $ai_snippets->get_error_message() . ". Using fallback.");
+        $title_date = ($frequency === 'monthly') ? $publish_date->format('F Y') : 'Week of ' . $publish_date->format('F j, Y');
+        $post_title = $city_name . ' Skate Update: ' . $title_date;
+        $post_summary = 'A summary of skate activity in ' . $city_name . ' for ' . $title_date . '.';
+        $ai_snippets = [];
     } else {
         $post_title = $ai_snippets['post_title'];
         $post_summary = $ai_snippets['post_summary'];
     }
-    // --- END AI ---
 
-            $post_slug = sanitize_title($post_title) . '-' . $key;    $featured_image_url = lr_select_featured_image($grouped_content);
-    
-    // --- TEMPLATE RENDERING ---
+    $post_slug = sanitize_title($post_title) . '-' . $key;
+    $featured_image_url = lr_select_featured_image($grouped_content);
     $post_content = lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets);
 
-    $wpdb->replace( $updates_table,
-        [ 'city_slug' => $city_slug, 'post_slug' => $post_slug, 'post_title' => $post_title, 'post_summary' => $post_summary, 'featured_image_url' => $featured_image_url, 'post_content' => $post_content, 'publish_date' => current_time('mysql') ],
+    $wpdb->replace(
+        $updates_table,
+        [
+            'city_slug'    => $city_slug,
+            'post_slug'    => $post_slug,
+            'post_title'   => $post_title,
+            'post_summary' => $post_summary,
+            'featured_image_url' => $featured_image_url,
+            'post_content' => $post_content,
+            'publish_date' => $publish_date_str,
+        ],
         ['%s', '%s', '%s', '%s', '%s', '%s', '%s']
     );
-    lr_log_discovery_message("Successfully saved post for $city_slug.");
+
+    // After saving the post, mark the recap content as published.
+    $content_ids_to_mark = [];
+    foreach ($items as $item) {
+        if ($item->content_type !== 'event') {
+            $content_ids_to_mark[] = $item->id;
+        }
+    }
+
+    if (!empty($content_ids_to_mark)) {
+        $ids_placeholder = implode(',', array_fill(0, count($content_ids_to_mark), '%d'));
+        $wpdb->query($wpdb->prepare("UPDATE $discovered_table SET is_published = 1 WHERE id IN ($ids_placeholder)", $content_ids_to_mark));
+    }
+
+    lr_log_discovery_message("Successfully generated and saved new post for $city_slug (Bucket: $key).");
 }
 
 /**
@@ -338,6 +430,20 @@ function lr_run_historical_seeding_for_city($city_slug) {
             ],
             ['%s', '%s', '%s', '%s', '%s', '%s', '%s']
         );
+
+        // After saving the post, mark the recap content as published.
+        $content_ids_to_mark = [];
+        foreach ($items as $item) {
+            if ($item->content_type !== 'event') {
+                $content_ids_to_mark[] = $item->id;
+            }
+        }
+
+        if (!empty($content_ids_to_mark)) {
+            $ids_placeholder = implode(',', array_fill(0, count($content_ids_to_mark), '%d'));
+            $wpdb->query($wpdb->prepare("UPDATE $discovered_table SET is_published = 1 WHERE id IN ($ids_placeholder)", $content_ids_to_mark));
+        }
+
         lr_log_discovery_message("Generated and saved historical post for bucket: $key");
     }
     lr_log_discovery_message("--- Finished Historical Seeding for $city_slug ---");

@@ -111,6 +111,12 @@ function lr_render_content_discovery_page() {
                 <?php wp_nonce_field('lr_discovery_actions'); ?>
                 <?php submit_button('Run Full Discovery Now', 'primary', 'lr_run_discovery_now', false); ?>
                 <?php submit_button('Generate City Update Posts', 'secondary', 'lr_run_publication_now', false); ?>
+                <a href="<?php echo plugin_dir_url(__DIR__) . 'seed_all_cities.php'; ?>" 
+                   class="button button-primary" 
+                   target="_blank" 
+                   onclick="return confirm('This will start the historical seeding process for ALL cities. It can take a very long time and should only be run once. Are you sure you want to continue?');">
+                   Seed All Cities (Historical)
+                </a>
                 <p class="description">First, run discovery to find new content. Then, generate the posts for that content.</p>
             </form>
             <hr>
@@ -169,6 +175,9 @@ function lr_render_content_discovery_page() {
             if (!empty($_GET['filter_city'])) {
                 $where_clauses[] = $wpdb->prepare("city_slug = %s", sanitize_text_field($_GET['filter_city']));
             }
+            if (isset($_GET['filter_published']) && $_GET['filter_published'] !== '') {
+                $where_clauses[] = $wpdb->prepare("is_published = %d", intval($_GET['filter_published']));
+            }
             $where_sql = !empty($where_clauses) ? "WHERE " . implode(' AND ', $where_clauses) : '';
 
             $total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_name $where_sql");
@@ -200,6 +209,11 @@ function lr_render_content_discovery_page() {
                  }
                  ?>
             </select>
+            <select name="filter_published">
+                <option value="">All Content</option>
+                <option value="1" <?php selected(($_GET['filter_published'] ?? ''), '1'); ?>>Published</option>
+                <option value="0" <?php selected(($_GET['filter_published'] ?? ''), '0'); ?>>Unpublished</option>
+            </select>
             <?php submit_button('Filter', 'secondary', '', false); ?>
         </form>
 
@@ -211,12 +225,13 @@ function lr_render_content_discovery_page() {
                     <th style="width: 10%;">Type</th>
                     <th style="width: 15%;">City</th>
                     <th>API ID</th>
+                    <th style="width: 10%;">Status</th>
                     <th style="width: 10%;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($log_items)) : ?>
-                    <tr><td colspan="5">No content found for the selected filters.</td></tr>
+                    <tr><td colspan="6">No content found for the selected filters.</td></tr>
                 <?php else : ?>
                     <?php foreach ($log_items as $item) : ?>
                         <tr>
@@ -224,6 +239,7 @@ function lr_render_content_discovery_page() {
                             <td><?php echo esc_html($item->content_type); ?></td>
                             <td><?php echo esc_html($item->city_slug); ?></td>
                             <td><?php echo esc_html($item->api_id); ?></td>
+                            <td><?php echo $item->is_published ? 'Published' : 'Unpublished'; ?></td>
                             <td><a href="#" class="view-data" data-content='<?php echo esc_attr($item->data_cache); ?>'>View Data</a></td>
                         </tr>
                     <?php endforeach; ?>
