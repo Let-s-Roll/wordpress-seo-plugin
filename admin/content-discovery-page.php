@@ -20,6 +20,13 @@ function lr_render_content_discovery_page() {
         }
     }
 
+    if (isset($_POST['lr_seed_all_cities']) && check_admin_referer('lr_discovery_actions')) {
+        // Clear any previous progress and schedule the first batch.
+        delete_option('lr_seeding_batch_progress');
+        wp_schedule_single_event(time(), 'lr_historical_seeding_batch_cron');
+        echo '<div class="notice notice-success is-dismissible"><p>Historical seeding for ALL cities has been started in the background. You can monitor its progress in the log file. This may take a long time to complete.</p></div>';
+    }
+
     if (isset($_POST['lr_run_publication_now']) && check_admin_referer('lr_discovery_actions')) {
         lr_run_content_publication();
         echo '<div class="notice notice-success is-dismissible"><p>Content Publication process has been run. Check the city update pages for new posts.</p></div>';
@@ -111,12 +118,7 @@ function lr_render_content_discovery_page() {
                 <?php wp_nonce_field('lr_discovery_actions'); ?>
                 <?php submit_button('Run Full Discovery Now', 'primary', 'lr_run_discovery_now', false); ?>
                 <?php submit_button('Generate City Update Posts', 'secondary', 'lr_run_publication_now', false); ?>
-                <a href="<?php echo plugin_dir_url(__DIR__) . 'seed_all_cities.php'; ?>" 
-                   class="button button-primary" 
-                   target="_blank" 
-                   onclick="return confirm('This will start the historical seeding process for ALL cities. It can take a very long time and should only be run once. Are you sure you want to continue?');">
-                   Seed All Cities (Historical)
-                </a>
+                <?php submit_button('Seed All Cities (Historical)', 'primary', 'lr_seed_all_cities', false); ?>
                 <p class="description">First, run discovery to find new content. Then, generate the posts for that content.</p>
             </form>
             <hr>

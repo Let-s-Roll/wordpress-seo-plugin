@@ -98,6 +98,7 @@ register_activation_hook(__FILE__, 'lr_activate_brevo_sync_cron');
 register_deactivation_hook(__FILE__, 'lr_deactivate_brevo_sync_cron');
 add_action('lr_brevo_sync_main_event', 'lr_populate_brevo_sync_queue');
 add_action('lr_brevo_sync_worker_event', 'lr_process_brevo_sync_queue');
+add_action('lr_historical_seeding_batch_cron', 'lr_run_historical_seeding_batch');
 
 // Add a custom cron schedule for every 10 minutes.
 add_filter('cron_schedules', 'lr_add_ten_minute_cron_interval');

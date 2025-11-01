@@ -491,12 +491,60 @@ function lr_select_featured_image($grouped_content) {
             }
         }
     }
-    if (!empty($grouped_content['skater'])) {
-        foreach ($grouped_content['skater'] as $skater) {
-            if (!empty($skater->userId)) {
-                return 'https://beta.web.lets-roll.app/api/user/' . $skater->userId . '/avatar/content/processed?width=250&height=250&quality=75';
+        return null;
+    }
+    
+    /**
+     * Processes a batch of cities for historical content seeding.
+     * This function is designed to be called by a cron job and will reschedule itself
+     * until all cities have been processed.
+     */
+    function lr_run_historical_seeding_batch() {
+        define('LR_SEEDING_BATCH_SIZE', 5);
+    
+        // Get all cities flattened into a single array
+        $all_locations = lr_get_location_data();
+        $all_cities = [];
+        if (!empty($all_locations)) {
+            foreach ($all_locations as $country_data) {
+                if (!empty($country_data['cities'])) {
+                    foreach ($country_data['cities'] as $city_slug => $city_details) {
+                        $all_cities[$city_slug] = $city_details['name'];
+                    }
+                }
             }
         }
+    
+        if (empty($all_cities)) {
+            lr_log_discovery_message("ERROR: Could not load location data for historical seeding batch. Aborting.");
+            return;
+        }
+    
+        $total_cities = count($all_cities);
+        $processed_count = get_option('lr_seeding_batch_progress', 0);
+    
+        if ($processed_count >= $total_cities) {
+            lr_log_discovery_message("--- All cities have been seeded. Historical seeding complete. ---");
+            delete_option('lr_seeding_batch_progress');
+            return;
+        }
+    
+        $cities_to_process = array_slice($all_cities, $processed_count, LR_SEEDING_BATCH_SIZE, true);
+    
+        lr_log_discovery_message("--- Seeding Batch Start: Processing cities " . ($processed_count + 1) . " to " . ($processed_count + count($cities_to_process)) . " of " . $total_cities . " ---");
+    
+        foreach ($cities_to_process as $city_slug => $city_name) {
+            lr_log_discovery_message("--- Starting Historical Seeding for $city_slug ---");
+            lr_run_historical_seeding_for_city($city_slug);
+            lr_log_discovery_message("--- Finished Historical Seeding for $city_slug ---");
+            $processed_count++;
+        }
+    
+        update_option('lr_seeding_batch_progress', $processed_count);
+    
+        // Schedule the next batch
+        wp_schedule_single_event(time() + 60, 'lr_historical_seeding_batch_cron');
+        lr_log_discovery_message("--- Seeding Batch End. Next batch scheduled in 1 minute. ---");
     }
-    return null;
-}
+    
+    
