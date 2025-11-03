@@ -72,6 +72,7 @@ function lr_settings_init() {
     // New Section for Content Generation
     add_settings_section('lr_content_section', 'Content Generation', null, 'lr_options_group');
     add_settings_field('lr_update_frequency', 'Update Frequency', 'lr_update_frequency_render', 'lr_options_group', 'lr_content_section');
+    add_settings_field('lr_web_search', 'Web Search Enrichment', 'lr_web_search_render', 'lr_options_group', 'lr_content_section');
 
     // New Section for Testing Mode
     add_settings_section('lr_testing_section', 'Development & Testing', null, 'lr_options_group');
@@ -135,6 +136,13 @@ function lr_update_frequency_render() {
     </select>
     <p class="description">Select the bucketing frequency for historical seeding and future cron jobs.</p>
     <?php
+}
+
+function lr_web_search_render() {
+    $options = get_option('lr_options');
+    $checked = isset($options['enable_web_search']) && $options['enable_web_search'] === '1' ? 'checked' : '';
+    echo "<input type='checkbox' name='lr_options[enable_web_search]' value='1' " . $checked . ">";
+    echo '<p class="description">When enabled, the AI will perform a Google search to find relevant news and events to enrich the content of city update posts.</p>';
 }
 
 

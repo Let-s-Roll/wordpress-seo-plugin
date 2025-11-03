@@ -203,35 +203,61 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
  * @return array|WP_Error An array of AI-generated snippets or a WP_Error on failure.
  */
 function lr_prepare_and_get_ai_content($city_name, $grouped_content, $publication_date) {
+    $options = get_option('lr_options');
+
     // Prepare a clean data structure for the AI prompt
     $ai_data = [
         'city_name' => $city_name,
         'publication_date' => $publication_date,
+        'internal_data' => [], // Use a sub-array for our data
     ];
+
     if (!empty($grouped_content['spot'])) {
-        $ai_data['spots'] = array_map(function($spot) {
+        $ai_data['internal_data']['spots'] = array_map(function($spot) {
             return ['name' => $spot->spotWithAddress->name, 'url' => home_url('/spots/' . $spot->spotWithAddress->_id)];
         }, $grouped_content['spot']);
     }
     if (!empty($grouped_content['event'])) {
-        $ai_data['events'] = array_map(function($event) {
+        $ai_data['internal_data']['events'] = array_map(function($event) {
             return ['name' => $event->name, 'url' => home_url('/events/' . $event->_id)];
         }, $grouped_content['event']);
     }
     if (!empty($grouped_content['skater'])) {
-        $ai_data['skaters'] = array_map(function($skater) {
+        $ai_data['internal_data']['skaters'] = array_map(function($skater) {
             return ['name' => $skater->skateName, 'url' => home_url('/skaters/' . $skater->skateName)];
         }, $grouped_content['skater']);
     }
     if (!empty($grouped_content['review'])) {
-        $ai_data['reviews'] = array_map(function($review) {
+        $ai_data['internal_data']['reviews'] = array_map(function($review) {
             return ['spot_name' => $review->spot_name, 'rating' => $review->rating, 'comment' => $review->comment, 'url' => home_url('/spots/' . $review->spot_id)];
         }, $grouped_content['review']);
     }
     if (!empty($grouped_content['session'])) {
-        $ai_data['sessions'] = array_map(function($session) {
+        $ai_data['internal_data']['sessions'] = array_map(function($session) {
             return ['name' => $session->sessions[0]->name, 'url' => home_url('/activity/' . $session->sessions[0]->_id)];
         }, $grouped_content['session']);
+    }
+
+    // --- Web Search Enrichment (Conditional) ---
+    if (!empty($options['enable_web_search'])) {
+        $month = date('F', strtotime($publication_date));
+        $year = date('Y', strtotime($publication_date));
+        $query = '"roller skating news" OR "inline skating events" in "' . $city_name . '" for ' . $month . ' ' . $year;
+        
+        // Use a transient to cache the search results for a day to avoid repeated searches.
+        $transient_key = 'lr_web_search_' . md5($query);
+        $cached_search = get_transient($transient_key);
+
+        if (false === $cached_search) {
+            $search_results = lr_google_web_search($query); // Assuming lr_google_web_search is a wrapper for the tool
+            set_transient($transient_key, $search_results, DAY_IN_SECONDS);
+        } else {
+            $search_results = $cached_search;
+        }
+
+        if (!is_wp_error($search_results) && !empty($search_results)) {
+            $ai_data['external_data'] = $search_results;
+        }
     }
 
     return lr_get_ai_generated_content($ai_data);
@@ -544,7 +570,7 @@ function lr_select_featured_image($grouped_content) {
     
         // Schedule the next batch
         wp_schedule_single_event(time() + 60, 'lr_historical_seeding_batch_cron');
-        lr_log_discovery_message("--- Seeding Batch End. Next batch scheduled in 1 minute. ---");
-    }
-    
-    
+            lr_log_discovery_message("--- Seeding Batch End. Next batch scheduled in 1 minute. ---");
+        }
+        
+            

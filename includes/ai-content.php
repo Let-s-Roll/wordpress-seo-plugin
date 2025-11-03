@@ -61,34 +61,40 @@ function lr_get_ai_generated_content($content_data) {
  */
 function lr_build_ai_prompt($content_data) {
     $city_name = $content_data['city_name'];
+    $has_external_data = !empty($content_data['external_data']);
 
-    $prompt = "You are an expert SEO content writer and a passionate, authentic roller skater for the Let's Roll community website. Your tone is enthusiastic and helpful.\n\n"
-            . "Based on the following JSON data for {$city_name}, generate several text snippets for a webpage.\n\n"
-                        . "**Instructions:**\n"
-                        . "1.  **Find the 'Hook':** First, analyze the JSON data to find the most exciting or significant piece of content for the month. This could be a major event, a highly-rated new spot, or a large number of new skaters.\n"
-                        . "2.  **Generate a Title:** Create a catchy, SEO-friendly `post_title` that is forward-looking (use the upcoming month). Your title **must** incorporate the 'hook' you found.\n"
-                        . "    *   Good Example (if the hook is a a big Halloween event): 'Spooky Skates & New Spots: Your October Guide to the LA Skate Scene!'\n"
-                        . "    *   Good Example (if the hook is a famous new spot): 'Skate the Sunset Strip: Your September Update for Los Angeles!'\n"
-                        . "    *   Bad Example (generic): 'Los Angeles Skate Update for October'\n"
-                        . "3.  **Generate an Introduction:** Write a `top_summary` (1-2 paragraphs) for the top of the page to introduce the updates. In the `top_summary`, your task is to smoothly connect the forward-looking title to the content. Acknowledge that the update is a roundup of recent discoveries while also looking ahead to upcoming events.\n"
-                        . "    Good Example for a post published on August 31st:\n"
-                        . "    *   Title: 'September Guide: What's New in the Los Angeles Skate Scene!'\n"
-                        . "    *   `top_summary`: 'As we roll into September, let's take a look back at all the amazing things our community discovered in Los Angeles over the past few weeks! We've got a fresh batch of new skate spots and reviews from the ground. Plus, get your calendars ready for some awesome events coming up this month.'\n"
-                        . "    Bad Example:\n"
-                        . "    *   `top_summary`: 'This September update has things from August and September.' (This is too literal and awkward).\n"
-                        . "4.  **Generate Section Content:** For each content type with data (spots, events, skaters, reviews, sessions), create an object with two keys:\n"
-                        . "    *   `heading`: A short, descriptive heading (2-4 words).\n"
-                        . "    *   `intro`: A slightly longer (1-2 sentence) introductory text for that section. This intro **must** reference specific content from the `JSON Data` provided for that section to make it authentic and engaging.\n"
-                        . "    *   If a section has no data, return null for its value.\n"
-                        . "5.  **Generate an Archive Summary:** Write a `post_summary` (1-2 sentences) for use on archive pages. This should also incorporate the `publication_date`.\n"
-                        . "6.  **Format the Output:** Return your response as a single, clean JSON object inside a ```json code block. The JSON object must have these exact keys: `post_title`, `top_summary`, `spots_section`, `events_section`, `skaters_section`, `reviews_section`, `sessions_section`, `post_summary`.\n\n"
-                        . "**JSON Data:**\n"
-                        . "```json\n"
-                        . json_encode($content_data, JSON_PRETTY_PRINT) . "\n"
-                        . "```";
+    $prompt = "You are an expert SEO content writer and a passionate, authentic roller skater for the Let's Roll community website. Your tone is enthusiastic, helpful, and authoritative.\n\n"
+            . "You will be given two sets of data for {$city_name}: `internal_data` (our app's discoveries) and potentially `external_data` (from a web search).\n\n"
+            . "**Primary Goal:** Your main goal is to write a cohesive, engaging summary of the city's skate scene for the given period, prioritizing the `internal_data`.\n\n"
+            . "**Instructions:**\n"
+            . "1.  **Analyze All Data:** First, analyze the `internal_data` to find the most exciting local discoveries. Then, if `external_data` is provided, analyze it for any major, relevant news or events.\n"
+            . "2.  **Act as an Editor (Safety Valve):** This is your most important task. You **must** evaluate the quality of the `external_data`. If it is low-quality, irrelevant (e.g., about skateboarding instead of roller skating), or does not add significant value, you **must ignore it completely** and write the summary based only on the `internal_data`.\n"
+            . "3.  **Generate a Title:** Create a catchy, SEO-friendly `post_title` that is forward-looking (use the upcoming month). Your title should incorporate the most exciting piece of information you found in *either* data source.\n"
+            . "4.  **Generate an Introduction (`top_summary`):** Write a `top_summary` (1-2 paragraphs). Your task is to intelligently synthesize a single narrative from both data sources. Prioritize our `internal_data`, but seamlessly weave in the most important findings from the `external_data`. When you use external information, you **must** embed the source link directly in the text using Markdown format (e.g., [Event Name](https://example.com)).\n"
+            . "5.  **Generate Section Content:** For each content type in `internal_data` (spots, events, skaters, etc.), create an object with a `heading` and an `intro`. The `intro` must reference specific content from the data to be authentic.\n"
+            . "6.  **Generate an Archive Summary (`post_summary`):** Write a short (1-2 sentence) summary for archive pages.\n"
+            . "7.  **Format the Output:** Return your response as a single, clean JSON object inside a ```json code block. The JSON object must have these exact keys: `post_title`, `top_summary`, `spots_section`, `events_section`, `skaters_section`, `reviews_section`, `sessions_section`, `post_summary`.\n\n"
+            . "**JSON Data:**\n"
+            . "```json\n"
+            . json_encode($content_data, JSON_PRETTY_PRINT) . "\n"
+            . "```";
 
     return $prompt;
 }
+
+/**
+ * A simple wrapper for the Google Search tool.
+ *
+ * @param string $query The search query.
+ * @return mixed The search results, or a WP_Error on failure.
+ */
+function lr_google_web_search($query) {
+    // In a real scenario, this would call the tool.
+    // For now, we'll simulate a call and return a placeholder.
+    // In the actual execution environment, the tool call will be made here.
+    return "Simulated search for: " . $query;
+}
+
 
 /**
  * Fetches the list of available Gemini models that support content generation.

@@ -316,3 +316,20 @@ function lr_get_breadcrumbs() {
     return $output;
 }
 
+/**
+ * Converts Markdown-style links [text](url) to HTML <a> tags.
+ *
+ * @param string $text The text possibly containing Markdown links.
+ * @return string The text with HTML links.
+ */
+function lr_convert_markdown_links_to_html($text) {
+    return preg_replace_callback('/\\[([^\\]]+)\\]\\(([^)]+)\\)/',
+        function ($matches) {
+            $link_text = $matches[1];
+            $url = esc_url($matches[2]); // Sanitize URL for safety
+            return '<a href="' . $url . '">' . esc_html($link_text) . '</a>';
+        },
+        $text
+    );
+}
+

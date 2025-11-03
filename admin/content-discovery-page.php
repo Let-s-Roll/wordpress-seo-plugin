@@ -161,6 +161,54 @@ function lr_render_content_discovery_page() {
             </form>
         </div>
 
+        <!-- Generated City Update Posts -->
+        <h2 style="margin-top: 40px;">Generated City Update Posts</h2>
+        <p>This table shows all the city update posts that have been generated and saved to the database.</p>
+        <?php
+            $updates_table_name = $wpdb->prefix . 'lr_city_updates';
+            $generated_posts = $wpdb->get_results("SELECT * FROM $updates_table_name ORDER BY publish_date DESC");
+
+            // Create a lookup map for city_slug -> country_slug for efficient URL generation
+            $city_to_country_map = [];
+            if (!empty($all_locations)) {
+                foreach ($all_locations as $country_slug => $country_data) {
+                    if (!empty($country_data['cities'])) {
+                        foreach ($country_data['cities'] as $city_slug_key => $city_details) {
+                            $city_to_country_map[$city_slug_key] = $country_slug;
+                        }
+                    }
+                }
+            }
+        ?>
+        <table class="wp-list-table widefat fixed striped">
+            <thead>
+                <tr>
+                    <th style="width: 20%;">Publish Date</th>
+                    <th>Post Title</th>
+                    <th style="width: 20%;">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($generated_posts)) : ?>
+                    <tr><td colspan="3">No city update posts have been generated yet.</td></tr>
+                <?php else : ?>
+                    <?php foreach ($generated_posts as $post) : ?>
+                        <?php
+                            $country_slug = $city_to_country_map[$post->city_slug] ?? '';
+                            $post_url = home_url('/' . $country_slug . '/' . $post->city_slug . '/updates/' . $post->post_slug . '/');
+                            $city_details = lr_get_city_details_by_slug($post->city_slug);
+                            $city_name = $city_details['name'] ?? ucfirst($post->city_slug);
+                        ?>
+                        <tr>
+                            <td><?php echo esc_html(date('F j, Y', strtotime($post->publish_date))); ?></td>
+                            <td><a href="<?php echo esc_url($post_url); ?>" target="_blank"><?php echo esc_html($post->post_title); ?></a></td>
+                            <td><?php echo esc_html($city_name); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+
         <!-- The Discovered Content DB Log -->
         <h2 style="margin-top: 40px;">Discovered Content Database</h2>
         <p>This table shows all unique content items discovered over time. The log file above is cleared on each run; this database is permanent.</p>

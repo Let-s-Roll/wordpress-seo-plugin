@@ -692,7 +692,7 @@ function lr_virtual_page_controller($posts, $query) {
             $update_post = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE city_slug = %s AND post_slug = %s", $city_slug, $update_post_slug));
             if ($update_post) {
                 $post->post_title = $update_post->post_title;
-                $post->post_content = lr_get_breadcrumbs() . $update_post->post_content;
+                $post->post_content = lr_get_breadcrumbs() . lr_convert_markdown_links_to_html($update_post->post_content);
                 $post->post_name = $update_post->post_slug;
                 $post->post_date = $update_post->publish_date; // Use the historical publish date
                 $post->post_date_gmt = get_gmt_from_date($update_post->publish_date);
