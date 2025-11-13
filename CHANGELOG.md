@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.9.0 - 2025-11-13
+
+### ✨ Features & Enhancements
+
+*   **High-Quality External Links via Google Custom Search API:**
+    *   Implemented a new link verification system that uses the Google Custom Search API to replace low-quality, AI-generated URLs (e.g., from aggregator sites) with authoritative, primary sources.
+    *   Added two new WordPress options, `google_search_api_key` and `google_search_engine_id`, to the "Let's Roll SEO Settings" page to power this feature.
+    *   The system intelligently parses Markdown links from all AI-generated text snippets, queries the Google API for a better URL, and replaces it before the post is saved.
+
+### 🐛 Bug Fixes
+
+*   **Fixed AI Content Rendering:** Resolved a critical bug where AI-generated content (summaries and section intros) was not appearing on the front end. This was traced to two issues:
+    1.  **Incorrect HTML Sanitization:** Replaced `esc_html()` with `wp_kses_post()` for AI-generated content to ensure that safe HTML tags (like `<a href="...">`) are preserved while still protecting against malicious code.
+    2.  **Pass-by-Reference Error:** Corrected a pass-by-reference logic error in the link verification loop. The modified text with corrected links is now explicitly re-assigned back to the main content array, ensuring the changes are not lost before rendering.
+*   **Resolved Fatal Error on Function Redeclaration:** Fixed a fatal error ("Cannot redeclare lr_convert_markdown_links_to_html()") by removing a duplicate function declaration that was incorrectly added to `includes/content-publication.php`.
+
+### 🛠 Under the Hood
+
+*   **Unified Post Generation Logic:** Refactored the historical seeder (`lr_run_historical_seeding_for_city`) to use the main `lr_generate_city_update_post` function. This removes duplicate code and ensures that all posts, whether generated historically or by the live cron, use the same consistent logic, including the new link verification step.
+*   **Improved Diagnostic Logging:** Added extensive, detailed logging throughout the content generation and link verification process to provide clear visibility for future debugging.
+
 ## 1.8.0 - 2025-10-31
 
 ### ✨ Features & Enhancements

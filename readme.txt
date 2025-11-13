@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -57,6 +57,7 @@ Upload the lets-roll-seo-pages folder to the /wp-content/plugins/ directory.
 Activate the plugin through the 'Plugins' menu in WordPress.
 Navigate to Settings -> Let's Roll SEO.
 Enter your API Email and Password.
+Enter your Google Custom Search API Key and Search Engine ID.
 Paste your comprehensive locations data into the "Locations JSON" text area.
 Click "Save Settings".
 Navigate to Settings -> Permalinks and click "Save Changes". This is a critical step that saves the plugin's custom URL rules to the database. This must be done every time the plugin is activated or the locations data is significantly changed.
@@ -73,6 +74,11 @@ AMP-Compatible CTA Banner: A dismissible "Install the App" banner that works cor
 Robust Caching Strategy: The plugin is designed to work with caching plugins like W3 Total Cache. By pre-warming the cache (using the caching plugin's sitemap feature), the dynamically generated pages can be served as fast, static HTML files to all users.
 
 == Changelog ==
+
+= 1.9.0 =
+*   **Feature:** High-Quality External Links via Google Custom Search API. Implemented a new link verification system that uses the Google Custom Search API to replace low-quality, AI-generated URLs with authoritative, primary sources.
+*   **Fix:** Resolved AI Content Rendering Bug. Corrected a critical bug where AI-generated content was not appearing on the front end due to issues with HTML sanitization and a pass-by-reference error in the link verification loop.
+*   **Refactor:** Unified Post Generation Logic. Refactored the historical seeder to use the main post generation function, ensuring all posts (historical and live) are created with the same consistent logic, including the new link verification step.
 
 = 1.8.0 =
 *   **Feature:** "Latest Update" Banner on City Pages. Displays a prominent banner on each city page featuring the most recent city update post, complete with featured image, title, summary, and relevant links.
