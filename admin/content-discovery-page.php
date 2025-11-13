@@ -209,6 +209,13 @@ function lr_render_content_discovery_page() {
             </tbody>
         </table>
 
+        <div style="margin-top: 10px;">
+            <form method="post" action="">
+                <?php wp_nonce_field('lr_discovery_actions'); ?>
+                <?php submit_button('Clear All Generated Posts', 'delete', 'lr_clear_update_posts', false); ?>
+            </form>
+        </div>
+
         <!-- The Discovered Content DB Log -->
         <h2 style="margin-top: 40px;">Discovered Content Database</h2>
         <p>This table shows all unique content items discovered over time. The log file above is cleared on each run; this database is permanent.</p>

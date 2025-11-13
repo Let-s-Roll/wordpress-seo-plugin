@@ -68,6 +68,8 @@ function lr_settings_init() {
     add_settings_field('lr_api_pass', 'API Password', 'lr_api_pass_render', 'lr_options_group', 'lr_api_section');
     add_settings_field('lr_gemini_api_key', 'Gemini API Key', 'lr_gemini_api_key_render', 'lr_options_group', 'lr_api_section');
     add_settings_field('lr_gemini_model', 'AI Model', 'lr_gemini_model_render', 'lr_options_group', 'lr_api_section');
+    add_settings_field('lr_google_search_api_key', 'Google Search API Key', 'lr_google_search_api_key_render', 'lr_options_group', 'lr_api_section');
+    add_settings_field('lr_google_search_engine_id', 'Google Search Engine ID', 'lr_google_search_engine_id_render', 'lr_options_group', 'lr_api_section');
 
     // New Section for Content Generation
     add_settings_section('lr_content_section', 'Content Generation', null, 'lr_options_group');
@@ -124,6 +126,18 @@ function lr_gemini_model_render() {
     }
     echo "</select>";
     echo '<p class="description">Select the Gemini model to use for content generation.</p>';
+}
+
+function lr_google_search_api_key_render() {
+    $options = get_option('lr_options');
+    echo "<input type='password' name='lr_options[google_search_api_key]' value='" . esc_attr($options['google_search_api_key'] ?? '') . "' style='width: 300px;'>";
+    echo '<p class="description">Enter your API key for the Google Custom Search API.</p>';
+}
+
+function lr_google_search_engine_id_render() {
+    $options = get_option('lr_options');
+    echo "<input type='text' name='lr_options[google_search_engine_id]' value='" . esc_attr($options['google_search_engine_id'] ?? '') . "' style='width: 300px;'>";
+    echo '<p class="description">Enter your Google Custom Search Engine ID (CX).</p>';
 }
 
 function lr_update_frequency_render() {

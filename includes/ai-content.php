@@ -181,3 +181,44 @@ function lr_get_gemini_models($api_key) {
 
     return $supported_models;
 }
+
+/**
+ * Verifies a link using the Google Custom Search API.
+ *
+ * @param string $link_text The text of the link to verify (e.g., "Sparkle and Skate Night").
+ * @param string $city_name The city for context (e.g., "San Francisco").
+ * @return string|WP_Error The corrected URL or a WP_Error on failure.
+ */
+function lr_verify_link_with_google_search($link_text, $city_name) {
+    $options = get_option('lr_options');
+    lr_log_discovery_message("DEBUG: lr_verify_link_with_google_search options: " . json_encode($options));
+    $api_key = $options['google_search_api_key'] ?? '';
+    $engine_id = $options['google_search_engine_id'] ?? '';
+
+    if (empty($api_key) || empty($engine_id)) {
+        return new WP_Error('misconfigured', 'Google Custom Search API is not configured.');
+    }
+
+    $query = rawurlencode("\"{$link_text}\" {$city_name}");
+    $api_url = "https://www.googleapis.com/customsearch/v1?key={$api_key}&cx={$engine_id}&q={$query}";
+
+    $response = wp_remote_get($api_url, ['timeout' => 30]);
+
+    if (is_wp_error($response)) {
+        return $response;
+    }
+
+    $response_body = wp_remote_retrieve_body($response);
+    $data = json_decode($response_body, true);
+
+    if (isset($data['error'])) {
+        return new WP_Error('google_search_error', $data['error']['message']);
+    }
+
+    if (empty($data['items'][0]['link'])) {
+        return new WP_Error('no_results', 'No results found for the search query.');
+    }
+
+    return $data['items'][0]['link'];
+}
+

@@ -158,6 +158,55 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
     } else {
         $post_title = $ai_snippets['post_title'];
         $post_summary = $ai_snippets['post_summary'];
+
+        // --- Link Verification Step ---
+        lr_log_discovery_message("DEBUG: Raw AI snippets received: " . json_encode($ai_snippets, JSON_PRETTY_PRINT));
+
+        // Iterate over all AI snippets that might contain Markdown links.
+        $snippets_to_check = ['top_summary', 'spots_section', 'events_section', 'skaters_section', 'reviews_section', 'sessions_section'];
+        foreach ($snippets_to_check as $key) {
+            if (isset($ai_snippets[$key])) {
+                lr_log_discovery_message("DEBUG: Checking snippet key '{$key}' for links.");
+                // Handle both single string snippets and array snippets with an 'intro' key.
+                $text_to_process = '';
+                if (is_array($ai_snippets[$key]) && isset($ai_snippets[$key]['intro'])) {
+                    $text_to_process = $ai_snippets[$key]['intro'];
+                } elseif (is_string($ai_snippets[$key])) {
+                    $text_to_process = $ai_snippets[$key];
+                }
+
+                if (!empty($text_to_process)) {
+                    lr_log_discovery_message("DEBUG: Content for '{$key}': " . $text_to_process);
+                    preg_match_all('/\[([^\]]+)\]\(([^)]+)\)/', $text_to_process, $matches, PREG_SET_ORDER);
+                    
+                    $modified_text = $text_to_process;
+                    foreach ($matches as $match) {
+                        $link_text = $match[1];
+                        $original_url = $match[2];
+                        
+                        lr_log_discovery_message("Verifying link for '{$link_text}' in {$city_name}. Original URL: {$original_url}");
+
+                        $verified_url = lr_verify_link_with_google_search($link_text, $city_name);
+
+                        if (!is_wp_error($verified_url) && $verified_url !== $original_url) {
+                            lr_log_discovery_message("URL replaced via Google Custom Search API. New URL: {$verified_url}");
+                            $modified_text = str_replace($original_url, $verified_url, $modified_text);
+                        } elseif (is_wp_error($verified_url)) {
+                            lr_log_discovery_message("Failed to verify link for '{$link_text}' in {$city_name}: " . $verified_url->get_error_message());
+                        }
+                    }
+
+                    // Explicitly re-assign the modified text back to the array.
+                    if (is_array($ai_snippets[$key]) && isset($ai_snippets[$key]['intro'])) {
+                        $ai_snippets[$key]['intro'] = $modified_text;
+                    } elseif (is_string($ai_snippets[$key])) {
+                        $ai_snippets[$key] = $modified_text;
+                    }
+                }
+            }
+        }
+        // --- End Link Verification ---
+        lr_log_discovery_message("DEBUG: Final AI snippets before rendering: " . json_encode($ai_snippets, JSON_PRETTY_PRINT));
     }
 
     $post_slug = sanitize_title($post_title) . '-' . $key;
@@ -236,8 +285,9 @@ function lr_prepare_and_get_ai_content($city_name, $grouped_content, $publicatio
     }
 
     // --- STEP 2: The "Writer" ---
-    // The main AI function now receives the combined data
-    return lr_get_ai_generated_content($ai_data);
+    $ai_output = lr_get_ai_generated_content($ai_data);
+    lr_log_discovery_message("DEBUG: lr_prepare_and_get_ai_content returning: " . (is_wp_error($ai_output) ? $ai_output->get_error_message() : json_encode($ai_output, JSON_PRETTY_PRINT)));
+    return $ai_output;
 }
 
 /**
@@ -250,6 +300,7 @@ function lr_prepare_and_get_ai_content($city_name, $grouped_content, $publicatio
  * @return string The full HTML content of the post.
  */
 function lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets = []) {
+    lr_log_discovery_message("DEBUG: Inside lr_generate_fallback_post_content. AI snippets received: " . json_encode($ai_snippets, JSON_PRETTY_PRINT));
     $post_content = '<style>
         .lr-update-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 15px; }
         .lr-grid-item, .lr-grid-item-skater, .lr-update-item { border: 1px solid #eee; border-radius: 5px; overflow: hidden; text-align: center; }
@@ -257,7 +308,7 @@ function lr_generate_fallback_post_content($city_name, $grouped_content, $post_t
     
     // Use the AI-generated summary at the top of the post, and remove the duplicate H1 title.
     if (!empty($ai_snippets['top_summary'])) {
-        $post_content .= '<p>' . esc_html($ai_snippets['top_summary']) . '</p>';
+        $post_content .= '<p>' . wp_kses_post(lr_convert_markdown_links_to_html($ai_snippets['top_summary'])) . '</p>';
     } else {
         $post_content .= '<p>Here are the latest updates from the ' . esc_html($city_name) . ' skate scene.</p>';
     }
@@ -265,7 +316,7 @@ function lr_generate_fallback_post_content($city_name, $grouped_content, $post_t
     if (!empty($grouped_content['spot'])) {
         $post_content .= '<h2>' . esc_html($ai_snippets['spots_section']['heading'] ?? 'New Skate Spots') . '</h2>';
         if (!empty($ai_snippets['spots_section']['intro'])) {
-            $post_content .= '<p>' . esc_html($ai_snippets['spots_section']['intro']) . '</p>';
+            $post_content .= '<p>' . wp_kses_post(lr_convert_markdown_links_to_html($ai_snippets['spots_section']['intro'])) . '</p>';
         }
         $post_content .= '<div class="lr-update-grid">';
         foreach ($grouped_content['spot'] as $spot) { $post_content .= lr_render_spot_card($spot); }
@@ -274,7 +325,7 @@ function lr_generate_fallback_post_content($city_name, $grouped_content, $post_t
     if (!empty($grouped_content['event'])) {
         $post_content .= '<h2>' . esc_html($ai_snippets['events_section']['heading'] ?? 'Upcoming Events') . '</h2>';
         if (!empty($ai_snippets['events_section']['intro'])) {
-            $post_content .= '<p>' . esc_html($ai_snippets['events_section']['intro']) . '</p>';
+            $post_content .= '<p>' . wp_kses_post(lr_convert_markdown_links_to_html($ai_snippets['events_section']['intro'])) . '</p>';
         }
         $post_content .= '<div class="lr-update-grid">';
         foreach ($grouped_content['event'] as $event) { $post_content .= lr_render_event_card($event); }
@@ -283,7 +334,7 @@ function lr_generate_fallback_post_content($city_name, $grouped_content, $post_t
     if (!empty($grouped_content['skater'])) {
         $post_content .= '<h2>' . esc_html($ai_snippets['skaters_section']['heading'] ?? 'New Skaters') . '</h2>';
         if (!empty($ai_snippets['skaters_section']['intro'])) {
-            $post_content .= '<p>' . esc_html($ai_snippets['skaters_section']['intro']) . '</p>';
+            $post_content .= '<p>' . wp_kses_post(lr_convert_markdown_links_to_html($ai_snippets['skaters_section']['intro'])) . '</p>';
         }
         $post_content .= '<div class="lr-update-grid">';
         foreach ($grouped_content['skater'] as $skater) { $post_content .= lr_render_skater_card($skater); }
@@ -292,14 +343,14 @@ function lr_generate_fallback_post_content($city_name, $grouped_content, $post_t
     if (!empty($grouped_content['review'])) {
         $post_content .= '<h2>' . esc_html($ai_snippets['reviews_section']['heading'] ?? 'New Reviews') . '</h2>';
         if (!empty($ai_snippets['reviews_section']['intro'])) {
-            $post_content .= '<p>' . esc_html($ai_snippets['reviews_section']['intro']) . '</p>';
+            $post_content .= '<p>' . wp_kses_post(lr_convert_markdown_links_to_html($ai_snippets['reviews_section']['intro'])) . '</p>';
         }
         foreach ($grouped_content['review'] as $review) { $post_content .= lr_render_review_card($review); }
     }
     if (!empty($grouped_content['session'])) {
         $post_content .= '<h2>' . esc_html($ai_snippets['sessions_section']['heading'] ?? 'Latest Sessions') . '</h2>';
         if (!empty($ai_snippets['sessions_section']['intro'])) {
-            $post_content .= '<p>' . esc_html($ai_snippets['sessions_section']['intro']) . '</p>';
+            $post_content .= '<p>' . wp_kses_post(lr_convert_markdown_links_to_html($ai_snippets['sessions_section']['intro'])) . '</p>';
         }
         foreach ($grouped_content['session'] as $session) { $post_content .= lr_render_session_card($session); }
     }
@@ -385,69 +436,7 @@ function lr_run_historical_seeding_for_city($city_slug) {
 
     // 3. Generate a post for each bucket.
     foreach ($buckets as $key => $items) {
-        if ($frequency === 'monthly') {
-            $publish_date = new DateTime($key . '-01');
-            $publish_date_str = $publish_date->format('Y-m-t 23:59:59'); // End of the month
-        } else {
-            $year = substr($key, 0, 4);
-            $week = substr($key, 5, 2);
-            $publish_date = new DateTime();
-            $publish_date->setISODate($year, $week, 7); // End of the week
-            $publish_date_str = $publish_date->format('Y-m-d H:i:s');
-        }
-
-        $grouped_content = [];
-        foreach ($items as $item) {
-            $grouped_content[$item->content_type][] = json_decode($item->data_cache);
-        }
-
-        $city_details = lr_get_city_details_by_slug($city_slug);
-        $city_name = $city_details['name'] ?? ucfirst($city_slug);
-
-        $ai_snippets = lr_prepare_and_get_ai_content($city_name, $grouped_content, $publish_date_str);
-        if (is_wp_error($ai_snippets)) {
-            lr_log_discovery_message("AI Error for bucket $key: " . $ai_snippets->get_error_message() . ". Using fallback.");
-            $title_date = ($frequency === 'monthly') ? $publish_date->format('F Y') : 'Week of ' . $publish_date->format('F j, Y');
-            $post_title = $city_name . ' Skate Update: ' . $title_date;
-            $post_summary = 'A summary of skate activity in ' . $city_name . ' for ' . $title_date . '.';
-            $ai_snippets = [];
-        } else {
-            $post_title = $ai_snippets['post_title'];
-            $post_summary = $ai_snippets['post_summary'];
-        }
-
-        $post_slug = sanitize_title($post_title) . '-' . $key;
-        $featured_image_url = lr_select_featured_image($grouped_content);
-        $post_content = lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets);
-
-        $wpdb->replace(
-            $updates_table,
-            [
-                'city_slug'    => $city_slug,
-                'post_slug'    => $post_slug,
-                'post_title'   => $post_title,
-                'post_summary' => $post_summary,
-                'featured_image_url' => $featured_image_url,
-                'post_content' => $post_content,
-                'publish_date' => $publish_date_str,
-            ],
-            ['%s', '%s', '%s', '%s', '%s', '%s', '%s']
-        );
-
-        // After saving the post, mark the recap content as published.
-        $content_ids_to_mark = [];
-        foreach ($items as $item) {
-            if ($item->content_type !== 'event') {
-                $content_ids_to_mark[] = $item->id;
-            }
-        }
-
-        if (!empty($content_ids_to_mark)) {
-            $ids_placeholder = implode(',', array_fill(0, count($content_ids_to_mark), '%d'));
-            $wpdb->query($wpdb->prepare("UPDATE $discovered_table SET is_published = 1 WHERE id IN ($ids_placeholder)", $content_ids_to_mark));
-        }
-
-        lr_log_discovery_message("Generated and saved historical post for bucket: $key");
+        lr_generate_city_update_post($city_slug, $items, $key, $frequency);
     }
     lr_log_discovery_message("--- Finished Historical Seeding for $city_slug ---");
 }
