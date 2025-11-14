@@ -44,6 +44,38 @@ function lr_log_discovery_message($message) {
 }
 
 /**
+ * Appends a structured data row to the link verification CSV file.
+ * @param array $data The data to log, as an associative array.
+ * @param int|null $link_id Optional. A unique ID for the original link being verified.
+ */
+function lr_log_link_verification_csv($data) {
+    $log_file = plugin_dir_path(__DIR__) . 'link_verification.csv';
+    $file_exists = file_exists($log_file);
+
+    $handle = fopen($log_file, 'a');
+
+    // Add header row if the file is new
+    if (!$file_exists) {
+        fputcsv($handle, ['Timestamp', 'Link ID', 'Link Text', 'Original URL', 'Search Query', 'Resulting URL', 'Status', 'Notes']);
+    }
+
+    // Ensure all columns are present
+    $row = [
+        current_time('mysql'),
+        $data['link_id'] ?? '',
+        $data['link_text'] ?? '',
+        $data['original_url'] ?? '',
+        $data['query'] ?? '',
+        $data['resulting_url'] ?? '',
+        $data['status'] ?? 'UNKNOWN',
+        $data['notes'] ?? ''
+    ];
+
+    fputcsv($handle, $row);
+    fclose($handle);
+}
+
+/**
  * =================================================================================
  * Main Discovery Orchestration
  * =================================================================================

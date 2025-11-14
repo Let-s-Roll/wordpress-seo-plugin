@@ -185,26 +185,62 @@ function lr_get_gemini_models($api_key) {
 /**
  * Verifies a link using the Google Custom Search API.
  *
- * @param string $link_text The text of the link to verify (e.g., "Sparkle and Skate Night").
- * @param string $city_name The city for context (e.g., "San Francisco").
+ * This function can perform two types of searches:
+ * - 'broad': Uses a template to search for link text combined with city and date context.
+ * - 'refresh': Takes a full URL as the query to find its new, updated location.
+ *
+ * @param string $query_input    The text or URL to search for.
+ * @param string $city_name      The city for context (used in 'broad' search).
+ * @param string $publication_date The date for context (used in 'broad' search).
+ * @param string $original_url   The original URL from the AI for logging purposes.
+ * @param string $search_type    The type of search to perform ('broad' or 'refresh').
  * @return string|WP_Error The corrected URL or a WP_Error on failure.
  */
-function lr_verify_link_with_google_search($link_text, $city_name) {
+function lr_verify_link_with_google_search($query_input, $city_name, $publication_date, $original_url, $search_type = 'broad', $link_id = null, $link_text = '') {
     $options = get_option('lr_options');
-    lr_log_discovery_message("DEBUG: lr_verify_link_with_google_search options: " . json_encode($options));
     $api_key = $options['google_search_api_key'] ?? '';
     $engine_id = $options['google_search_engine_id'] ?? '';
+    $human_readable_query = '';
 
-    if (empty($api_key) || empty($engine_id)) {
-        return new WP_Error('misconfigured', 'Google Custom Search API is not configured.');
+    if ($search_type === 'refresh') {
+        // For a refresh search, the query is simply the original URL.
+        $human_readable_query = $query_input;
+    } else {
+        // For a broad search, use the customizable query template.
+        $timestamp = strtotime($publication_date);
+        $month = date('F', $timestamp);
+        $year = date('Y', $timestamp);
+
+        $query_template = $options['google_search_query_template'] ?? '"{link_text}" {city_name}';
+        $human_readable_query = str_replace(
+            ['{link_text}', '{city_name}', '{month}', '{year}'],
+            [$query_input, $city_name, $month, $year],
+            $query_template
+        );
     }
 
-    $query = rawurlencode("\"{$link_text}\" {$city_name}");
-    $api_url = "https://www.googleapis.com/customsearch/v1?key={$api_key}&cx={$engine_id}&q={$query}";
+    $encoded_query = rawurlencode($human_readable_query);
+    $api_url = "https://www.googleapis.com/customsearch/v1?key={$api_key}&cx={$engine_id}&q={$encoded_query}";
+
+    if (empty($api_key) || empty($engine_id)) {
+        lr_log_link_verification_csv([
+            'link_id' => $link_id,
+            'link_text' => $link_text,
+            'original_url' => $original_url, 'query' => $api_url, 'status' => 'FAILURE',
+            'notes' => "Google Custom Search API is not configured. Search Type: {$search_type}."
+        ]);
+        return new WP_Error('misconfigured', 'Google Custom Search API is not configured.');
+    }
 
     $response = wp_remote_get($api_url, ['timeout' => 30]);
 
     if (is_wp_error($response)) {
+        lr_log_link_verification_csv([
+            'link_id' => $link_id,
+            'link_text' => $link_text,
+            'original_url' => $original_url, 'query' => $api_url, 'status' => 'FAILURE',
+            'notes' => "WP_Error on API call: " . $response->get_error_message() . " Search Type: {$search_type}."
+        ]);
         return $response;
     }
 
@@ -212,13 +248,160 @@ function lr_verify_link_with_google_search($link_text, $city_name) {
     $data = json_decode($response_body, true);
 
     if (isset($data['error'])) {
+        lr_log_link_verification_csv([
+            'link_id' => $link_id,
+            'link_text' => $link_text,
+            'original_url' => $original_url, 'query' => $api_url, 'status' => 'FAILURE',
+            'notes' => "Google API Error: " . $data['error']['message'] . " Search Type: {$search_type}."
+        ]);
         return new WP_Error('google_search_error', $data['error']['message']);
     }
 
     if (empty($data['items'][0]['link'])) {
-        return new WP_Error('no_results', 'No results found for the search query.');
+        lr_log_link_verification_csv([
+            'link_id' => $link_id,
+            'link_text' => $link_text,
+            'original_url' => $original_url, 'query' => $api_url, 'status' => 'FAILURE',
+            'notes' => "No results found for search query. Search Type: {$search_type}."
+        ]);
+        return new WP_Error('no_results', 'No results found for the search query: ' . $human_readable_query);
     }
 
-    return $data['items'][0]['link'];
+    $verified_url = $data['items'][0]['link'];
+    $notes = ($original_url !== $verified_url) ? "URL was changed via {$search_type} search." : "URL confirmed via {$search_type} search.";
+    
+    lr_log_link_verification_csv([
+        'link_id' => $link_id,
+        'link_text' => $link_text,
+        'original_url' => $original_url, 'query' => $api_url, 'resulting_url' => $verified_url,
+        'status' => 'SUCCESS', 'notes' => $notes
+    ]);
+
+    return $verified_url;
+}
+
+/**
+ * Performs an intelligent liveness check on a URL.
+ *
+ * This function goes beyond a simple status code check. It verifies:
+ * 1. The SSL certificate is valid (no WP_Error on request).
+ * 2. The HTTP status code is 200 OK.
+ * 3. The URL is not a Vertex AI search redirect.
+ * 4. The HTML <title> of the page does not contain common error messages.
+ *
+ * @param string $url The URL to check.
+ * @return bool True if the link is live and appears valid, false otherwise.
+ */
+function lr_intelligent_liveness_check($url, $link_id, $link_text, $original_url) {
+    // 1. Check for Vertex AI search redirect URLs and resolve them.
+    $host = parse_url($url, PHP_URL_HOST);
+    if ($host && strpos($host, 'vertexaisearch.cloud.google.com') !== false) {
+        $resolved_url = lr_resolve_redirect_url($url);
+
+        if ($resolved_url !== $url) {
+            // Log the successful resolution of the redirect.
+            lr_log_link_verification_csv([
+                'link_id' => $link_id,
+                'link_text' => $link_text,
+                'original_url' => $original_url,
+                'resulting_url' => $resolved_url,
+                'status' => 'REDIRECT',
+                'notes' => 'Vertex AI URL resolved to final destination.'
+            ]);
+            // Continue the liveness check with the new, resolved URL.
+            $url = $resolved_url;
+        } else {
+            // If the URL is still a vertex URL, it means the redirect failed.
+            return false;
+        }
+    }
+
+    // 2. Perform the remote request
+    $response = wp_remote_get($url, [
+        'timeout' => 20,
+        'sslverify' => true // This is the default, but explicit for clarity
+    ]);
+
+    // 3. Check for WordPress-level errors (e.g., SSL cert invalid, DNS issue)
+    if (is_wp_error($response)) {
+        $error_message = $response->get_error_message();
+        error_log('Liveness check WP_Error for ' . $url . ': ' . $error_message);
+
+        // Lenient check: If the error is SSL-related, we proceed anyway, 
+        // because the server's CA bundle might be outdated.
+        // We still check for 404s and other errors later.
+        if (stripos($error_message, 'SSL') === false && stripos($error_message, 'certificate') === false) {
+            return false; // It's a non-SSL error, so we fail it.
+        }
+    }
+
+    // 4. Check for non-200 HTTP status codes
+    $status_code = wp_remote_retrieve_response_code($response);
+    if ($status_code !== 200) {
+        return false;
+    }
+
+    // 5. Check the HTML <title> for error messages
+    $body = wp_remote_retrieve_body($response);
+    $title = '';
+    if (preg_match('/<title>(.*?)<\/title>/i', $body, $matches)) {
+        $title = strtolower($matches[1]);
+    }
+
+    $error_strings = [
+        'privacy error',
+        'connection not private',
+        'not found',
+        '404',
+        'page not found',
+        'server error',
+        'err_cert_common_name_invalid' // Add the specific error user mentioned
+    ];
+
+    foreach ($error_strings as $error_string) {
+        if (strpos($title, $error_string) !== false) {
+            return false;
+        }
+    }
+
+    // If all checks pass, the link is considered live and valid
+    return true;
+}
+
+/**
+ * Follows redirects for a given URL and returns the final destination.
+ *
+ * @param string $url The URL to resolve.
+ * @return string The final URL after following redirects.
+ */
+function lr_resolve_redirect_url($url) {
+    $redirect_limit = 10; // Prevent infinite loops
+    $current_url = $url;
+
+    for ($i = 0; $i < $redirect_limit; $i++) {
+        $response = wp_remote_head($current_url, ['timeout' => 15]);
+
+        if (is_wp_error($response)) {
+            // If there's an error, we can't follow, so return the last known URL
+            return $current_url;
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+
+        if ($status_code >= 300 && $status_code < 400) {
+            $location = wp_remote_retrieve_header($response, 'location');
+            if (!empty($location)) {
+                $current_url = $location;
+            } else {
+                // No location header, so we stop here
+                break;
+            }
+        } else {
+            // Not a redirect, so we've reached the end
+            break;
+        }
+    }
+
+    return $current_url;
 }
 

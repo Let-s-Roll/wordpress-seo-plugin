@@ -180,20 +180,64 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                     preg_match_all('/\[([^\]]+)\]\(([^)]+)\)/', $text_to_process, $matches, PREG_SET_ORDER);
                     
                     $modified_text = $text_to_process;
+                    $link_id_counter = 1; // Initialize link ID counter for this snippet
                     foreach ($matches as $match) {
                         $link_text = $match[1];
                         $original_url = $match[2];
+                        $final_verified_url = null; // Initialize for each link
                         
-                        lr_log_discovery_message("Verifying link for '{$link_text}' in {$city_name}. Original URL: {$original_url}");
-
-                        $verified_url = lr_verify_link_with_google_search($link_text, $city_name);
-
-                        if (!is_wp_error($verified_url) && $verified_url !== $original_url) {
-                            lr_log_discovery_message("URL replaced via Google Custom Search API. New URL: {$verified_url}");
-                            $modified_text = str_replace($original_url, $verified_url, $modified_text);
-                        } elseif (is_wp_error($verified_url)) {
-                            lr_log_discovery_message("Failed to verify link for '{$link_text}' in {$city_name}: " . $verified_url->get_error_message());
+                        // Skip verification for internal links
+                        if (strpos($original_url, home_url()) === 0) {
+                            continue;
                         }
+
+                        // Step 1: Perform the intelligent liveness check on the AI's original URL.
+                        $is_live = lr_intelligent_liveness_check($original_url, $link_id_counter, $link_text, $original_url);
+
+                        if ($is_live) {
+                            $final_verified_url = $original_url;
+                            lr_log_link_verification_csv([
+                                'link_id' => $link_id_counter,
+                                'link_text' => $link_text,
+                                'original_url' => $original_url,
+                                'resulting_url' => $original_url,
+                                'status' => 'SUCCESS',
+                                'notes' => 'Passed intelligent liveness check.'
+                            ]);
+                        } else {
+                            lr_log_link_verification_csv([
+                                'link_id' => $link_id_counter,
+                                'link_text' => $link_text,
+                                'original_url' => $original_url,
+                                'status' => 'FAILURE',
+                                'notes' => 'Failed intelligent liveness check. Attempting Refresh Search.'
+                            ]);
+
+                            // Step 2: If liveness check fails, try a "Refresh Search" using the URL as the query.
+                            $refreshed_url = lr_verify_link_with_google_search($original_url, $city_name, $publish_date_str, $original_url, 'refresh', $link_id_counter, $link_text);
+
+                            if (!is_wp_error($refreshed_url)) {
+                                $final_verified_url = $refreshed_url;
+                            } else {
+                                // Step 3: If Refresh Search fails, try a "Broad Search" using the link text.
+                                $broad_search_url = lr_verify_link_with_google_search($link_text, $city_name, $publish_date_str, $original_url, 'broad', $link_id_counter, $link_text);
+
+                                if (!is_wp_error($broad_search_url)) {
+                                    $final_verified_url = $broad_search_url;
+                                }
+                                // If broad search also fails, $final_verified_url remains null.
+                            }
+                        }
+
+                        // After the cascade, update the text based on the final_verified_url.
+                        if ($final_verified_url) {
+                            $modified_text = str_replace($original_url, $final_verified_url, $modified_text);
+                        } else {
+                            // If no valid URL was found after all attempts, remove the link.
+                            $full_markdown_link = $match[0];
+                            $modified_text = str_replace($full_markdown_link, $link_text, $modified_text);
+                        }
+                        $link_id_counter++; // Increment for the next link
                     }
 
                     // Explicitly re-assign the modified text back to the array.
