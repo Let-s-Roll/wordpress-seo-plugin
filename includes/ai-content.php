@@ -201,12 +201,11 @@ function lr_verify_link_with_google_search($query_input, $city_name, $publicatio
     $api_key = $options['google_search_api_key'] ?? '';
     $engine_id = $options['google_search_engine_id'] ?? '';
     $human_readable_query = '';
+    $num_results = ($search_type === 'broad') ? 5 : 1; // Get 5 results for broad search, 1 for refresh
 
     if ($search_type === 'refresh') {
-        // For a refresh search, the query is simply the original URL.
         $human_readable_query = $query_input;
     } else {
-        // For a broad search, use the customizable query template.
         $timestamp = strtotime($publication_date);
         $month = date('F', $timestamp);
         $year = date('Y', $timestamp);
@@ -220,13 +219,12 @@ function lr_verify_link_with_google_search($query_input, $city_name, $publicatio
     }
 
     $encoded_query = rawurlencode($human_readable_query);
-    $api_url = "https://www.googleapis.com/customsearch/v1?key={$api_key}&cx={$engine_id}&q={$encoded_query}";
+    $api_url = "https://www.googleapis.com/customsearch/v1?key={$api_key}&cx={$engine_id}&q={$encoded_query}&num={$num_results}";
 
     if (empty($api_key) || empty($engine_id)) {
         lr_log_link_verification_csv([
-            'link_id' => $link_id,
-            'link_text' => $link_text,
-            'original_url' => $original_url, 'query' => $api_url, 'status' => 'FAILURE',
+            'link_id' => $link_id, 'link_text' => $link_text, 'original_url' => $original_url, 
+            'query' => $api_url, 'status' => 'FAILURE',
             'notes' => "Google Custom Search API is not configured. Search Type: {$search_type}."
         ]);
         return new WP_Error('misconfigured', 'Google Custom Search API is not configured.');
@@ -236,9 +234,8 @@ function lr_verify_link_with_google_search($query_input, $city_name, $publicatio
 
     if (is_wp_error($response)) {
         lr_log_link_verification_csv([
-            'link_id' => $link_id,
-            'link_text' => $link_text,
-            'original_url' => $original_url, 'query' => $api_url, 'status' => 'FAILURE',
+            'link_id' => $link_id, 'link_text' => $link_text, 'original_url' => $original_url, 
+            'query' => $api_url, 'status' => 'FAILURE',
             'notes' => "WP_Error on API call: " . $response->get_error_message() . " Search Type: {$search_type}."
         ]);
         return $response;
@@ -249,35 +246,40 @@ function lr_verify_link_with_google_search($query_input, $city_name, $publicatio
 
     if (isset($data['error'])) {
         lr_log_link_verification_csv([
-            'link_id' => $link_id,
-            'link_text' => $link_text,
-            'original_url' => $original_url, 'query' => $api_url, 'status' => 'FAILURE',
+            'link_id' => $link_id, 'link_text' => $link_text, 'original_url' => $original_url, 
+            'query' => $api_url, 'status' => 'FAILURE',
             'notes' => "Google API Error: " . $data['error']['message'] . " Search Type: {$search_type}."
         ]);
         return new WP_Error('google_search_error', $data['error']['message']);
     }
 
-    if (empty($data['items'][0]['link'])) {
+    if (empty($data['items'])) {
         lr_log_link_verification_csv([
-            'link_id' => $link_id,
-            'link_text' => $link_text,
-            'original_url' => $original_url, 'query' => $api_url, 'status' => 'FAILURE',
+            'link_id' => $link_id, 'link_text' => $link_text, 'original_url' => $original_url, 
+            'query' => $api_url, 'status' => 'FAILURE',
             'notes' => "No results found for search query. Search Type: {$search_type}."
         ]);
         return new WP_Error('no_results', 'No results found for the search query: ' . $human_readable_query);
     }
 
-    $verified_url = $data['items'][0]['link'];
-    $notes = ($original_url !== $verified_url) ? "URL was changed via {$search_type} search." : "URL confirmed via {$search_type} search.";
-    
+    // Log that the search itself was successful and returned results for evaluation.
     lr_log_link_verification_csv([
-        'link_id' => $link_id,
-        'link_text' => $link_text,
-        'original_url' => $original_url, 'query' => $api_url, 'resulting_url' => $verified_url,
-        'status' => 'SUCCESS', 'notes' => $notes
+        'link_id' => $link_id, 'link_text' => $link_text, 'original_url' => $original_url, 
+        'query' => $api_url, 'status' => 'SEARCH_SUCCESS', 
+        'notes' => "{$search_type} search returned " . count($data['items']) . " results for evaluation."
     ]);
 
-    return $verified_url;
+    // Return an array of results, each with the link, title, and snippet.
+    $results = [];
+    foreach ($data['items'] as $item) {
+        $results[] = [
+            'link'    => $item['link'] ?? '',
+            'title'   => $item['title'] ?? '',
+            'snippet' => $item['snippet'] ?? ''
+        ];
+    }
+
+    return $results;
 }
 
 /**
@@ -403,5 +405,72 @@ function lr_resolve_redirect_url($url) {
     }
 
     return $current_url;
+}
+
+/**
+ * Uses an AI model to evaluate a list of search results and pick the most relevant one.
+ *
+ * @param string $link_text The original anchor text of the link.
+ * @param array $search_results An array of search result objects from the Google Search API.
+ * @return string|null The URL of the most relevant search result, or null if none are relevant.
+ */
+function lr_evaluate_best_link_from_search($link_text, $search_results) {
+    $options = get_option('lr_options');
+    $api_key = $options['gemini_api_key'] ?? '';
+    $model = $options['gemini_model'] ?? '';
+
+    if (empty($api_key) || empty($model)) {
+        return null; // Cannot evaluate without the API configured.
+    }
+
+    // Prepare a simplified list of results for the AI prompt.
+    $simplified_results = [];
+    foreach ($search_results as $result) {
+        $simplified_results[] = [
+            'url' => $result['link'],
+            'title' => $result['title'],
+            'snippet' => $result['snippet']
+        ];
+    }
+
+    $prompt = "You are a link verification assistant. Your task is to find the most contextually relevant link for a given piece of text from a list of Google Search results.\n\n"
+            . "The original link text is: \"{$link_text}\"\n\n"
+            . "Here are the search results:\n"
+            . "```json\n"
+            . json_encode($simplified_results, JSON_PRETTY_PRINT) . "\n"
+            . "```\n\n"
+            . "Instructions:\n"
+            . "1. Analyze the title and snippet of each search result.\n"
+            . "2. Compare them to the original link text to determine which is the best match.\n"
+            . "3. If you find a result that is a clear and relevant match, return only its URL.\n"
+            . "4. If NONE of the results seem relevant to the original link text, you MUST return the exact string 'NONE'.";
+
+    $api_url = 'https://generativelanguage.googleapis.com/v1beta/models/' . $model . ':generateContent?key=' . $api_key;
+    $body = ['contents' => [['parts' => [['text' => $prompt]]]]];
+
+    $response = wp_remote_post($api_url, [
+        'headers' => ['Content-Type' => 'application/json'],
+        'body'    => json_encode($body),
+        'timeout' => 45,
+    ]);
+
+    if (is_wp_error($response)) {
+        return null;
+    }
+
+    $response_body = wp_remote_retrieve_body($response);
+    $data = json_decode($response_body, true);
+    $ai_response_text = trim($data['candidates'][0]['content']['parts'][0]['text'] ?? '');
+
+    if (empty($ai_response_text) || strcasecmp($ai_response_text, 'NONE') === 0) {
+        return null; // No relevant link was found.
+    }
+
+    // The AI should return a clean URL. We'll validate it to be safe.
+    if (filter_var($ai_response_text, FILTER_VALIDATE_URL)) {
+        return $ai_response_text;
+    }
+
+    return null; // The response was not a valid URL.
 }
 

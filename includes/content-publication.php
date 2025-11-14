@@ -217,15 +217,38 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                             $refreshed_url = lr_verify_link_with_google_search($original_url, $city_name, $publish_date_str, $original_url, 'refresh', $link_id_counter, $link_text);
 
                             if (!is_wp_error($refreshed_url)) {
-                                $final_verified_url = $refreshed_url;
+                                // The refresh search returns an array with one result if successful.
+                                $final_verified_url = $refreshed_url[0]['link'];
+                                lr_log_link_verification_csv([
+                                    'link_id' => $link_id_counter, 'link_text' => $link_text, 'original_url' => $original_url,
+                                    'resulting_url' => $final_verified_url, 'status' => 'SUCCESS',
+                                    'notes' => 'URL corrected via refresh search.'
+                                ]);
                             } else {
-                                // Step 3: If Refresh Search fails, try a "Broad Search" using the link text.
-                                $broad_search_url = lr_verify_link_with_google_search($link_text, $city_name, $publish_date_str, $original_url, 'broad', $link_id_counter, $link_text);
+                                // Step 3: If Refresh Search fails, try a "Broad Search" to get multiple candidates.
+                                $broad_search_results = lr_verify_link_with_google_search($link_text, $city_name, $publish_date_str, $original_url, 'broad', $link_id_counter, $link_text);
 
-                                if (!is_wp_error($broad_search_url)) {
-                                    $final_verified_url = $broad_search_url;
+                                if (!is_wp_error($broad_search_results) && !empty($broad_search_results)) {
+                                    // Step 4: Use the AI to evaluate the candidates.
+                                    $best_url = lr_evaluate_best_link_from_search($link_text, $broad_search_results);
+                                    
+                                    if ($best_url) {
+                                        $final_verified_url = $best_url;
+                                        lr_log_link_verification_csv([
+                                            'link_id' => $link_id_counter, 'link_text' => $link_text, 'original_url' => $original_url,
+                                            'resulting_url' => $final_verified_url, 'status' => 'SUCCESS',
+                                            'notes' => 'AI evaluated and chose the best link from broad search.'
+                                        ]);
+                                    } else {
+                                        // Log the AI's decision to reject all candidates.
+                                        lr_log_link_verification_csv([
+                                            'link_id' => $link_id_counter, 'link_text' => $link_text, 'original_url' => $original_url,
+                                            'status' => 'FAILURE',
+                                            'notes' => 'AI evaluated search results and found no relevant links.'
+                                        ]);
+                                    }
                                 }
-                                // If broad search also fails, $final_verified_url remains null.
+                                // If broad search or evaluation fails, $final_verified_url remains null.
                             }
                         }
 
