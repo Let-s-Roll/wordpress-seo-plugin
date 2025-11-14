@@ -184,14 +184,19 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                     foreach ($matches as $match) {
                         $link_text = $match[1];
                         $original_url = $match[2];
-                        $final_verified_url = null; // Initialize for each link
+                        $final_verified_url = null; // This will hold the URL that passes verification.
                         
-                        // Skip verification for internal links
+                        // --- Link Verification Cascade ---
+                        // This multi-step process attempts to find a valid, live URL for the link.
+                        // It stops at the first successful step.
+
+                        // Skip verification for internal links to our own site.
                         if (strpos($original_url, home_url()) === 0) {
                             continue;
                         }
 
                         // Step 1: Perform the intelligent liveness check on the AI's original URL.
+                        // This is the fastest and most direct check.
                         $is_live = lr_intelligent_liveness_check($original_url, $link_id_counter, $link_text, $original_url);
 
                         if ($is_live) {
@@ -205,6 +210,7 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                                 'notes' => 'Passed intelligent liveness check.'
                             ]);
                         } else {
+                            // The initial URL is likely dead or problematic.
                             lr_log_link_verification_csv([
                                 'link_id' => $link_id_counter,
                                 'link_text' => $link_text,
@@ -213,11 +219,12 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                                 'notes' => 'Failed intelligent liveness check. Attempting Refresh Search.'
                             ]);
 
-                            // Step 2: If liveness check fails, try a "Refresh Search" using the URL as the query.
+                            // Step 2: If liveness check fails, try a "Refresh Search".
+                            // This uses the dead URL itself as a search query to find its new location.
                             $refreshed_url = lr_verify_link_with_google_search($original_url, $city_name, $publish_date_str, $original_url, 'refresh', $link_id_counter, $link_text);
 
                             if (!is_wp_error($refreshed_url)) {
-                                // The refresh search returns an array with one result if successful.
+                                // The refresh search was successful.
                                 $final_verified_url = $refreshed_url[0]['link'];
                                 lr_log_link_verification_csv([
                                     'link_id' => $link_id_counter, 'link_text' => $link_text, 'original_url' => $original_url,
@@ -225,11 +232,13 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                                     'notes' => 'URL corrected via refresh search.'
                                 ]);
                             } else {
-                                // Step 3: If Refresh Search fails, try a "Broad Search" to get multiple candidates.
+                                // Step 3: If Refresh Search fails, try a "Broad Search".
+                                // This uses the link's anchor text to find other potential pages about the same topic.
                                 $broad_search_results = lr_verify_link_with_google_search($link_text, $city_name, $publish_date_str, $original_url, 'broad', $link_id_counter, $link_text);
 
                                 if (!is_wp_error($broad_search_results) && !empty($broad_search_results)) {
-                                    // Step 4: Use the AI to evaluate the candidates.
+                                    // Step 4: Use the AI to evaluate the broad search candidates.
+                                    // This prevents using contextually irrelevant results.
                                     $best_url = lr_evaluate_best_link_from_search($link_text, $broad_search_results);
                                     
                                     if ($best_url) {
@@ -240,7 +249,7 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                                             'notes' => 'AI evaluated and chose the best link from broad search.'
                                         ]);
                                     } else {
-                                        // Log the AI's decision to reject all candidates.
+                                        // Log the AI's decision to reject all candidates as irrelevant.
                                         lr_log_link_verification_csv([
                                             'link_id' => $link_id_counter, 'link_text' => $link_text, 'original_url' => $original_url,
                                             'status' => 'FAILURE',
@@ -252,18 +261,20 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                             }
                         }
 
-                        // After the cascade, update the text based on the final_verified_url.
+                        // After the cascade, update the text based on the outcome.
                         if ($final_verified_url) {
+                            // If a valid URL was found, update the link in the content.
                             $modified_text = str_replace($original_url, $final_verified_url, $modified_text);
                         } else {
-                            // If no valid URL was found after all attempts, remove the link.
+                            // If no valid URL was found after all attempts, remove the link entirely
+                            // but keep the anchor text.
                             $full_markdown_link = $match[0];
                             $modified_text = str_replace($full_markdown_link, $link_text, $modified_text);
                         }
-                        $link_id_counter++; // Increment for the next link
+                        $link_id_counter++; // Increment for the next link in the snippet.
                     }
 
-                    // Explicitly re-assign the modified text back to the array.
+                    // Explicitly re-assign the modified text back to the main AI snippets array.
                     if (is_array($ai_snippets[$key]) && isset($ai_snippets[$key]['intro'])) {
                         $ai_snippets[$key]['intro'] = $modified_text;
                     } elseif (is_string($ai_snippets[$key])) {

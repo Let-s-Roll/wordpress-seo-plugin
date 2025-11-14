@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.9.0
+Stable tag: 1.10.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -74,6 +74,10 @@ AMP-Compatible CTA Banner: A dismissible "Install the App" banner that works cor
 Robust Caching Strategy: The plugin is designed to work with caching plugins like W3 Total Cache. By pre-warming the cache (using the caching plugin's sitemap feature), the dynamically generated pages can be served as fast, static HTML files to all users.
 
 == Changelog ==
+
+= 1.10.0 =
+*   **Feature:** Intelligent Link Verification Cascade. Implemented a robust, multi-step cascade to verify and correct external links in AI-generated content. The system uses an intelligent liveness check, a "Refresh Search" for dead links, and an AI-powered "Broad Search" to evaluate and select the most contextually relevant replacement link, significantly improving link quality and reliability.
+*   **Under the Hood:** Comprehensive Verification Logging. The entire link verification cascade is now logged in detail to `link_verification.csv`, providing full transparency into the decision-making process for debugging and analysis.
 
 = 1.9.0 =
 *   **Feature:** High-Quality External Links via Google Custom Search API. Implemented a new link verification system that uses the Google Custom Search API to replace low-quality, AI-generated URLs with authoritative, primary sources.
