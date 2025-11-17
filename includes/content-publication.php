@@ -599,7 +599,7 @@ function lr_select_featured_image($grouped_content) {
      * until all cities have been processed.
      */
     function lr_run_historical_seeding_batch() {
-        define('LR_SEEDING_BATCH_SIZE', 5);
+        define('LR_SEEDING_BATCH_SIZE', 1);
 
         // LOCK: Check if a seeding process is already running.
         if (get_option('lr_seeding_in_progress')) {
