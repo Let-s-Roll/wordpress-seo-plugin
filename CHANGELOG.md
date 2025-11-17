@@ -8,6 +8,9 @@
 *   **Fix:** Resolved 403 Forbidden Errors. Fixed a critical issue where valid links were failing the quality check with a 403 error. By adding a standard browser `User-Agent` to all server-side requests, the system can now bypass simple anti-bot measures and correctly fetch content from sites like `dothebay.com`.
 *   **Fix:** Corrected AI Content Erasure Bug. Fixed a major regression where AI-generated text was being erased during the link verification process. Correctly initialized the variable holding the text to ensure content is preserved, especially for snippets that contain no links.
 
+= 1.12.0 =
+*   **Feature:** "Seed All Cities (Historical)" functionality. Adds a new admin interface and a background batch processing system to generate historical content summary posts for every city in the database. This allows for the rapid creation of a baseline of content across the entire site.
+
 = 1.10.0 =
 *   **Feature:** Intelligent Link Verification Cascade. Implemented a robust, multi-step cascade to verify and correct external links in AI-generated content. The system uses an intelligent liveness check, a "Refresh Search" for dead links, and an AI-powered "Broad Search" to evaluate and select the most contextually relevant replacement link, significantly improving link quality and reliability.
 *   **Under the Hood:** Comprehensive Verification Logging. The entire link verification cascade is now logged in detail to `link_verification.csv`, providing full transparency into the decision-making process for debugging and analysis.

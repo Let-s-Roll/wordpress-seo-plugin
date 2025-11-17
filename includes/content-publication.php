@@ -6,6 +6,32 @@ if (!defined('ABSPATH')) exit; // Exit if accessed directly
  * =================================================================================
  * City Updates - Content Aggregation & Publication
  * =================================================================================
+ *
+ * This file contains the core logic for the automated content publication system.
+ * Its primary responsibility is to take the raw, discovered content items from the
+ * `wp_lr_discovered_content` table and transform them into structured, timely, and
+ * engaging "City Update" posts.
+ *
+ * The core logic revolves around a "bucket" system, where content is grouped into
+ * time-based periods (e.g., monthly or weekly). A key concept is the distinction
+ * between "recap" and "preview" content:
+ *
+ * - RECAP CONTENT: Includes new spots, skaters, reviews, and sessions. This is
+ *   content that has already happened. It's placed into a bucket for the month
+ *   it was created (e.g., a spot from September goes into the "2025-09" bucket).
+ *
+ * - PREVIEW CONTENT: Consists of upcoming events. To be useful, this content must
+ *   be published *before* the event occurs. Therefore, it's placed into a bucket
+ *   for the *previous* time period (e.g., an event in October is placed into the
+ *   "2025-09" bucket).
+ *
+ * This ensures that a post generated at the end of September serves as a recap of
+ * September's activity AND a preview of October's upcoming events.
+ *
+ * The system runs on a cron schedule, automatically generating posts for any
+ * "complete" buckets (i.e., buckets from a past time period). It also powers the
+ * "Historical Seeding" feature, which applies the same logic to all past content
+ * to rapidly build out a rich archive of updates for every city.
  */
 
 // Register a new cron job that runs shortly after the discovery job.

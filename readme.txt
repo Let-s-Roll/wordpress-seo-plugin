@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.11.1
+Stable tag: 1.12.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -12,6 +12,8 @@ This plugin was created to solve a key business objective: leveraging the rich, 
 The plugin does not store content locally. Instead, it acts as a sophisticated rendering engine, creating "virtual pages" on the fly by fetching all necessary data from the Let's Roll API in real-time.
 
 A key feature is the dynamic "Near You" section on the Explore page. This uses a robust, server-side IP geolocation system to identify the user's location and match it to a known city in our database. If a match is found, it displays relevant local content. This section is hidden from search engine bots to ensure clean indexing. The Explore page also includes a curated "Featured Cities" section to highlight major skating hubs.
+
+The plugin also features a Content Discovery and Automation architecture designed to proactively find, generate, and publish new content with minimal manual intervention. It uses a custom database table to store a queue of discovered content items (spots, events, etc.) and a robust background processing system to generate AI-powered articles. This includes a "historical seeder" to rapidly build out a baseline of content for all known cities.
 
 == Core Architecture ==
 The plugin is built on a "Virtual Post" architecture, which is a robust and standard WordPress development pattern. This was chosen to ensure maximum compatibility with existing themes and plugins, and to solve issues with URL conflicts and content duplication that arise from more basic approaches.
@@ -35,6 +37,14 @@ admin/admin-page.php (The Settings Page)
 Creates the "Let's Roll SEO" settings page under the main "Settings" menu in the WordPress admin.
 Handles the saving of API credentials and the main locations JSON data.
 Contains the logic for the "Generate Sitemap CSV" utility.
+admin/content-discovery-page.php (The Content Discovery Page)
+Provides the admin interface for all content discovery and automation tools.
+Includes buttons to manually trigger content scans and the "Seed All Cities (Historical)" batch process.
+Displays logs and progress indicators for background tasks.
+includes/content-publication.php (The Content Publication Engine)
+Contains the core backend logic for the content automation system.
+It defines the batch processing functions that iterate through cities, aggregate historical data, and generate AI-powered posts.
+It hooks into WordPress's cron system to run these tasks in the background.
 cta-banner.php (The App Install Banner)
 Contains all the HTML, CSS, and logic for the dismissible "Install the App" banner that appears in the footer.
 It is built to be AMP-compatible using a CSS-only "checkbox hack" for the close button, avoiding any custom JavaScript that would be stripped by the AMP plugin.
@@ -69,6 +79,7 @@ Enriched Spot & Activity Pages: The plugin enhances spot list pages with a "Top 
 Secure & Robust API Handling: All API calls are made on the server-side. The access token is securely cached, and the system includes self-healing logic to automatically re-authenticate if a token expires. IP detection is hardened to work behind reverse proxies.
 Configurable Locations: All countries, cities, coordinates, and descriptions are managed from a single JSON object on the settings page, making it easy to update and expand.
 
+Content Discovery & Automation: A powerful background processing system that automatically discovers new content from the API and queues it for publication. Includes a "Seed All Cities" feature to rapidly generate a baseline of historical content for all locations.
 Sitemap Generation: Includes a utility to generate a CSV sitemap of all primary pages, formatted for import into SEO plugins like AIOSEO.
 AMP-Compatible CTA Banner: A dismissible "Install the App" banner that works correctly on AMP-enabled sites.
 Robust Caching Strategy: The plugin is designed to work with caching plugins like W3 Total Cache. By pre-warming the cache (using the caching plugin's sitemap feature), the dynamically generated pages can be served as fast, static HTML files to all users.
