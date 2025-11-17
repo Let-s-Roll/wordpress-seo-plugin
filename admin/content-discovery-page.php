@@ -102,6 +102,12 @@ function lr_render_content_discovery_page() {
         echo '<div class="notice notice-success is-dismissible"><p>Log file has been cleared.</p></div>';
     }
 
+    if (isset($_POST['lr_force_unlock']) && check_admin_referer('lr_discovery_actions')) {
+        delete_option('lr_seeding_in_progress');
+        delete_option('lr_seeding_batch_progress');
+        echo '<div class="notice notice-success is-dismissible"><p>The seeding process lock has been removed and the batch progress has been reset. You can now start a new seeding process.</p></div>';
+    }
+
     if (isset($_POST['lr_clear_seen_skaters_log']) && check_admin_referer('lr_discovery_actions')) {
         $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}lr_seen_skaters");
         echo '<div class="notice notice-success is-dismissible"><p>Seen skaters log has been cleared.</p></div>';
@@ -121,22 +127,27 @@ function lr_render_content_discovery_page() {
             <h2>Run Discovery Manually</h2>
             <p><strong>Next Scheduled Full Run:</strong> <?php $ts = wp_next_scheduled('lr_content_discovery_cron'); echo $ts ? get_date_from_gmt(date('Y-m-d H:i:s', $ts), 'F j, Y g:i a') : 'Not scheduled.'; ?></p>
             
-            <form method="post" action="" style="margin-bottom: 15px;">
+            <form method="post" action="" style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
                 <?php wp_nonce_field('lr_discovery_actions'); ?>
                 <?php submit_button('Run Full Discovery Now', 'primary', 'lr_run_discovery_now', false); ?>
                 <?php submit_button('Generate City Update Posts', 'secondary', 'lr_run_publication_now', false); ?>
                 <input type="submit" name="lr_seed_all_cities" class="button button-primary" value="Seed All Cities (Historical)" <?php disabled(!$discovery_status['is_complete'] || $is_seeding_in_progress); ?>>
-                <p class="description">First, run discovery to find new content. Then, generate the posts for that content.</p>
+                <?php if ($is_seeding_in_progress) : ?>
+                    <input type="submit" name="lr_force_unlock" class="button button-secondary" value="Force Unlock & Reset">
+                <?php endif; ?>
+            </form>
+            <div class="description-container" style="margin-top: -5px;">
+                 <p class="description">First, run discovery to find new content. Then, generate the posts for that content.</p>
                 <?php
                     if ($is_seeding_in_progress) {
-                        echo '<p class="description" style="color: #d63638;"><strong>Status:</strong> Seeding for all cities is currently in progress. Please wait for it to complete.</p>';
+                        echo '<p class="description" style="color: #d63638;"><strong>Status:</strong> Seeding for all cities is currently in progress. If you are sure it has stalled, you can force unlock it.</p>';
                     } elseif ($discovery_status['is_complete']) {
                         echo '<p class="description" style="color: #227122;"><strong>Status:</strong> Ready. Discovery has run for all ' . esc_html($discovery_status['total_count']) . ' cities this month.</p>';
                     } else {
                         echo '<p class="description" style="color: #d63638;"><strong>Status:</strong> Not Ready. Discovery has only run for ' . esc_html($discovery_status['processed_count']) . ' of ' . esc_html($discovery_status['total_count']) . ' cities this month. Please run a full discovery and wait for it to complete before seeding.</p>';
                     }
                 ?>
-            </form>
+            </div>
             <hr>
             <form method="post" action="">
                 <?php wp_nonce_field('lr_discovery_actions'); ?>
