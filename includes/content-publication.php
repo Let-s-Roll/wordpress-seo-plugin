@@ -594,6 +594,13 @@ function lr_select_featured_image($grouped_content) {
      */
     function lr_run_historical_seeding_batch() {
         define('LR_SEEDING_BATCH_SIZE', 5);
+
+        // LOCK: Check if a seeding process is already running.
+        if (get_option('lr_seeding_in_progress')) {
+            lr_log_discovery_message("NOTICE: Seeding batch triggered, but a seeding process is already running. Aborting.");
+            return;
+        }
+        update_option('lr_seeding_in_progress', true);
     
         // Get all cities flattened into a single array
         $all_locations = lr_get_location_data();
@@ -610,6 +617,7 @@ function lr_select_featured_image($grouped_content) {
     
         if (empty($all_cities)) {
             lr_log_discovery_message("ERROR: Could not load location data for historical seeding batch. Aborting.");
+            delete_option('lr_seeding_in_progress'); // UNLOCK
             return;
         }
     
@@ -619,6 +627,7 @@ function lr_select_featured_image($grouped_content) {
         if ($processed_count >= $total_cities) {
             lr_log_discovery_message("--- All cities have been seeded. Historical seeding complete. ---");
             delete_option('lr_seeding_batch_progress');
+            delete_option('lr_seeding_in_progress'); // UNLOCK
             return;
         }
     
@@ -635,6 +644,9 @@ function lr_select_featured_image($grouped_content) {
     
         update_option('lr_seeding_batch_progress', $processed_count);
     
+        // UNLOCK: Release the lock before scheduling the next run.
+        delete_option('lr_seeding_in_progress');
+
         // Schedule the next batch
         wp_schedule_single_event(time() + 60, 'lr_historical_seeding_batch_cron');
             lr_log_discovery_message("--- Seeding Batch End. Next batch scheduled in 1 minute. ---");

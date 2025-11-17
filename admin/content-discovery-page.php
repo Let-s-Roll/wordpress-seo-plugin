@@ -21,10 +21,15 @@ function lr_render_content_discovery_page() {
     }
 
     if (isset($_POST['lr_seed_all_cities']) && check_admin_referer('lr_discovery_actions')) {
-        // Clear any previous progress and schedule the first batch.
-        delete_option('lr_seeding_batch_progress');
-        wp_schedule_single_event(time(), 'lr_historical_seeding_batch_cron');
-        echo '<div class="notice notice-success is-dismissible"><p>Historical seeding for ALL cities has been started in the background. You can monitor its progress in the log file. This may take a long time to complete.</p></div>';
+        $discovery_status = lr_get_discovery_run_status();
+        if ($discovery_status['is_complete']) {
+            // Clear any previous progress and schedule the first batch.
+            delete_option('lr_seeding_batch_progress');
+            wp_schedule_single_event(time(), 'lr_historical_seeding_batch_cron');
+            echo '<div class="notice notice-success is-dismissible"><p>Historical seeding for ALL cities has been started in the background. You can monitor its progress in the log file. This may take a long time to complete.</p></div>';
+        } else {
+            echo '<div class="notice notice-error is-dismissible"><p>Could not start seeding. Prerequisite not met: Content discovery has not yet completed for all cities this month.</p></div>';
+        }
     }
 
     if (isset($_POST['lr_run_publication_now']) && check_admin_referer('lr_discovery_actions')) {
@@ -104,6 +109,8 @@ function lr_render_content_discovery_page() {
 
     // --- Render Page ---
     $all_locations = lr_get_location_data();
+    $discovery_status = lr_get_discovery_run_status();
+    $is_seeding_in_progress = get_option('lr_seeding_in_progress');
     ?>
     <div class="wrap">
         <h1>Content Discovery</h1>
@@ -118,8 +125,17 @@ function lr_render_content_discovery_page() {
                 <?php wp_nonce_field('lr_discovery_actions'); ?>
                 <?php submit_button('Run Full Discovery Now', 'primary', 'lr_run_discovery_now', false); ?>
                 <?php submit_button('Generate City Update Posts', 'secondary', 'lr_run_publication_now', false); ?>
-                <?php submit_button('Seed All Cities (Historical)', 'primary', 'lr_seed_all_cities', false); ?>
+                <input type="submit" name="lr_seed_all_cities" class="button button-primary" value="Seed All Cities (Historical)" <?php disabled(!$discovery_status['is_complete'] || $is_seeding_in_progress); ?>>
                 <p class="description">First, run discovery to find new content. Then, generate the posts for that content.</p>
+                <?php
+                    if ($is_seeding_in_progress) {
+                        echo '<p class="description" style="color: #d63638;"><strong>Status:</strong> Seeding for all cities is currently in progress. Please wait for it to complete.</p>';
+                    } elseif ($discovery_status['is_complete']) {
+                        echo '<p class="description" style="color: #227122;"><strong>Status:</strong> Ready. Discovery has run for all ' . esc_html($discovery_status['total_count']) . ' cities this month.</p>';
+                    } else {
+                        echo '<p class="description" style="color: #d63638;"><strong>Status:</strong> Not Ready. Discovery has only run for ' . esc_html($discovery_status['processed_count']) . ' of ' . esc_html($discovery_status['total_count']) . ' cities this month. Please run a full discovery and wait for it to complete before seeding.</p>';
+                    }
+                ?>
             </form>
             <hr>
             <form method="post" action="">

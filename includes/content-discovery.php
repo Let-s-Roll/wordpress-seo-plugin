@@ -77,6 +77,55 @@ function lr_log_link_verification_csv($data) {
 
 /**
  * =================================================================================
+ * Pre-computation & Status Checks
+ * =================================================================================
+ */
+
+/**
+ * Checks if the content discovery cron has run for all cities within the current month.
+ *
+ * @return array An associative array with 'is_complete', 'processed_count', and 'total_count'.
+ */
+function lr_get_discovery_run_status() {
+    global $wpdb;
+
+    // Get all city slugs from the locations file
+    $locations = lr_get_location_data();
+    $all_city_slugs = [];
+    if (!empty($locations)) {
+        foreach ($locations as $country_data) {
+            if (!empty($country_data['cities'])) {
+                $all_city_slugs = array_merge($all_city_slugs, array_keys($country_data['cities']));
+            }
+        }
+    }
+    $total_city_count = count($all_city_slugs);
+
+    if ($total_city_count === 0) {
+        return ['is_complete' => false, 'processed_count' => 0, 'total_count' => 0];
+    }
+
+    // Get the first day of the current month
+    $start_of_month = date('Y-m-01');
+
+    // Query the database to count the number of unique cities processed this month
+    $table_name = $wpdb->prefix . 'lr_discovered_content';
+    $processed_city_count = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(DISTINCT city_slug) FROM $table_name WHERE discovered_at >= %s",
+        $start_of_month
+    ));
+
+    $is_complete = ($processed_city_count >= $total_city_count);
+
+    return [
+        'is_complete'       => $is_complete,
+        'processed_count'   => (int) $processed_city_count,
+        'total_count'       => $total_city_count,
+    ];
+}
+
+/**
+ * =================================================================================
  * Main Discovery Orchestration
  * =================================================================================
  */
@@ -87,6 +136,12 @@ function lr_log_link_verification_csv($data) {
  */
 function lr_run_content_discovery() {
     global $wpdb;
+
+    // LOCK: Check if a seeding process is running. If so, abort this run.
+    if (get_option('lr_seeding_in_progress')) {
+        lr_log_discovery_message("NOTICE: Content discovery triggered, but historical seeding is in progress. Discovery deferred.");
+        return;
+    }
     
     // Define batch size (e.g., 5 cities per cron run)
     define('LR_DISCOVERY_BATCH_SIZE', 5);
