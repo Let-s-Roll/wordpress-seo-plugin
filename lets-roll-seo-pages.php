@@ -1,15 +1,15 @@
 <?php
 /**
- * Plugin Name:       Let's Roll SEO Pages
- * Description:       Dynamically generates pages for skate locations, skaters, and events.
- * Version:           1.4.1
- * Author:            Your Name
- * License:           GPL-2.0-or-later
- * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       lets-roll-seo-pages
+ * Plugin Name: Let's Roll SEO Pages
+ * Description: A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
+ * Version: 1.12.0
+ * Author: Your Name
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+// Attempt to increase memory limit for resource-intensive tasks
+ini_set('memory_limit', '512M');
+
+if (!defined('ABSPATH')) exit; // Exit if accessed directly
 
 // --- Guard against double loading ---
 if (defined('LR_SEO_PAGES_LOADED')) return;
