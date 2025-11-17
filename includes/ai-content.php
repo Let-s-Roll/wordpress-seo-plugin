@@ -283,20 +283,19 @@ function lr_verify_link_with_google_search($query_input, $city_name, $publicatio
 }
 
 /**
- * Performs an intelligent quality check on a URL.
+ * Performs an intelligent quality check on a URL using an "AI-First" model.
  *
- * This function goes beyond a simple status code check. It verifies:
- * 1. If the URL is a `vertexaisearch.com` link, it attempts to resolve the redirect first.
- * 2. The SSL certificate is valid (with a lenient check for server CA bundle issues).
- * 3. The HTTP status code is 200 OK.
- * 4. The HTML <title> of the page does not contain common error messages.
- * 5. The HTML body does not contain patterns indicative of low-quality, parked, or irrelevant domains.
+ * This function first checks for unambiguous technical failures (cURL errors, 4xx/5xx status codes).
+ * If the URL is technically live, it then defers to an AI model (`lr_adjudicate_content_relevance`)
+ * to make a final, context-aware judgment on the content's quality and relevance. A link is only
+ * considered to have failed if the AI classifies it as 'Irrelevant'.
  *
  * @param string $url The URL to check.
  * @param int    $link_id The unique ID for this link verification attempt.
  * @param string $link_text The anchor text of the link.
  * @param string $original_url The original URL being checked.
- * @return string|false The final, valid URL if it passes all quality checks, or `false` otherwise.
+ * @param string $city_name The city name for contextual relevance.
+ * @return string|false The final, valid URL if it passes all checks, or `false` otherwise.
  */
 function lr_intelligent_quality_check($url, $link_id, $link_text, $original_url, $city_name) {
     $final_url = $url; // Start with the URL we were given.
@@ -486,6 +485,10 @@ function lr_evaluate_best_link_from_search($link_text, $search_results, $city_na
 
 /**
  * Uses an AI model to adjudicate the quality and relevance of a URL's content.
+ *
+ * This function analyzes the page's title, H1, and body content to classify its relevance
+ * in relation to the original link text and city. It is the "common sense" check in the
+ * verification process.
  *
  * @param string $content The HTML content of the page to analyze.
  * @param string $link_text The original anchor text of the link for context.
