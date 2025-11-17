@@ -176,10 +176,10 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
 
     $ai_snippets = lr_prepare_and_get_ai_content($city_name, $grouped_content, $publish_date_str);
     if (is_wp_error($ai_snippets)) {
-        lr_log_discovery_message("AI Error for bucket $key: " . $ai_snippets->get_error_message() . ". Using fallback.");
+        lr_log_discovery_message("AI Error for city $city_name, bucket $key: " . $ai_snippets->get_error_message() . ". Using fallback content.");
         $title_date = ($frequency === 'monthly') ? $publish_date->format('F Y') : 'Week of ' . $publish_date->format('F j, Y');
-        $post_title = $city_name . ' Skate Update: ' . $title_date;
-        $post_summary = 'A summary of skate activity in ' . $city_name . ' for ' . $title_date . '.';
+        $post_title = $city_name . ' Skate Scene: ' . $title_date;
+        $post_summary = 'A summary of recent skate activity in and around ' . $city_name . ' for ' . $title_date . '.';
         $ai_snippets = [];
     } else {
         $post_title = $ai_snippets['post_title'];
@@ -376,9 +376,15 @@ function lr_prepare_and_get_ai_content($city_name, $grouped_content, $publicatio
     }
 
     // --- STEP 2: The "Writer" ---
-    $ai_output = lr_get_ai_generated_content($ai_data);
-    lr_log_discovery_message("DEBUG: lr_prepare_and_get_ai_content returning: " . (is_wp_error($ai_output) ? $ai_output->get_error_message() : json_encode($ai_output, JSON_PRETTY_PRINT)));
-    return $ai_output;
+    try {
+        $ai_output = lr_get_ai_generated_content($ai_data);
+        lr_log_discovery_message("DEBUG: lr_prepare_and_get_ai_content returning: " . (is_wp_error($ai_output) ? $ai_output->get_error_message() : json_encode($ai_output, JSON_PRETTY_PRINT)));
+        return $ai_output;
+    } catch (Exception $e) {
+        $error_message = "CRITICAL: AI content generation (Writer) failed for city {$city_name}. Error: " . $e->getMessage();
+        lr_log_discovery_message($error_message);
+        return new WP_Error('ai_writer_failed', $error_message);
+    }
 }
 
 /**
