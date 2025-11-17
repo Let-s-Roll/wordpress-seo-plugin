@@ -499,9 +499,19 @@ function lr_run_historical_seeding_for_city($city_slug) {
         return;
     }
 
-    // 3. Generate a post for each bucket.
+    // 3. Generate a post for each *complete* bucket.
+    $current_monthly_key = date('Y-m');
+    $current_weekly_key = date('o-W');
+
     foreach ($buckets as $key => $items) {
-        lr_generate_city_update_post($city_slug, $items, $key, $frequency);
+        // A bucket is "complete" if its key is from a past time period.
+        $is_complete = ($frequency === 'monthly' && $key < $current_monthly_key) || ($frequency === 'weekly' && $key < $current_weekly_key);
+
+        if ($is_complete) {
+            lr_generate_city_update_post($city_slug, $items, $key, $frequency);
+        } else {
+            lr_log_discovery_message("Skipping incomplete bucket for $city_slug (Bucket: $key).");
+        }
     }
     lr_log_discovery_message("--- Finished Historical Seeding for $city_slug ---");
 }

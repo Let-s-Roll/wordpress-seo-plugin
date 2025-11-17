@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.11.1 =
+*   **Fix:** Prevented Premature Post Generation by Historical Seeder. Corrected a bug in the historical seeder (`lr_run_historical_seeding_for_city`) that caused it to generate posts for the current, incomplete month. The seeder now includes a completeness check, ensuring posts are only created for past time periods, aligning its behavior with the live content publication cron job.
+
 = 1.11.0 =
 *   **Major Feature:** "AI-First" Link Adjudication. The link verification system has been completely redesigned to a more robust "AI-First" model. The system now presumes all links are good unless they are demonstrably broken (e.g., 404, 500, cURL error). For all other links, the system now relies exclusively on an AI adjudicator to determine the content's relevance. This AI-driven, contextual approach replaces the previous, brittle keyword-based filtering, preventing false positives where good links were discarded due to common words like "advertisement" or "no results found".
 *   **Fix:** Resolved 403 Forbidden Errors. Fixed a critical issue where valid links were failing the quality check with a 403 error. By adding a standard browser `User-Agent` to all server-side requests, the system can now bypass simple anti-bot measures and correctly fetch content from sites like `dothebay.com`.
