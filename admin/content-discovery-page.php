@@ -105,6 +105,7 @@ function lr_render_content_discovery_page() {
     if (isset($_POST['lr_force_unlock']) && check_admin_referer('lr_discovery_actions')) {
         delete_option('lr_seeding_in_progress');
         delete_option('lr_seeding_batch_progress');
+        delete_option('lr_seeding_current_city');
         echo '<div class="notice notice-success is-dismissible"><p>The seeding process lock has been removed and the batch progress has been reset. You can now start a new seeding process.</p></div>';
     }
 
@@ -117,10 +118,20 @@ function lr_render_content_discovery_page() {
     $all_locations = lr_get_location_data();
     $discovery_status = lr_get_discovery_run_status();
     $is_seeding_in_progress = get_option('lr_seeding_in_progress');
+    $crashed_city_slug = get_option('lr_seeding_current_city');
     ?>
     <div class="wrap">
         <h1>Content Discovery</h1>
         <p>This page allows you to monitor and control the automated content discovery process.</p>
+
+        <?php
+        // CRASH DETECTION: If the seeder is locked AND a specific city was being processed, it indicates a crash.
+        if ($is_seeding_in_progress && $crashed_city_slug) {
+            $city_details = lr_get_city_details_by_slug($crashed_city_slug);
+            $city_name = $city_details['name'] ?? ucfirst($crashed_city_slug);
+            echo '<div class="notice notice-error"><p><strong>CRITICAL ERROR:</strong> The seeder appears to have crashed while processing the city: <strong>' . esc_html($city_name) . '</strong>. The process is currently locked. Please check the `content_discovery.log` for any specific errors. You will need to use the "Force Unlock & Reset" button to try again.</p></div>';
+        }
+        ?>
 
         <!-- Manual Triggers -->
         <div class="notice notice-info" style="padding: 10px; margin-top: 15px;">

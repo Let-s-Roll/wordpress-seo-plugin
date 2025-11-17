@@ -641,13 +641,21 @@ function lr_select_featured_image($grouped_content) {
     
         lr_log_discovery_message("--- Seeding Batch Start: Processing cities " . ($processed_count + 1) . " to " . ($processed_count + count($cities_to_process)) . " of " . $total_cities . " ---");
     
+        // HEARTBEAT: Clear any previous city heartbeat before starting the batch.
+        delete_option('lr_seeding_current_city');
+
         foreach ($cities_to_process as $city_slug => $city_name) {
+            // HEARTBEAT: Set the heartbeat for the current city.
+            update_option('lr_seeding_current_city', $city_slug);
             lr_log_discovery_message("--- Starting Historical Seeding for $city_slug ---");
             lr_run_historical_seeding_for_city($city_slug);
             lr_log_discovery_message("--- Finished Historical Seeding for $city_slug ---");
             $processed_count++;
         }
     
+        // HEARTBEAT: Clear the heartbeat after the batch is done.
+        delete_option('lr_seeding_current_city');
+
         update_option('lr_seeding_batch_progress', $processed_count);
     
         // UNLOCK: Release the lock before scheduling the next run.
