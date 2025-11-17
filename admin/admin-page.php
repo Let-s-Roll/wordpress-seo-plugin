@@ -75,6 +75,8 @@ function lr_settings_init() {
     add_settings_section('lr_content_section', 'Content Generation', null, 'lr_options_group');
     add_settings_field('lr_update_frequency', 'Update Frequency', 'lr_update_frequency_render', 'lr_options_group', 'lr_content_section');
     add_settings_field('lr_web_search', 'Web Search Enrichment', 'lr_web_search_render', 'lr_options_group', 'lr_content_section');
+    add_settings_field('lr_enable_refresh_search', 'Enable Refresh Search', 'lr_enable_refresh_search_render', 'lr_options_group', 'lr_content_section');
+    add_settings_field('lr_google_search_query_template', 'Broad Search Query Template', 'lr_google_search_query_template_render', 'lr_options_group', 'lr_content_section');
 
     // New Section for Testing Mode
     add_settings_section('lr_testing_section', 'Development & Testing', null, 'lr_options_group');
@@ -157,6 +159,20 @@ function lr_web_search_render() {
     $checked = isset($options['enable_web_search']) && $options['enable_web_search'] === '1' ? 'checked' : '';
     echo "<input type='checkbox' name='lr_options[enable_web_search]' value='1' " . $checked . ">";
     echo '<p class="description">When enabled, the AI will perform a Google search to find relevant news and events to enrich the content of city update posts.</p>';
+}
+
+function lr_enable_refresh_search_render() {
+    $options = get_option('lr_options');
+    $checked = isset($options['enable_refresh_search']) && $options['enable_refresh_search'] === '1' ? 'checked' : '';
+    echo "<input type='checkbox' name='lr_options[enable_refresh_search]' value='1' " . $checked . ">";
+    echo '<p class="description">When enabled, the system will use a failed URL as a search query to try and find its new location. (Step 2 in the cascade)</p>';
+}
+
+function lr_google_search_query_template_render() {
+    $options = get_option('lr_options');
+    $template = $options['google_search_query_template'] ?? '{link_text} {city_name}';
+    echo "<input type='text' name='lr_options[google_search_query_template]' value='" . esc_attr($template) . "' style='width: 400px;'>";
+    echo '<p class="description">Define the search query for the "Broad Search". Available placeholders: <code>{link_text}</code>, <code>{city_name}</code>, <code>{month}</code>, <code>{year}</code>.</p>';
 }
 
 

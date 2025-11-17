@@ -1,21 +1,980 @@
-[2025-10-23 18:48:07] Starting single-city discovery run for: copenhagen...
-[2025-10-23 18:48:07] Starting spot discovery for copenhagen...
-[2025-10-23 18:48:08] Finished spot discovery for copenhagen. Found 76 new spots.
-[2025-10-23 18:48:08] Starting event discovery for copenhagen...
-[2025-10-23 18:48:09] Finished event discovery for copenhagen. Found 9 new events.
-[2025-10-23 18:48:09] Starting session discovery for copenhagen...
-[2025-10-23 18:48:11] Finished session discovery for copenhagen. Found 137 new sessions.
-[2025-10-23 18:48:11] Starting review discovery for copenhagen...
-[2025-10-23 18:48:55] Finished review discovery for copenhagen. Found 35 new reviews.
-[2025-10-23 18:48:55] Starting skater discovery for copenhagen...
-[2025-10-23 18:48:56] Finished skater discovery for copenhagen. Found 16 new skaters.
-[2025-10-23 18:48:56] Single-city discovery run finished for: copenhagen.
-[2025-10-23 18:49:16] --- Starting Post Generation for copenhagen ---
-[2025-10-23 18:49:16] Found 273 new items to process for copenhagen.
-[2025-10-23 18:49:16] Grouped content types found: spot, event, session, review, skater
-[2025-10-23 18:49:16] Generating HTML for 76 new spots.
-[2025-10-23 18:49:16] Generating HTML for 9 new events.
-[2025-10-23 18:49:16] Generating HTML for 35 new reviews.
-[2025-10-23 18:49:16] Generating HTML for 137 new sessions.
-[2025-10-23 18:49:16] Generating HTML for 16 new skaters.
-[2025-10-23 18:49:16] Successfully generated and saved new post for copenhagen.
+[2025-11-17 10:19:50] --- Starting Historical Seeding for los-angeles (Frequency: monthly) ---
+[2025-11-17 10:19:50] --- Starting Post Generation for los-angeles (Bucket: 2025-09) ---
+[2025-11-17 10:20:08] Researcher AI Data for Los Angeles: {
+    "news": [],
+    "events": [
+        {
+            "title": "WeHo Skate Party",
+            "link": "https:\/\/wehotimes.com\/2025\/08\/28\/weho-skate-party-returns-to-west-hollywood-park-september-12-14\/",
+            "summary": "The City of West Hollywood will host a three-day roller skating party at West Hollywood Park from September 12-14, 2025. The park's outdoor basketball court will be transformed into a roller rink for all ages and skill levels, with music, helmets, and pads provided."
+        },
+        {
+            "title": "The Night Skate - Downtown Los Angeles",
+            "link": "https:\/\/www.meetup.com\/southern-california-urban-inline-roller-skating\/events\/303333330\/",
+            "summary": "A weekly intermediate to advanced group inline skate through Downtown Los Angeles that takes place every Tuesday evening."
+        },
+        {
+            "title": "Stop 9: Venice Beach Skatepark",
+            "link": "https:\/\/www.eventbrite.com\/e\/stop-9-venice-beach-skatepark-tickets-912955071167",
+            "summary": "An event scheduled at the Venice Skatepark on Sunday, September 14, 2025."
+        },
+        {
+            "title": "Skate Oddity presents: the Rocky Horror Roller Disco",
+            "link": "https:\/\/www.eventbrite.com\/e\/skate-oddity-presents-the-rocky-horror-roller-disco-tickets-907153603427",
+            "summary": "A Rocky Horror-themed roller disco event taking place on Saturday, September 27, 2025, at the LA Kings Burbank Sports Center."
+        },
+        {
+            "title": "The Big Avocado Roll: Sweet Valley ROLLERS NOHO -> DTLA",
+            "link": "https:\/\/www.thebigavocadoroll.com\/",
+            "summary": "The kick-off event for the 7th annual Big Avocado Roll, this intermediate to advanced group skate goes from North Hollywood to Downtown LA on Monday, September 29, 2025."
+        },
+        {
+            "title": "Moonlight Rollerway - Adult Skating Class & Tuesday Night ALL AGES",
+            "link": "https:\/\/www.moonlightrollerway.com\/events\/2025-09-09\/",
+            "summary": "Moonlight Rollerway in Glendale hosts regular events, including an Adult Skating Class and an All Ages skate night on Tuesdays. These events will be happening throughout September 2025."
+        }
+    ]
+}
+[2025-11-17 10:20:37] DEBUG: lr_prepare_and_get_ai_content returning: {
+    "post_title": "LA Skate Scene October Preview: The Big Avocado Roll Kicks Off a Massive Month!",
+    "top_summary": "What a month it's been, Los Angeles! The energy on the streets is absolutely electric, and it's no wonder why. Our Let's Roll community has been hard at work, uncovering a ton of incredible new street spots all over the city, from Santa Monica to Downtown. It's proof that the heart of our scene beats strongest on the pavement we discover and share together.\n\nBut that's not all! As we roll into October, the official event calendar is more packed than ever. Get ready for the massive, three-day [WeHo Skate Party](https:\/\/wehotimes.com\/2025\/08\/28\/weho-skate-party-returns-to-west-hollywood-park-september-12-14\/), a super fun, themed [Rocky Horror Roller Disco](https:\/\/www.eventbrite.com\/e\/skate-oddity-presents-the-rocky-horror-roller-disco-tickets-907153603427), and the legendary group skate at the [Venice Beach Skatepark](https:\/\/www.eventbrite.com\/e\/stop-9-venice-beach-skatepark-tickets-912955071167). The biggest news, of course, is the kickoff of the 7th annual [The Big Avocado Roll](https:\/\/www.thebigavocadoroll.com\/), an epic journey from North Hollywood to DTLA. It\u2019s the perfect blend of grassroots exploration and big-time community events\u2014this is what LA skating is all about!",
+    "spots_section": {
+        "heading": "Fresh Pavement: Our Community's Latest Spot Discoveries",
+        "intro": "You all have been seriously busy charting new territory! Our spot map is blowing up with amazing finds that have us itching to get out and skate. Major props to the skaters who added legendary street spots like [Britanica](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c4612aedea405ceef28c93), the super smooth surfaces at [Santa Monica City Hall](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c460a1edea405ceef21c34), and the unique urban obstacle known as [The Knot (2nd and San Pedro)](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c46181bf26e3845490a39b). Keep logging these gems!"
+    },
+    "events_section": {
+        "heading": "Mark Your Calendars: A Packed Month of Skate Events",
+        "intro": "While our app focuses on the spots you discover, we can't ignore the incredible lineup of official events happening. From weekly meetups like [The Night Skate](https:\/\/www.meetup.com\/southern-california-urban-inline-roller-skating\/events\/303333330\/) to rink nights at the classic [Moonlight Rollerway](https:\/\/www.moonlightrollerway.com\/events\/2025-09-09\/), there is truly something for every skater, every single week. Don't miss out!"
+    },
+    "skaters_section": {
+        "heading": "LA's Most Active Skaters",
+        "intro": "Who's been pushing the limits and inspiring you on your skates this month? Give a shout-out in the comments to the skaters who are truly owning the LA scene. Let's see if we can get them featured in our next update!"
+    },
+    "reviews_section": {
+        "heading": "Real Talk: Your Latest Gear & Spot Reviews",
+        "intro": "Your honest feedback is what makes our community thrive. Before you hit that 'buy' button on new wheels or venture out to a new park, check out the reviews on the app. And don't forget to pay it forward by leaving your own review for a spot like [Tustin Legacy skate park](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68bded643908f240e0eb0a12)!"
+    },
+    "sessions_section": {
+        "heading": "Session Log: Where We've Been Rolling",
+        "intro": "Every skate tells a story, and we want to see yours! Logging your sessions on the Let's Roll app helps everyone see which spots are hot right now. Whether it was a solo practice at the [Daily Spot](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68ba48f118d9a5a205da1ea9) or a group meetup, get it logged!"
+    },
+    "post_summary": "Los Angeles gears up for October with a packed September event schedule, highlighted by the 7th annual Big Avocado Roll, while our community uncovers legendary street spots like Britanica and The Knot."
+}
+[2025-11-17 10:20:37] DEBUG: Raw AI snippets received: {
+    "post_title": "LA Skate Scene October Preview: The Big Avocado Roll Kicks Off a Massive Month!",
+    "top_summary": "What a month it's been, Los Angeles! The energy on the streets is absolutely electric, and it's no wonder why. Our Let's Roll community has been hard at work, uncovering a ton of incredible new street spots all over the city, from Santa Monica to Downtown. It's proof that the heart of our scene beats strongest on the pavement we discover and share together.\n\nBut that's not all! As we roll into October, the official event calendar is more packed than ever. Get ready for the massive, three-day [WeHo Skate Party](https:\/\/wehotimes.com\/2025\/08\/28\/weho-skate-party-returns-to-west-hollywood-park-september-12-14\/), a super fun, themed [Rocky Horror Roller Disco](https:\/\/www.eventbrite.com\/e\/skate-oddity-presents-the-rocky-horror-roller-disco-tickets-907153603427), and the legendary group skate at the [Venice Beach Skatepark](https:\/\/www.eventbrite.com\/e\/stop-9-venice-beach-skatepark-tickets-912955071167). The biggest news, of course, is the kickoff of the 7th annual [The Big Avocado Roll](https:\/\/www.thebigavocadoroll.com\/), an epic journey from North Hollywood to DTLA. It\u2019s the perfect blend of grassroots exploration and big-time community events\u2014this is what LA skating is all about!",
+    "spots_section": {
+        "heading": "Fresh Pavement: Our Community's Latest Spot Discoveries",
+        "intro": "You all have been seriously busy charting new territory! Our spot map is blowing up with amazing finds that have us itching to get out and skate. Major props to the skaters who added legendary street spots like [Britanica](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c4612aedea405ceef28c93), the super smooth surfaces at [Santa Monica City Hall](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c460a1edea405ceef21c34), and the unique urban obstacle known as [The Knot (2nd and San Pedro)](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c46181bf26e3845490a39b). Keep logging these gems!"
+    },
+    "events_section": {
+        "heading": "Mark Your Calendars: A Packed Month of Skate Events",
+        "intro": "While our app focuses on the spots you discover, we can't ignore the incredible lineup of official events happening. From weekly meetups like [The Night Skate](https:\/\/www.meetup.com\/southern-california-urban-inline-roller-skating\/events\/303333330\/) to rink nights at the classic [Moonlight Rollerway](https:\/\/www.moonlightrollerway.com\/events\/2025-09-09\/), there is truly something for every skater, every single week. Don't miss out!"
+    },
+    "skaters_section": {
+        "heading": "LA's Most Active Skaters",
+        "intro": "Who's been pushing the limits and inspiring you on your skates this month? Give a shout-out in the comments to the skaters who are truly owning the LA scene. Let's see if we can get them featured in our next update!"
+    },
+    "reviews_section": {
+        "heading": "Real Talk: Your Latest Gear & Spot Reviews",
+        "intro": "Your honest feedback is what makes our community thrive. Before you hit that 'buy' button on new wheels or venture out to a new park, check out the reviews on the app. And don't forget to pay it forward by leaving your own review for a spot like [Tustin Legacy skate park](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68bded643908f240e0eb0a12)!"
+    },
+    "sessions_section": {
+        "heading": "Session Log: Where We've Been Rolling",
+        "intro": "Every skate tells a story, and we want to see yours! Logging your sessions on the Let's Roll app helps everyone see which spots are hot right now. Whether it was a solo practice at the [Daily Spot](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68ba48f118d9a5a205da1ea9) or a group meetup, get it logged!"
+    },
+    "post_summary": "Los Angeles gears up for October with a packed September event schedule, highlighted by the 7th annual Big Avocado Roll, while our community uncovers legendary street spots like Britanica and The Knot."
+}
+[2025-11-17 10:20:37] DEBUG: Checking snippet key 'top_summary' for links.
+[2025-11-17 10:20:37] DEBUG: Content for 'top_summary': What a month it's been, Los Angeles! The energy on the streets is absolutely electric, and it's no wonder why. Our Let's Roll community has been hard at work, uncovering a ton of incredible new street spots all over the city, from Santa Monica to Downtown. It's proof that the heart of our scene beats strongest on the pavement we discover and share together.
+
+But that's not all! As we roll into October, the official event calendar is more packed than ever. Get ready for the massive, three-day [WeHo Skate Party](https://wehotimes.com/2025/08/28/weho-skate-party-returns-to-west-hollywood-park-september-12-14/), a super fun, themed [Rocky Horror Roller Disco](https://www.eventbrite.com/e/skate-oddity-presents-the-rocky-horror-roller-disco-tickets-907153603427), and the legendary group skate at the [Venice Beach Skatepark](https://www.eventbrite.com/e/stop-9-venice-beach-skatepark-tickets-912955071167). The biggest news, of course, is the kickoff of the 7th annual [The Big Avocado Roll](https://www.thebigavocadoroll.com/), an epic journey from North Hollywood to DTLA. It’s the perfect blend of grassroots exploration and big-time community events—this is what LA skating is all about!
+[2025-11-17 10:21:25] DEBUG: Checking snippet key 'spots_section' for links.
+[2025-11-17 10:21:25] DEBUG: Content for 'spots_section': You all have been seriously busy charting new territory! Our spot map is blowing up with amazing finds that have us itching to get out and skate. Major props to the skaters who added legendary street spots like [Britanica](http://lets-roll-plugin-development-playground.local/spots/68c4612aedea405ceef28c93), the super smooth surfaces at [Santa Monica City Hall](http://lets-roll-plugin-development-playground.local/spots/68c460a1edea405ceef21c34), and the unique urban obstacle known as [The Knot (2nd and San Pedro)](http://lets-roll-plugin-development-playground.local/spots/68c46181bf26e3845490a39b). Keep logging these gems!
+[2025-11-17 10:21:25] DEBUG: Checking snippet key 'events_section' for links.
+[2025-11-17 10:21:25] DEBUG: Content for 'events_section': While our app focuses on the spots you discover, we can't ignore the incredible lineup of official events happening. From weekly meetups like [The Night Skate](https://www.meetup.com/southern-california-urban-inline-roller-skating/events/303333330/) to rink nights at the classic [Moonlight Rollerway](https://www.moonlightrollerway.com/events/2025-09-09/), there is truly something for every skater, every single week. Don't miss out!
+[2025-11-17 10:22:18] DEBUG: Checking snippet key 'skaters_section' for links.
+[2025-11-17 10:22:18] DEBUG: Content for 'skaters_section': Who's been pushing the limits and inspiring you on your skates this month? Give a shout-out in the comments to the skaters who are truly owning the LA scene. Let's see if we can get them featured in our next update!
+[2025-11-17 10:22:18] DEBUG: Checking snippet key 'reviews_section' for links.
+[2025-11-17 10:22:18] DEBUG: Content for 'reviews_section': Your honest feedback is what makes our community thrive. Before you hit that 'buy' button on new wheels or venture out to a new park, check out the reviews on the app. And don't forget to pay it forward by leaving your own review for a spot like [Tustin Legacy skate park](http://lets-roll-plugin-development-playground.local/spots/68bded643908f240e0eb0a12)!
+[2025-11-17 10:22:18] DEBUG: Checking snippet key 'sessions_section' for links.
+[2025-11-17 10:22:18] DEBUG: Content for 'sessions_section': Every skate tells a story, and we want to see yours! Logging your sessions on the Let's Roll app helps everyone see which spots are hot right now. Whether it was a solo practice at the [Daily Spot](http://lets-roll-plugin-development-playground.local/spots/68ba48f118d9a5a205da1ea9) or a group meetup, get it logged!
+[2025-11-17 10:22:18] DEBUG: Final AI snippets before rendering: {
+    "post_title": "LA Skate Scene October Preview: The Big Avocado Roll Kicks Off a Massive Month!",
+    "top_summary": "What a month it's been, Los Angeles! The energy on the streets is absolutely electric, and it's no wonder why. Our Let's Roll community has been hard at work, uncovering a ton of incredible new street spots all over the city, from Santa Monica to Downtown. It's proof that the heart of our scene beats strongest on the pavement we discover and share together.\n\nBut that's not all! As we roll into October, the official event calendar is more packed than ever. Get ready for the massive, three-day [WeHo Skate Party](https:\/\/www.instagram.com\/p\/DOJsZt7kiSB\/), a super fun, themed [Rocky Horror Roller Disco](https:\/\/www.instagram.com\/p\/C-mDD0Np3LI\/?hl=am-et), and the legendary group skate at the Venice Beach Skatepark. The biggest news, of course, is the kickoff of the 7th annual [The Big Avocado Roll](https:\/\/www.thebigavocadoroll.com\/), an epic journey from North Hollywood to DTLA. It\u2019s the perfect blend of grassroots exploration and big-time community events\u2014this is what LA skating is all about!",
+    "spots_section": {
+        "heading": "Fresh Pavement: Our Community's Latest Spot Discoveries",
+        "intro": "You all have been seriously busy charting new territory! Our spot map is blowing up with amazing finds that have us itching to get out and skate. Major props to the skaters who added legendary street spots like [Britanica](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c4612aedea405ceef28c93), the super smooth surfaces at [Santa Monica City Hall](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c460a1edea405ceef21c34), and the unique urban obstacle known as [The Knot (2nd and San Pedro)](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c46181bf26e3845490a39b). Keep logging these gems!"
+    },
+    "events_section": {
+        "heading": "Mark Your Calendars: A Packed Month of Skate Events",
+        "intro": "While our app focuses on the spots you discover, we can't ignore the incredible lineup of official events happening. From weekly meetups like The Night Skate to rink nights at the classic [Moonlight Rollerway](https:\/\/www.moonlightrollerway.com\/events\/2025-09-09\/), there is truly something for every skater, every single week. Don't miss out!"
+    },
+    "skaters_section": {
+        "heading": "LA's Most Active Skaters",
+        "intro": "Who's been pushing the limits and inspiring you on your skates this month? Give a shout-out in the comments to the skaters who are truly owning the LA scene. Let's see if we can get them featured in our next update!"
+    },
+    "reviews_section": {
+        "heading": "Real Talk: Your Latest Gear & Spot Reviews",
+        "intro": "Your honest feedback is what makes our community thrive. Before you hit that 'buy' button on new wheels or venture out to a new park, check out the reviews on the app. And don't forget to pay it forward by leaving your own review for a spot like [Tustin Legacy skate park](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68bded643908f240e0eb0a12)!"
+    },
+    "sessions_section": {
+        "heading": "Session Log: Where We've Been Rolling",
+        "intro": "Every skate tells a story, and we want to see yours! Logging your sessions on the Let's Roll app helps everyone see which spots are hot right now. Whether it was a solo practice at the [Daily Spot](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68ba48f118d9a5a205da1ea9) or a group meetup, get it logged!"
+    },
+    "post_summary": "Los Angeles gears up for October with a packed September event schedule, highlighted by the 7th annual Big Avocado Roll, while our community uncovers legendary street spots like Britanica and The Knot."
+}
+[2025-11-17 10:22:18] DEBUG: Inside lr_generate_fallback_post_content. AI snippets received: {
+    "post_title": "LA Skate Scene October Preview: The Big Avocado Roll Kicks Off a Massive Month!",
+    "top_summary": "What a month it's been, Los Angeles! The energy on the streets is absolutely electric, and it's no wonder why. Our Let's Roll community has been hard at work, uncovering a ton of incredible new street spots all over the city, from Santa Monica to Downtown. It's proof that the heart of our scene beats strongest on the pavement we discover and share together.\n\nBut that's not all! As we roll into October, the official event calendar is more packed than ever. Get ready for the massive, three-day [WeHo Skate Party](https:\/\/www.instagram.com\/p\/DOJsZt7kiSB\/), a super fun, themed [Rocky Horror Roller Disco](https:\/\/www.instagram.com\/p\/C-mDD0Np3LI\/?hl=am-et), and the legendary group skate at the Venice Beach Skatepark. The biggest news, of course, is the kickoff of the 7th annual [The Big Avocado Roll](https:\/\/www.thebigavocadoroll.com\/), an epic journey from North Hollywood to DTLA. It\u2019s the perfect blend of grassroots exploration and big-time community events\u2014this is what LA skating is all about!",
+    "spots_section": {
+        "heading": "Fresh Pavement: Our Community's Latest Spot Discoveries",
+        "intro": "You all have been seriously busy charting new territory! Our spot map is blowing up with amazing finds that have us itching to get out and skate. Major props to the skaters who added legendary street spots like [Britanica](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c4612aedea405ceef28c93), the super smooth surfaces at [Santa Monica City Hall](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c460a1edea405ceef21c34), and the unique urban obstacle known as [The Knot (2nd and San Pedro)](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68c46181bf26e3845490a39b). Keep logging these gems!"
+    },
+    "events_section": {
+        "heading": "Mark Your Calendars: A Packed Month of Skate Events",
+        "intro": "While our app focuses on the spots you discover, we can't ignore the incredible lineup of official events happening. From weekly meetups like The Night Skate to rink nights at the classic [Moonlight Rollerway](https:\/\/www.moonlightrollerway.com\/events\/2025-09-09\/), there is truly something for every skater, every single week. Don't miss out!"
+    },
+    "skaters_section": {
+        "heading": "LA's Most Active Skaters",
+        "intro": "Who's been pushing the limits and inspiring you on your skates this month? Give a shout-out in the comments to the skaters who are truly owning the LA scene. Let's see if we can get them featured in our next update!"
+    },
+    "reviews_section": {
+        "heading": "Real Talk: Your Latest Gear & Spot Reviews",
+        "intro": "Your honest feedback is what makes our community thrive. Before you hit that 'buy' button on new wheels or venture out to a new park, check out the reviews on the app. And don't forget to pay it forward by leaving your own review for a spot like [Tustin Legacy skate park](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68bded643908f240e0eb0a12)!"
+    },
+    "sessions_section": {
+        "heading": "Session Log: Where We've Been Rolling",
+        "intro": "Every skate tells a story, and we want to see yours! Logging your sessions on the Let's Roll app helps everyone see which spots are hot right now. Whether it was a solo practice at the [Daily Spot](http:\/\/lets-roll-plugin-development-playground.local\/spots\/68ba48f118d9a5a205da1ea9) or a group meetup, get it logged!"
+    },
+    "post_summary": "Los Angeles gears up for October with a packed September event schedule, highlighted by the 7th annual Big Avocado Roll, while our community uncovers legendary street spots like Britanica and The Knot."
+}
+[2025-11-17 10:22:18] Successfully generated and saved new post for los-angeles (Bucket: sessions_section).
+[2025-11-17 10:22:18] --- Starting Post Generation for los-angeles (Bucket: 2025-05) ---
+[2025-11-17 10:22:49] Researcher AI Data for Los Angeles: {
+    "news": [],
+    "events": [
+        {
+            "title": "Back-2-Cali 2025 - Memorial Day Weekend",
+            "link": "https:\/\/www.skategroove.com\/metro-rollers-skate-groove-events-2025\/",
+            "summary": "The 19th annual Back-2-Cali skate jam will take place from May 22-25, 2025, over Memorial Day weekend. This event is hosted by Big Bert."
+        },
+        {
+            "title": "Skate for the People: ALL SKATE!",
+            "link": "https:\/\/www.eventbrite.com\/e\/skate-for-the-people-all-skate-tickets-867994472997",
+            "summary": "An all-ages skate event hosted by Rogue Rollers on Saturday, May 3, 2025, at the LA Kings Burbank Sports Center."
+        },
+        {
+            "title": "3rd Annual SKATESIDE FEST: The Big 10",
+            "link": "https:\/\/www.woonsocketcall.com\/news\/national_news\/3rd-annual-skateside-fest-the-big-10-celebrating-a-decade-of-community\/article_95332f14-9963-5494-b155-7d2d3129f123.html",
+            "summary": "A community festival celebrating a decade of THE SKATESIDE, featuring skateboarding and roller skating, a skateboarding competition, free skate sessions, and a family fun zone. The event will be held on Saturday, May 17, 2025, at Bill Botts Park in Culver City."
+        }
+    ]
+}
+[2025-11-17 10:23:21] DEBUG: lr_prepare_and_get_ai_content returning: {
+    "post_title": "LA Roller Skating in June: Riding the SKATESIDE FEST Wave to New Spots!",
+    "top_summary": "What an absolutely electric May for the Los Angeles skate scene! The energy was off the charts, with skaters flocking to huge events like the [Skate for the People: ALL SKATE!](https:\/\/www.eventbrite.com\/e\/skate-for-the-people-all-skate-tickets-867994472997), the massive [3rd Annual SKATESIDE FEST](https:\/\/www.woonsocketcall.com\/news\/national_news\/3rd-annual-skateside-fest-the-big-10-celebrating-a-decade-of-community\/article_95332f14-9963-5494-b155-7d2d3129f123.html), and the legendary [Back-2-Cali 2025](https:\/\/www.skategroove.com\/metro-rollers-skate-groove-events-2025\/) jam over Memorial Day weekend. The community vibe was incredible, and we're still buzzing!\n\nNow, as we roll into June, it's the perfect time to take all that inspiration and explore. Let's keep the momentum going by checking out new places and creating our own sessions. And on that note, our Let's Roll community has already uncovered a gem for us to check out. Get ready to add a new pin to your map!",
+    "spots_section": {
+        "heading": "Community Discovery: Fresh Pavement Awaits!",
+        "intro": "The best spots are the ones we find together. This month, the Let's Roll community put a pin in a fantastic new location that's perfect for a summer evening session. Get all the details on [Sunset Park](http:\/\/lets-roll-plugin-development-playground.local\/spots\/6835568ba6ce09124b7cd28f) in the app and be the first to leave a review!"
+    },
+    "events_section": {
+        "heading": "What's Rolling in June?",
+        "intro": "May was packed with official jams, but June is all about grassroots get-togethers! Don't see your local meetup or skate night listed in the app? Be a hero and add it to the Let's Roll map to get the word out and bring the community together."
+    },
+    "skaters_section": {
+        "heading": "Featured Skaters: Who's Lighting Up LA?",
+        "intro": "We're always on the lookout for the skaters who define the LA scene with their unique style and positive energy. If you've been inspired by a local skater's moves or community spirit, give them a shout-out and add their profile to the app!"
+    },
+    "reviews_section": {
+        "heading": "The Word on the Street: Latest Reviews",
+        "intro": "Just checked out a new spot or piece of gear? Your reviews are the lifeblood of our community. Drop a review for a local rink, a skate park, or even the newly discovered Sunset Park to help your fellow skaters roll with confidence."
+    },
+    "sessions_section": {
+        "heading": "Where's the Session At?",
+        "intro": "The best way to find a skate buddy is to see where the action is. Log your skate sessions in the Let's Roll app\u2014whether you're drilling skills solo at the park or cruising the boardwalk with your crew\u2014and let's connect on the pavement!"
+    },
+    "post_summary": "This June 2025 recap for Los Angeles celebrates the incredible energy from May's SKATESIDE FEST and highlights the community discovery of a new skate spot, Sunset Park."
+}
+[2025-11-17 10:23:21] DEBUG: Raw AI snippets received: {
+    "post_title": "LA Roller Skating in June: Riding the SKATESIDE FEST Wave to New Spots!",
+    "top_summary": "What an absolutely electric May for the Los Angeles skate scene! The energy was off the charts, with skaters flocking to huge events like the [Skate for the People: ALL SKATE!](https:\/\/www.eventbrite.com\/e\/skate-for-the-people-all-skate-tickets-867994472997), the massive [3rd Annual SKATESIDE FEST](https:\/\/www.woonsocketcall.com\/news\/national_news\/3rd-annual-skateside-fest-the-big-10-celebrating-a-decade-of-community\/article_95332f14-9963-5494-b155-7d2d3129f123.html), and the legendary [Back-2-Cali 2025](https:\/\/www.skategroove.com\/metro-rollers-skate-groove-events-2025\/) jam over Memorial Day weekend. The community vibe was incredible, and we're still buzzing!\n\nNow, as we roll into June, it's the perfect time to take all that inspiration and explore. Let's keep the momentum going by checking out new places and creating our own sessions. And on that note, our Let's Roll community has already uncovered a gem for us to check out. Get ready to add a new pin to your map!",
+    "spots_section": {
+        "heading": "Community Discovery: Fresh Pavement Awaits!",
+        "intro": "The best spots are the ones we find together. This month, the Let's Roll community put a pin in a fantastic new location that's perfect for a summer evening session. Get all the details on [Sunset Park](http:\/\/lets-roll-plugin-development-playground.local\/spots\/6835568ba6ce09124b7cd28f) in the app and be the first to leave a review!"
+    },
+    "events_section": {
+        "heading": "What's Rolling in June?",
+        "intro": "May was packed with official jams, but June is all about grassroots get-togethers! Don't see your local meetup or skate night listed in the app? Be a hero and add it to the Let's Roll map to get the word out and bring the community together."
+    },
+    "skaters_section": {
+        "heading": "Featured Skaters: Who's Lighting Up LA?",
+        "intro": "We're always on the lookout for the skaters who define the LA scene with their unique style and positive energy. If you've been inspired by a local skater's moves or community spirit, give them a shout-out and add their profile to the app!"
+    },
+    "reviews_section": {
+        "heading": "The Word on the Street: Latest Reviews",
+        "intro": "Just checked out a new spot or piece of gear? Your reviews are the lifeblood of our community. Drop a review for a local rink, a skate park, or even the newly discovered Sunset Park to help your fellow skaters roll with confidence."
+    },
+    "sessions_section": {
+        "heading": "Where's the Session At?",
+        "intro": "The best way to find a skate buddy is to see where the action is. Log your skate sessions in the Let's Roll app\u2014whether you're drilling skills solo at the park or cruising the boardwalk with your crew\u2014and let's connect on the pavement!"
+    },
+    "post_summary": "This June 2025 recap for Los Angeles celebrates the incredible energy from May's SKATESIDE FEST and highlights the community discovery of a new skate spot, Sunset Park."
+}
+[2025-11-17 10:23:21] DEBUG: Checking snippet key 'top_summary' for links.
+[2025-11-17 10:23:21] DEBUG: Content for 'top_summary': What an absolutely electric May for the Los Angeles skate scene! The energy was off the charts, with skaters flocking to huge events like the [Skate for the People: ALL SKATE!](https://www.eventbrite.com/e/skate-for-the-people-all-skate-tickets-867994472997), the massive [3rd Annual SKATESIDE FEST](https://www.woonsocketcall.com/news/national_news/3rd-annual-skateside-fest-the-big-10-celebrating-a-decade-of-community/article_95332f14-9963-5494-b155-7d2d3129f123.html), and the legendary [Back-2-Cali 2025](https://www.skategroove.com/metro-rollers-skate-groove-events-2025/) jam over Memorial Day weekend. The community vibe was incredible, and we're still buzzing!
+
+Now, as we roll into June, it's the perfect time to take all that inspiration and explore. Let's keep the momentum going by checking out new places and creating our own sessions. And on that note, our Let's Roll community has already uncovered a gem for us to check out. Get ready to add a new pin to your map!
+[2025-11-17 10:24:02] DEBUG: Checking snippet key 'spots_section' for links.
+[2025-11-17 10:24:02] DEBUG: Content for 'spots_section': The best spots are the ones we find together. This month, the Let's Roll community put a pin in a fantastic new location that's perfect for a summer evening session. Get all the details on [Sunset Park](http://lets-roll-plugin-development-playground.local/spots/6835568ba6ce09124b7cd28f) in the app and be the first to leave a review!
+[2025-11-17 10:24:02] DEBUG: Checking snippet key 'events_section' for links.
+[2025-11-17 10:24:02] DEBUG: Content for 'events_section': May was packed with official jams, but June is all about grassroots get-togethers! Don't see your local meetup or skate night listed in the app? Be a hero and add it to the Let's Roll map to get the word out and bring the community together.
+[2025-11-17 10:24:02] DEBUG: Checking snippet key 'skaters_section' for links.
+[2025-11-17 10:24:02] DEBUG: Content for 'skaters_section': We're always on the lookout for the skaters who define the LA scene with their unique style and positive energy. If you've been inspired by a local skater's moves or community spirit, give them a shout-out and add their profile to the app!
+[2025-11-17 10:24:02] DEBUG: Checking snippet key 'reviews_section' for links.
+[2025-11-17 10:24:02] DEBUG: Content for 'reviews_section': Just checked out a new spot or piece of gear? Your reviews are the lifeblood of our community. Drop a review for a local rink, a skate park, or even the newly discovered Sunset Park to help your fellow skaters roll with confidence.
+[2025-11-17 10:24:02] DEBUG: Checking snippet key 'sessions_section' for links.
+[2025-11-17 10:24:02] DEBUG: Content for 'sessions_section': The best way to find a skate buddy is to see where the action is. Log your skate sessions in the Let's Roll app—whether you're drilling skills solo at the park or cruising the boardwalk with your crew—and let's connect on the pavement!
+[2025-11-17 10:24:02] DEBUG: Final AI snippets before rendering: {
+    "post_title": "LA Roller Skating in June: Riding the SKATESIDE FEST Wave to New Spots!",
+    "top_summary": "What an absolutely electric May for the Los Angeles skate scene! The energy was off the charts, with skaters flocking to huge events like the Skate for the People: ALL SKATE!, the massive 3rd Annual SKATESIDE FEST, and the legendary Back-2-Cali 2025 jam over Memorial Day weekend. The community vibe was incredible, and we're still buzzing!\n\nNow, as we roll into June, it's the perfect time to take all that inspiration and explore. Let's keep the momentum going by checking out new places and creating our own sessions. And on that note, our Let's Roll community has already uncovered a gem for us to check out. Get ready to add a new pin to your map!",
+    "spots_section": {
+        "heading": "Community Discovery: Fresh Pavement Awaits!",
+        "intro": "The best spots are the ones we find together. This month, the Let's Roll community put a pin in a fantastic new location that's perfect for a summer evening session. Get all the details on [Sunset Park](http:\/\/lets-roll-plugin-development-playground.local\/spots\/6835568ba6ce09124b7cd28f) in the app and be the first to leave a review!"
+    },
+    "events_section": {
+        "heading": "What's Rolling in June?",
+        "intro": "May was packed with official jams, but June is all about grassroots get-togethers! Don't see your local meetup or skate night listed in the app? Be a hero and add it to the Let's Roll map to get the word out and bring the community together."
+    },
+    "skaters_section": {
+        "heading": "Featured Skaters: Who's Lighting Up LA?",
+        "intro": "We're always on the lookout for the skaters who define the LA scene with their unique style and positive energy. If you've been inspired by a local skater's moves or community spirit, give them a shout-out and add their profile to the app!"
+    },
+    "reviews_section": {
+        "heading": "The Word on the Street: Latest Reviews",
+        "intro": "Just checked out a new spot or piece of gear? Your reviews are the lifeblood of our community. Drop a review for a local rink, a skate park, or even the newly discovered Sunset Park to help your fellow skaters roll with confidence."
+    },
+    "sessions_section": {
+        "heading": "Where's the Session At?",
+        "intro": "The best way to find a skate buddy is to see where the action is. Log your skate sessions in the Let's Roll app\u2014whether you're drilling skills solo at the park or cruising the boardwalk with your crew\u2014and let's connect on the pavement!"
+    },
+    "post_summary": "This June 2025 recap for Los Angeles celebrates the incredible energy from May's SKATESIDE FEST and highlights the community discovery of a new skate spot, Sunset Park."
+}
+[2025-11-17 10:24:02] DEBUG: Inside lr_generate_fallback_post_content. AI snippets received: {
+    "post_title": "LA Roller Skating in June: Riding the SKATESIDE FEST Wave to New Spots!",
+    "top_summary": "What an absolutely electric May for the Los Angeles skate scene! The energy was off the charts, with skaters flocking to huge events like the Skate for the People: ALL SKATE!, the massive 3rd Annual SKATESIDE FEST, and the legendary Back-2-Cali 2025 jam over Memorial Day weekend. The community vibe was incredible, and we're still buzzing!\n\nNow, as we roll into June, it's the perfect time to take all that inspiration and explore. Let's keep the momentum going by checking out new places and creating our own sessions. And on that note, our Let's Roll community has already uncovered a gem for us to check out. Get ready to add a new pin to your map!",
+    "spots_section": {
+        "heading": "Community Discovery: Fresh Pavement Awaits!",
+        "intro": "The best spots are the ones we find together. This month, the Let's Roll community put a pin in a fantastic new location that's perfect for a summer evening session. Get all the details on [Sunset Park](http:\/\/lets-roll-plugin-development-playground.local\/spots\/6835568ba6ce09124b7cd28f) in the app and be the first to leave a review!"
+    },
+    "events_section": {
+        "heading": "What's Rolling in June?",
+        "intro": "May was packed with official jams, but June is all about grassroots get-togethers! Don't see your local meetup or skate night listed in the app? Be a hero and add it to the Let's Roll map to get the word out and bring the community together."
+    },
+    "skaters_section": {
+        "heading": "Featured Skaters: Who's Lighting Up LA?",
+        "intro": "We're always on the lookout for the skaters who define the LA scene with their unique style and positive energy. If you've been inspired by a local skater's moves or community spirit, give them a shout-out and add their profile to the app!"
+    },
+    "reviews_section": {
+        "heading": "The Word on the Street: Latest Reviews",
+        "intro": "Just checked out a new spot or piece of gear? Your reviews are the lifeblood of our community. Drop a review for a local rink, a skate park, or even the newly discovered Sunset Park to help your fellow skaters roll with confidence."
+    },
+    "sessions_section": {
+        "heading": "Where's the Session At?",
+        "intro": "The best way to find a skate buddy is to see where the action is. Log your skate sessions in the Let's Roll app\u2014whether you're drilling skills solo at the park or cruising the boardwalk with your crew\u2014and let's connect on the pavement!"
+    },
+    "post_summary": "This June 2025 recap for Los Angeles celebrates the incredible energy from May's SKATESIDE FEST and highlights the community discovery of a new skate spot, Sunset Park."
+}
+[2025-11-17 10:24:02] Successfully generated and saved new post for los-angeles (Bucket: sessions_section).
+[2025-11-17 10:24:02] --- Starting Post Generation for los-angeles (Bucket: 2025-10) ---
+[2025-11-17 10:24:19] Researcher AI Data for Los Angeles: {
+    "news": [
+        {
+            "title": "B4BC To Celebrate 18th Annual Skate The Coast",
+            "link": "https:\/\/shop-eat-surf.com\/2025\/10\/b4bc-to-celebrate-18th-annual-skate-the-coast\/",
+            "summary": "Boarding for Breast Cancer (B4BC) will host its 18th Annual Skate the Coast event on October 25th and 26th in Los Angeles. The 15-mile skate-bike-roll from Santa Monica Pier to Redondo Beach aims to support B4BC's mission of early detection and promoting a healthy, active lifestyle for breast cancer prevention. A registration party will be held on October 25th, with the main event on the 26th."
+        }
+    ],
+    "events": [
+        {
+            "title": "The Big Avocado Roll",
+            "link": "https:\/\/thebigavocadoroll.com\/",
+            "summary": "A multi-day inline skating event from September 30th to October 5th, 2025, featuring various group skates through iconic Los Angeles locations."
+        },
+        {
+            "title": "Skate the Coast 2025",
+            "link": "https:\/\/b4bc.org\/stc25\/",
+            "summary": "A 15-mile skate-bike-roll event on October 25th and 26th, 2025, from Santa Monica Pier to Redondo Beach to support breast cancer awareness and prevention."
+        },
+        {
+            "title": "The Night Skate - Downtown Los Angeles",
+            "link": "https:\/\/www.meetup.com\/southern-california-urban-inlineskating\/events\/303969133\/",
+            "summary": "A weekly intermediate to advanced group street skate through Downtown Los Angeles, happening every Tuesday evening. The skate on October 1st is part of The Big Avocado Roll."
+        },
+        {
+            "title": "Spooktacular Roller Disco + Halloween Social",
+            "link": "https:\/\/www.angelcityderby.com\/events",
+            "summary": "A Halloween-themed roller disco event hosted by Angel City Derby on Friday, October 17, 2025, at the Angel City Derby Warehouse."
+        },
+        {
+            "title": "Them Fatales Drag Kings event",
+            "link": "https:\/\/www.angelcityderby.com\/events",
+            "summary": "A drag king event hosted by Angel City Derby on Saturday, October 18, 2025, at the Angel City Derby Warehouse."
+        },
+        {
+            "title": "Get Ref'd Up 9.5",
+            "link": "https:\/\/www.angelcityderby.com\/events",
+            "summary": "An event hosted by Angel City Derby on Saturday, October 25, 2025, at the Angel City Derby Warehouse."
+        },
+        {
+            "title": "Halloween Double Header",
+            "link": "https:\/\/www.angelcityderby.com\/events",
+            "summary": "A Halloween-themed roller derby double header on Saturday, October 25, 2025, at the Angel City Derby Warehouse."
+        }
+    ]
+}
+[2025-11-17 10:24:44] DEBUG: lr_prepare_and_get_ai_content returning: {
+    "post_title": "LA November Skate Guide: Keep the Party Rolling After Skate the Coast & The Big Avocado Roll!",
+    "top_summary": "What an absolutely epic month for skating in Los Angeles! It feels like the entire community was out in full force, and for good reason. October was stacked with some of the biggest events of the year, bringing skaters of all styles together. We saw a huge turnout for [The Big Avocado Roll](https:\/\/thebigavocadoroll.com\/), which took over iconic LA locations with incredible group skates, and it was so inspiring to see everyone rolling for a cause at the [18th Annual Skate the Coast](https:\/\/b4bc.org\/stc25\/) fundraiser. The energy was just electric!\n\nOver at the Angel City Derby warehouse, the vibes were immaculate with a packed schedule including their [Spooktacular Roller Disco](https:\/\/www.angelcityderby.com\/events) and a thrilling [Halloween Double Header](https:\/\/www.angelcityderby.com\/events). With so much organized fun, it's no wonder our app was a little quiet on new discoveries\u2014everyone was busy participating! As we roll into November, let's keep that momentum going. Let's take the energy from these huge meetups and use it to explore new corners of our city and share them with the community.",
+    "spots_section": {
+        "heading": "New Spots on Our Radar",
+        "intro": "It seems our skaters were too busy hitting the pavement at October's massive events to log new locations! We're all ears for November\u2014where are you rolling? Drop your latest finds in the app and let's map out some new territory together."
+    },
+    "events_section": {
+        "heading": "Community-Spotted Events",
+        "intro": "While the city was buzzing with major public events, no new underground meetups were added to the app this past month. Got a line on a regular group skate or a pop-up session for November? Be the first to share it with the Let's Roll crew!"
+    },
+    "skaters_section": {
+        "heading": "Skaters Making Waves",
+        "intro": "We didn't see any new skater profiles pop up in the app this month\u2014we know you're out there! Create a profile, share your favorite skate style, and connect with the rest of the awesome LA community."
+    },
+    "reviews_section": {
+        "heading": "Fresh Takes & Hot Tips",
+        "intro": "Our review section was quiet in October. Did you skate a new path during The Big Avocado Roll or find a great coffee shop near the derby warehouse? Share your thoughts and help a fellow skater out!"
+    },
+    "sessions_section": {
+        "heading": "Recent Skate Sessions",
+        "intro": "No new public sessions were logged in the app this month. Let's change that for November! Log your next skate, whether it's a solo jam or a group roll, and let's see where the community is rolling."
+    },
+    "post_summary": "Los Angeles closed out October with a massive lineup of major events, from The Big Avocado Roll to the 18th Annual Skate the Coast, setting the stage for an exciting November."
+}
+[2025-11-17 10:24:44] DEBUG: Raw AI snippets received: {
+    "post_title": "LA November Skate Guide: Keep the Party Rolling After Skate the Coast & The Big Avocado Roll!",
+    "top_summary": "What an absolutely epic month for skating in Los Angeles! It feels like the entire community was out in full force, and for good reason. October was stacked with some of the biggest events of the year, bringing skaters of all styles together. We saw a huge turnout for [The Big Avocado Roll](https:\/\/thebigavocadoroll.com\/), which took over iconic LA locations with incredible group skates, and it was so inspiring to see everyone rolling for a cause at the [18th Annual Skate the Coast](https:\/\/b4bc.org\/stc25\/) fundraiser. The energy was just electric!\n\nOver at the Angel City Derby warehouse, the vibes were immaculate with a packed schedule including their [Spooktacular Roller Disco](https:\/\/www.angelcityderby.com\/events) and a thrilling [Halloween Double Header](https:\/\/www.angelcityderby.com\/events). With so much organized fun, it's no wonder our app was a little quiet on new discoveries\u2014everyone was busy participating! As we roll into November, let's keep that momentum going. Let's take the energy from these huge meetups and use it to explore new corners of our city and share them with the community.",
+    "spots_section": {
+        "heading": "New Spots on Our Radar",
+        "intro": "It seems our skaters were too busy hitting the pavement at October's massive events to log new locations! We're all ears for November\u2014where are you rolling? Drop your latest finds in the app and let's map out some new territory together."
+    },
+    "events_section": {
+        "heading": "Community-Spotted Events",
+        "intro": "While the city was buzzing with major public events, no new underground meetups were added to the app this past month. Got a line on a regular group skate or a pop-up session for November? Be the first to share it with the Let's Roll crew!"
+    },
+    "skaters_section": {
+        "heading": "Skaters Making Waves",
+        "intro": "We didn't see any new skater profiles pop up in the app this month\u2014we know you're out there! Create a profile, share your favorite skate style, and connect with the rest of the awesome LA community."
+    },
+    "reviews_section": {
+        "heading": "Fresh Takes & Hot Tips",
+        "intro": "Our review section was quiet in October. Did you skate a new path during The Big Avocado Roll or find a great coffee shop near the derby warehouse? Share your thoughts and help a fellow skater out!"
+    },
+    "sessions_section": {
+        "heading": "Recent Skate Sessions",
+        "intro": "No new public sessions were logged in the app this month. Let's change that for November! Log your next skate, whether it's a solo jam or a group roll, and let's see where the community is rolling."
+    },
+    "post_summary": "Los Angeles closed out October with a massive lineup of major events, from The Big Avocado Roll to the 18th Annual Skate the Coast, setting the stage for an exciting November."
+}
+[2025-11-17 10:24:44] DEBUG: Checking snippet key 'top_summary' for links.
+[2025-11-17 10:24:44] DEBUG: Content for 'top_summary': What an absolutely epic month for skating in Los Angeles! It feels like the entire community was out in full force, and for good reason. October was stacked with some of the biggest events of the year, bringing skaters of all styles together. We saw a huge turnout for [The Big Avocado Roll](https://thebigavocadoroll.com/), which took over iconic LA locations with incredible group skates, and it was so inspiring to see everyone rolling for a cause at the [18th Annual Skate the Coast](https://b4bc.org/stc25/) fundraiser. The energy was just electric!
+
+Over at the Angel City Derby warehouse, the vibes were immaculate with a packed schedule including their [Spooktacular Roller Disco](https://www.angelcityderby.com/events) and a thrilling [Halloween Double Header](https://www.angelcityderby.com/events). With so much organized fun, it's no wonder our app was a little quiet on new discoveries—everyone was busy participating! As we roll into November, let's keep that momentum going. Let's take the energy from these huge meetups and use it to explore new corners of our city and share them with the community.
+[2025-11-17 10:25:39] DEBUG: Checking snippet key 'spots_section' for links.
+[2025-11-17 10:25:39] DEBUG: Content for 'spots_section': It seems our skaters were too busy hitting the pavement at October's massive events to log new locations! We're all ears for November—where are you rolling? Drop your latest finds in the app and let's map out some new territory together.
+[2025-11-17 10:25:39] DEBUG: Checking snippet key 'events_section' for links.
+[2025-11-17 10:25:39] DEBUG: Content for 'events_section': While the city was buzzing with major public events, no new underground meetups were added to the app this past month. Got a line on a regular group skate or a pop-up session for November? Be the first to share it with the Let's Roll crew!
+[2025-11-17 10:25:39] DEBUG: Checking snippet key 'skaters_section' for links.
+[2025-11-17 10:25:39] DEBUG: Content for 'skaters_section': We didn't see any new skater profiles pop up in the app this month—we know you're out there! Create a profile, share your favorite skate style, and connect with the rest of the awesome LA community.
+[2025-11-17 10:25:39] DEBUG: Checking snippet key 'reviews_section' for links.
+[2025-11-17 10:25:39] DEBUG: Content for 'reviews_section': Our review section was quiet in October. Did you skate a new path during The Big Avocado Roll or find a great coffee shop near the derby warehouse? Share your thoughts and help a fellow skater out!
+[2025-11-17 10:25:39] DEBUG: Checking snippet key 'sessions_section' for links.
+[2025-11-17 10:25:39] DEBUG: Content for 'sessions_section': No new public sessions were logged in the app this month. Let's change that for November! Log your next skate, whether it's a solo jam or a group roll, and let's see where the community is rolling.
+[2025-11-17 10:25:39] DEBUG: Final AI snippets before rendering: {
+    "post_title": "LA November Skate Guide: Keep the Party Rolling After Skate the Coast & The Big Avocado Roll!",
+    "top_summary": "What an absolutely epic month for skating in Los Angeles! It feels like the entire community was out in full force, and for good reason. October was stacked with some of the biggest events of the year, bringing skaters of all styles together. We saw a huge turnout for [The Big Avocado Roll](https:\/\/thebigavocadoroll.com\/), which took over iconic LA locations with incredible group skates, and it was so inspiring to see everyone rolling for a cause at the [18th Annual Skate the Coast](https:\/\/www.classy.org\/campaign\/b4bcs-18th-annual-skate-the-coast\/c693666) fundraiser. The energy was just electric!\n\nOver at the Angel City Derby warehouse, the vibes were immaculate with a packed schedule including their [Spooktacular Roller Disco](https:\/\/www.angelcityderby.com\/events) and a thrilling [Halloween Double Header](https:\/\/www.angelcityderby.com\/events). With so much organized fun, it's no wonder our app was a little quiet on new discoveries\u2014everyone was busy participating! As we roll into November, let's keep that momentum going. Let's take the energy from these huge meetups and use it to explore new corners of our city and share them with the community.",
+    "spots_section": {
+        "heading": "New Spots on Our Radar",
+        "intro": "It seems our skaters were too busy hitting the pavement at October's massive events to log new locations! We're all ears for November\u2014where are you rolling? Drop your latest finds in the app and let's map out some new territory together."
+    },
+    "events_section": {
+        "heading": "Community-Spotted Events",
+        "intro": "While the city was buzzing with major public events, no new underground meetups were added to the app this past month. Got a line on a regular group skate or a pop-up session for November? Be the first to share it with the Let's Roll crew!"
+    },
+    "skaters_section": {
+        "heading": "Skaters Making Waves",
+        "intro": "We didn't see any new skater profiles pop up in the app this month\u2014we know you're out there! Create a profile, share your favorite skate style, and connect with the rest of the awesome LA community."
+    },
+    "reviews_section": {
+        "heading": "Fresh Takes & Hot Tips",
+        "intro": "Our review section was quiet in October. Did you skate a new path during The Big Avocado Roll or find a great coffee shop near the derby warehouse? Share your thoughts and help a fellow skater out!"
+    },
+    "sessions_section": {
+        "heading": "Recent Skate Sessions",
+        "intro": "No new public sessions were logged in the app this month. Let's change that for November! Log your next skate, whether it's a solo jam or a group roll, and let's see where the community is rolling."
+    },
+    "post_summary": "Los Angeles closed out October with a massive lineup of major events, from The Big Avocado Roll to the 18th Annual Skate the Coast, setting the stage for an exciting November."
+}
+[2025-11-17 10:25:39] DEBUG: Inside lr_generate_fallback_post_content. AI snippets received: {
+    "post_title": "LA November Skate Guide: Keep the Party Rolling After Skate the Coast & The Big Avocado Roll!",
+    "top_summary": "What an absolutely epic month for skating in Los Angeles! It feels like the entire community was out in full force, and for good reason. October was stacked with some of the biggest events of the year, bringing skaters of all styles together. We saw a huge turnout for [The Big Avocado Roll](https:\/\/thebigavocadoroll.com\/), which took over iconic LA locations with incredible group skates, and it was so inspiring to see everyone rolling for a cause at the [18th Annual Skate the Coast](https:\/\/www.classy.org\/campaign\/b4bcs-18th-annual-skate-the-coast\/c693666) fundraiser. The energy was just electric!\n\nOver at the Angel City Derby warehouse, the vibes were immaculate with a packed schedule including their [Spooktacular Roller Disco](https:\/\/www.angelcityderby.com\/events) and a thrilling [Halloween Double Header](https:\/\/www.angelcityderby.com\/events). With so much organized fun, it's no wonder our app was a little quiet on new discoveries\u2014everyone was busy participating! As we roll into November, let's keep that momentum going. Let's take the energy from these huge meetups and use it to explore new corners of our city and share them with the community.",
+    "spots_section": {
+        "heading": "New Spots on Our Radar",
+        "intro": "It seems our skaters were too busy hitting the pavement at October's massive events to log new locations! We're all ears for November\u2014where are you rolling? Drop your latest finds in the app and let's map out some new territory together."
+    },
+    "events_section": {
+        "heading": "Community-Spotted Events",
+        "intro": "While the city was buzzing with major public events, no new underground meetups were added to the app this past month. Got a line on a regular group skate or a pop-up session for November? Be the first to share it with the Let's Roll crew!"
+    },
+    "skaters_section": {
+        "heading": "Skaters Making Waves",
+        "intro": "We didn't see any new skater profiles pop up in the app this month\u2014we know you're out there! Create a profile, share your favorite skate style, and connect with the rest of the awesome LA community."
+    },
+    "reviews_section": {
+        "heading": "Fresh Takes & Hot Tips",
+        "intro": "Our review section was quiet in October. Did you skate a new path during The Big Avocado Roll or find a great coffee shop near the derby warehouse? Share your thoughts and help a fellow skater out!"
+    },
+    "sessions_section": {
+        "heading": "Recent Skate Sessions",
+        "intro": "No new public sessions were logged in the app this month. Let's change that for November! Log your next skate, whether it's a solo jam or a group roll, and let's see where the community is rolling."
+    },
+    "post_summary": "Los Angeles closed out October with a massive lineup of major events, from The Big Avocado Roll to the 18th Annual Skate the Coast, setting the stage for an exciting November."
+}
+[2025-11-17 10:25:39] Successfully generated and saved new post for los-angeles (Bucket: sessions_section).
+[2025-11-17 10:25:39] --- Starting Post Generation for los-angeles (Bucket: 2025-08) ---
+[2025-11-17 10:25:49] Researcher AI Data for Los Angeles: {
+    "news": [],
+    "events": [
+        {
+            "title": "The Night Skate - Downtown Los Angeles",
+            "link": "https:\/\/www.meetup.com\/southern-california-urban-inline-roller-skating\/events\/calendar\/2025-08\/",
+            "summary": "A weekly inline and roller skating event that takes place every Tuesday night. The group skates for about 10 miles through Downtown Los Angeles. This skate is not for beginners as it involves skating in streets with traffic and hills."
+        }
+    ]
+}
+[2025-11-17 10:26:11] DEBUG: lr_prepare_and_get_ai_content returning: {
+    "post_title": "Los Angeles September Skate Guide: The Downtown Night Skate Lights Up the City!",
+    "top_summary": "Hey, LA Rollers! It looks like our community had a quiet month logging new discoveries in the app, but don't let that fool you\u2014the heart of the Los Angeles skate scene is beating as strong as ever. While we wait for new spots and sessions to pop up, the city's classic group skates are where the action is at.\n\nThis is the perfect time to connect with the core community, and there's no better way than joining the legendary weekly [The Night Skate - Downtown Los Angeles](https:\/\/www.meetup.com\/southern-california-urban-inline-roller-skating\/events\/calendar\/2025-08\/). This is a thrilling 10-mile journey for experienced skaters ready to own the downtown streets after dark. Let's make September a month of getting out there, rediscovering these awesome community skates, and logging our adventures for everyone to see!",
+    "spots_section": {
+        "heading": "Find Your Next Favorite Skate Spot",
+        "intro": "No new spots were added by the community in LA this month. This is your chance to be a trailblazer! Know a spot with buttery-smooth pavement or a killer view? Drop a pin in the app and put your discovery on the map for fellow skaters."
+    },
+    "events_section": {
+        "heading": "Upcoming Community Roll-Outs",
+        "intro": "While no new events were posted to our app, the LA scene is always moving. If you're hosting or know about a local skate park meetup, a trail skate, or a dance session, be sure to add it to the Let's Roll calendar and bring the community together."
+    },
+    "skaters_section": {
+        "heading": "Welcome to the LA Crew",
+        "intro": "The app didn't see any new skater profiles from Los Angeles this period, but we know you're out there! Create a profile, share your favorite skate style, and connect with the thousands of rollers in our vibrant local scene. Let's see who's rolling in the City of Angels!"
+    },
+    "reviews_section": {
+        "heading": "The Word on the Street",
+        "intro": "Our LA spot reviews were quiet this month. Did you recently visit a legendary spot like the Venice Beach skate park or find a new hidden gem? Leave a review in the app\u2014your insights help everyone know where to go (or what to avoid)!"
+    },
+    "sessions_section": {
+        "heading": "Latest Skate Sessions Logged",
+        "intro": "No new public sessions were logged by our LA skaters recently. Let's change that this September! Log your next cruise down the boardwalk or your park practice\u2014seeing your sessions inspires everyone else to lace up and get out there."
+    },
+    "post_summary": "This month in Los Angeles, the scene thrives with consistent meetups like the weekly Downtown Night Skate, reminding us of the city's deep-rooted and energetic skate community."
+}
+[2025-11-17 10:26:11] DEBUG: Raw AI snippets received: {
+    "post_title": "Los Angeles September Skate Guide: The Downtown Night Skate Lights Up the City!",
+    "top_summary": "Hey, LA Rollers! It looks like our community had a quiet month logging new discoveries in the app, but don't let that fool you\u2014the heart of the Los Angeles skate scene is beating as strong as ever. While we wait for new spots and sessions to pop up, the city's classic group skates are where the action is at.\n\nThis is the perfect time to connect with the core community, and there's no better way than joining the legendary weekly [The Night Skate - Downtown Los Angeles](https:\/\/www.meetup.com\/southern-california-urban-inline-roller-skating\/events\/calendar\/2025-08\/). This is a thrilling 10-mile journey for experienced skaters ready to own the downtown streets after dark. Let's make September a month of getting out there, rediscovering these awesome community skates, and logging our adventures for everyone to see!",
+    "spots_section": {
+        "heading": "Find Your Next Favorite Skate Spot",
+        "intro": "No new spots were added by the community in LA this month. This is your chance to be a trailblazer! Know a spot with buttery-smooth pavement or a killer view? Drop a pin in the app and put your discovery on the map for fellow skaters."
+    },
+    "events_section": {
+        "heading": "Upcoming Community Roll-Outs",
+        "intro": "While no new events were posted to our app, the LA scene is always moving. If you're hosting or know about a local skate park meetup, a trail skate, or a dance session, be sure to add it to the Let's Roll calendar and bring the community together."
+    },
+    "skaters_section": {
+        "heading": "Welcome to the LA Crew",
+        "intro": "The app didn't see any new skater profiles from Los Angeles this period, but we know you're out there! Create a profile, share your favorite skate style, and connect with the thousands of rollers in our vibrant local scene. Let's see who's rolling in the City of Angels!"
+    },
+    "reviews_section": {
+        "heading": "The Word on the Street",
+        "intro": "Our LA spot reviews were quiet this month. Did you recently visit a legendary spot like the Venice Beach skate park or find a new hidden gem? Leave a review in the app\u2014your insights help everyone know where to go (or what to avoid)!"
+    },
+    "sessions_section": {
+        "heading": "Latest Skate Sessions Logged",
+        "intro": "No new public sessions were logged by our LA skaters recently. Let's change that this September! Log your next cruise down the boardwalk or your park practice\u2014seeing your sessions inspires everyone else to lace up and get out there."
+    },
+    "post_summary": "This month in Los Angeles, the scene thrives with consistent meetups like the weekly Downtown Night Skate, reminding us of the city's deep-rooted and energetic skate community."
+}
+[2025-11-17 10:26:11] DEBUG: Checking snippet key 'top_summary' for links.
+[2025-11-17 10:26:11] DEBUG: Content for 'top_summary': Hey, LA Rollers! It looks like our community had a quiet month logging new discoveries in the app, but don't let that fool you—the heart of the Los Angeles skate scene is beating as strong as ever. While we wait for new spots and sessions to pop up, the city's classic group skates are where the action is at.
+
+This is the perfect time to connect with the core community, and there's no better way than joining the legendary weekly [The Night Skate - Downtown Los Angeles](https://www.meetup.com/southern-california-urban-inline-roller-skating/events/calendar/2025-08/). This is a thrilling 10-mile journey for experienced skaters ready to own the downtown streets after dark. Let's make September a month of getting out there, rediscovering these awesome community skates, and logging our adventures for everyone to see!
+[2025-11-17 10:26:26] DEBUG: Checking snippet key 'spots_section' for links.
+[2025-11-17 10:26:26] DEBUG: Content for 'spots_section': No new spots were added by the community in LA this month. This is your chance to be a trailblazer! Know a spot with buttery-smooth pavement or a killer view? Drop a pin in the app and put your discovery on the map for fellow skaters.
+[2025-11-17 10:26:26] DEBUG: Checking snippet key 'events_section' for links.
+[2025-11-17 10:26:26] DEBUG: Content for 'events_section': While no new events were posted to our app, the LA scene is always moving. If you're hosting or know about a local skate park meetup, a trail skate, or a dance session, be sure to add it to the Let's Roll calendar and bring the community together.
+[2025-11-17 10:26:26] DEBUG: Checking snippet key 'skaters_section' for links.
+[2025-11-17 10:26:26] DEBUG: Content for 'skaters_section': The app didn't see any new skater profiles from Los Angeles this period, but we know you're out there! Create a profile, share your favorite skate style, and connect with the thousands of rollers in our vibrant local scene. Let's see who's rolling in the City of Angels!
+[2025-11-17 10:26:26] DEBUG: Checking snippet key 'reviews_section' for links.
+[2025-11-17 10:26:26] DEBUG: Content for 'reviews_section': Our LA spot reviews were quiet this month. Did you recently visit a legendary spot like the Venice Beach skate park or find a new hidden gem? Leave a review in the app—your insights help everyone know where to go (or what to avoid)!
+[2025-11-17 10:26:26] DEBUG: Checking snippet key 'sessions_section' for links.
+[2025-11-17 10:26:26] DEBUG: Content for 'sessions_section': No new public sessions were logged by our LA skaters recently. Let's change that this September! Log your next cruise down the boardwalk or your park practice—seeing your sessions inspires everyone else to lace up and get out there.
+[2025-11-17 10:26:26] DEBUG: Final AI snippets before rendering: {
+    "post_title": "Los Angeles September Skate Guide: The Downtown Night Skate Lights Up the City!",
+    "top_summary": "Hey, LA Rollers! It looks like our community had a quiet month logging new discoveries in the app, but don't let that fool you\u2014the heart of the Los Angeles skate scene is beating as strong as ever. While we wait for new spots and sessions to pop up, the city's classic group skates are where the action is at.\n\nThis is the perfect time to connect with the core community, and there's no better way than joining the legendary weekly [The Night Skate - Downtown Los Angeles](https:\/\/www.facebook.com\/groups\/thenightskate\/). This is a thrilling 10-mile journey for experienced skaters ready to own the downtown streets after dark. Let's make September a month of getting out there, rediscovering these awesome community skates, and logging our adventures for everyone to see!",
+    "spots_section": {
+        "heading": "Find Your Next Favorite Skate Spot",
+        "intro": "No new spots were added by the community in LA this month. This is your chance to be a trailblazer! Know a spot with buttery-smooth pavement or a killer view? Drop a pin in the app and put your discovery on the map for fellow skaters."
+    },
+    "events_section": {
+        "heading": "Upcoming Community Roll-Outs",
+        "intro": "While no new events were posted to our app, the LA scene is always moving. If you're hosting or know about a local skate park meetup, a trail skate, or a dance session, be sure to add it to the Let's Roll calendar and bring the community together."
+    },
+    "skaters_section": {
+        "heading": "Welcome to the LA Crew",
+        "intro": "The app didn't see any new skater profiles from Los Angeles this period, but we know you're out there! Create a profile, share your favorite skate style, and connect with the thousands of rollers in our vibrant local scene. Let's see who's rolling in the City of Angels!"
+    },
+    "reviews_section": {
+        "heading": "The Word on the Street",
+        "intro": "Our LA spot reviews were quiet this month. Did you recently visit a legendary spot like the Venice Beach skate park or find a new hidden gem? Leave a review in the app\u2014your insights help everyone know where to go (or what to avoid)!"
+    },
+    "sessions_section": {
+        "heading": "Latest Skate Sessions Logged",
+        "intro": "No new public sessions were logged by our LA skaters recently. Let's change that this September! Log your next cruise down the boardwalk or your park practice\u2014seeing your sessions inspires everyone else to lace up and get out there."
+    },
+    "post_summary": "This month in Los Angeles, the scene thrives with consistent meetups like the weekly Downtown Night Skate, reminding us of the city's deep-rooted and energetic skate community."
+}
+[2025-11-17 10:26:26] DEBUG: Inside lr_generate_fallback_post_content. AI snippets received: {
+    "post_title": "Los Angeles September Skate Guide: The Downtown Night Skate Lights Up the City!",
+    "top_summary": "Hey, LA Rollers! It looks like our community had a quiet month logging new discoveries in the app, but don't let that fool you\u2014the heart of the Los Angeles skate scene is beating as strong as ever. While we wait for new spots and sessions to pop up, the city's classic group skates are where the action is at.\n\nThis is the perfect time to connect with the core community, and there's no better way than joining the legendary weekly [The Night Skate - Downtown Los Angeles](https:\/\/www.facebook.com\/groups\/thenightskate\/). This is a thrilling 10-mile journey for experienced skaters ready to own the downtown streets after dark. Let's make September a month of getting out there, rediscovering these awesome community skates, and logging our adventures for everyone to see!",
+    "spots_section": {
+        "heading": "Find Your Next Favorite Skate Spot",
+        "intro": "No new spots were added by the community in LA this month. This is your chance to be a trailblazer! Know a spot with buttery-smooth pavement or a killer view? Drop a pin in the app and put your discovery on the map for fellow skaters."
+    },
+    "events_section": {
+        "heading": "Upcoming Community Roll-Outs",
+        "intro": "While no new events were posted to our app, the LA scene is always moving. If you're hosting or know about a local skate park meetup, a trail skate, or a dance session, be sure to add it to the Let's Roll calendar and bring the community together."
+    },
+    "skaters_section": {
+        "heading": "Welcome to the LA Crew",
+        "intro": "The app didn't see any new skater profiles from Los Angeles this period, but we know you're out there! Create a profile, share your favorite skate style, and connect with the thousands of rollers in our vibrant local scene. Let's see who's rolling in the City of Angels!"
+    },
+    "reviews_section": {
+        "heading": "The Word on the Street",
+        "intro": "Our LA spot reviews were quiet this month. Did you recently visit a legendary spot like the Venice Beach skate park or find a new hidden gem? Leave a review in the app\u2014your insights help everyone know where to go (or what to avoid)!"
+    },
+    "sessions_section": {
+        "heading": "Latest Skate Sessions Logged",
+        "intro": "No new public sessions were logged by our LA skaters recently. Let's change that this September! Log your next cruise down the boardwalk or your park practice\u2014seeing your sessions inspires everyone else to lace up and get out there."
+    },
+    "post_summary": "This month in Los Angeles, the scene thrives with consistent meetups like the weekly Downtown Night Skate, reminding us of the city's deep-rooted and energetic skate community."
+}
+[2025-11-17 10:26:26] Successfully generated and saved new post for los-angeles (Bucket: sessions_section).
+[2025-11-17 10:26:26] --- Starting Post Generation for los-angeles (Bucket: 2025-07) ---
+[2025-11-17 10:26:38] Researcher AI Data for Los Angeles: {
+    "news": [],
+    "events": [
+        {
+            "title": "Skate is Love 2k25",
+            "link": "https:\/\/www.eventbrite.com\/e\/skate-is-love-2k25-tickets-892410823967",
+            "summary": "A roller skating event scheduled for Saturday, July 19, 2025, from 10:00 AM to 2:00 PM PDT at Roxanne's in Long Beach, CA."
+        }
+    ]
+}
+[2025-11-17 10:27:04] DEBUG: lr_prepare_and_get_ai_content returning: {
+    "post_title": "Post-'Skate is Love' Vibes: What's Rolling for LA Skaters in August 2025?",
+    "top_summary": "What's up, Los Angeles! The energy in the SoCal skate scene is absolutely electric right now. July was a blast, and we know so many of you rolled out for the incredible [Skate is Love 2k25](https:\/\/www.eventbrite.com\/e\/skate-is-love-2k25-tickets-892410823967) party in Long Beach. That event was a perfect reminder of why our community is the best\u2014all about good music, great people, and smooth eight-wheeled action.\n\nAs we cruise into August, we're looking to keep that momentum going! While our Let's Roll app feed was a little quiet on new discoveries this past month, it feels like the calm before the storm. The streets are buzzing, the rinks are packed, and we're counting on YOU to be our eyes and ears on the pavement. Let's make August a month of discovery and share all the amazing things happening in the City of Angels!",
+    "spots_section": {
+        "heading": "Seeking SoCal's Smoothest Surfaces",
+        "intro": "The Let's Roll map didn't get any new pins dropped for LA this past month, and we know that can't be right! From hidden parking garages in the Valley to freshly paved bike paths by the beach, we're counting on you, the community, to tag the next legendary spot. Get exploring and be the first to share your secret paradise!"
+    },
+    "events_section": {
+        "heading": "Where's the Next Big Rollout?",
+        "intro": "After the amazing turnout for Skate is Love, the bar is set high for August! Our event calendar is looking for its next star. Are you hosting a skate night, a park meetup, or a trail skate? Make sure to add it to the Let's Roll app so the whole community can join the fun and keep the party rolling."
+    },
+    "skaters_section": {
+        "heading": "LA's Most Valuable Skaters (MVS)",
+        "intro": "We didn't feature any new skaters from the City of Angels this cycle, but we see you shining on the boardwalks and at the rinks. Who has been inspiring you with their style and flow? Give them a shout-out and nominate them in the app to be our next featured skater!"
+    },
+    "reviews_section": {
+        "heading": "Your Gear, Your Voice",
+        "intro": "No new gear or spot reviews came through from the LA crew this time, but your experience is invaluable. Did you just break in some new wheels that feel like a dream? Or find a spot that was less than ideal? Leave a review in the app and help your fellow skaters roll smart."
+    },
+    "sessions_section": {
+        "heading": "Log Your Rolls and Share the Stoke!",
+        "intro": "The public session feed was quiet for LA, but we know you were out there putting in the miles. Logging your skate sessions is the best way to track your progress, connect with skaters who frequent your spots, and put your favorite routes on the map. Let's fill up that August feed and show everyone how LA rolls!"
+    },
+    "post_summary": "Recapping the awesome energy from July's Skate is Love event, this Los Angeles update calls on the community to light up the app in August by sharing the city's best new spots, events, and sessions."
+}
+[2025-11-17 10:27:04] DEBUG: Raw AI snippets received: {
+    "post_title": "Post-'Skate is Love' Vibes: What's Rolling for LA Skaters in August 2025?",
+    "top_summary": "What's up, Los Angeles! The energy in the SoCal skate scene is absolutely electric right now. July was a blast, and we know so many of you rolled out for the incredible [Skate is Love 2k25](https:\/\/www.eventbrite.com\/e\/skate-is-love-2k25-tickets-892410823967) party in Long Beach. That event was a perfect reminder of why our community is the best\u2014all about good music, great people, and smooth eight-wheeled action.\n\nAs we cruise into August, we're looking to keep that momentum going! While our Let's Roll app feed was a little quiet on new discoveries this past month, it feels like the calm before the storm. The streets are buzzing, the rinks are packed, and we're counting on YOU to be our eyes and ears on the pavement. Let's make August a month of discovery and share all the amazing things happening in the City of Angels!",
+    "spots_section": {
+        "heading": "Seeking SoCal's Smoothest Surfaces",
+        "intro": "The Let's Roll map didn't get any new pins dropped for LA this past month, and we know that can't be right! From hidden parking garages in the Valley to freshly paved bike paths by the beach, we're counting on you, the community, to tag the next legendary spot. Get exploring and be the first to share your secret paradise!"
+    },
+    "events_section": {
+        "heading": "Where's the Next Big Rollout?",
+        "intro": "After the amazing turnout for Skate is Love, the bar is set high for August! Our event calendar is looking for its next star. Are you hosting a skate night, a park meetup, or a trail skate? Make sure to add it to the Let's Roll app so the whole community can join the fun and keep the party rolling."
+    },
+    "skaters_section": {
+        "heading": "LA's Most Valuable Skaters (MVS)",
+        "intro": "We didn't feature any new skaters from the City of Angels this cycle, but we see you shining on the boardwalks and at the rinks. Who has been inspiring you with their style and flow? Give them a shout-out and nominate them in the app to be our next featured skater!"
+    },
+    "reviews_section": {
+        "heading": "Your Gear, Your Voice",
+        "intro": "No new gear or spot reviews came through from the LA crew this time, but your experience is invaluable. Did you just break in some new wheels that feel like a dream? Or find a spot that was less than ideal? Leave a review in the app and help your fellow skaters roll smart."
+    },
+    "sessions_section": {
+        "heading": "Log Your Rolls and Share the Stoke!",
+        "intro": "The public session feed was quiet for LA, but we know you were out there putting in the miles. Logging your skate sessions is the best way to track your progress, connect with skaters who frequent your spots, and put your favorite routes on the map. Let's fill up that August feed and show everyone how LA rolls!"
+    },
+    "post_summary": "Recapping the awesome energy from July's Skate is Love event, this Los Angeles update calls on the community to light up the app in August by sharing the city's best new spots, events, and sessions."
+}
+[2025-11-17 10:27:04] DEBUG: Checking snippet key 'top_summary' for links.
+[2025-11-17 10:27:04] DEBUG: Content for 'top_summary': What's up, Los Angeles! The energy in the SoCal skate scene is absolutely electric right now. July was a blast, and we know so many of you rolled out for the incredible [Skate is Love 2k25](https://www.eventbrite.com/e/skate-is-love-2k25-tickets-892410823967) party in Long Beach. That event was a perfect reminder of why our community is the best—all about good music, great people, and smooth eight-wheeled action.
+
+As we cruise into August, we're looking to keep that momentum going! While our Let's Roll app feed was a little quiet on new discoveries this past month, it feels like the calm before the storm. The streets are buzzing, the rinks are packed, and we're counting on YOU to be our eyes and ears on the pavement. Let's make August a month of discovery and share all the amazing things happening in the City of Angels!
+[2025-11-17 10:27:20] DEBUG: Checking snippet key 'spots_section' for links.
+[2025-11-17 10:27:20] DEBUG: Content for 'spots_section': The Let's Roll map didn't get any new pins dropped for LA this past month, and we know that can't be right! From hidden parking garages in the Valley to freshly paved bike paths by the beach, we're counting on you, the community, to tag the next legendary spot. Get exploring and be the first to share your secret paradise!
+[2025-11-17 10:27:20] DEBUG: Checking snippet key 'events_section' for links.
+[2025-11-17 10:27:20] DEBUG: Content for 'events_section': After the amazing turnout for Skate is Love, the bar is set high for August! Our event calendar is looking for its next star. Are you hosting a skate night, a park meetup, or a trail skate? Make sure to add it to the Let's Roll app so the whole community can join the fun and keep the party rolling.
+[2025-11-17 10:27:20] DEBUG: Checking snippet key 'skaters_section' for links.
+[2025-11-17 10:27:20] DEBUG: Content for 'skaters_section': We didn't feature any new skaters from the City of Angels this cycle, but we see you shining on the boardwalks and at the rinks. Who has been inspiring you with their style and flow? Give them a shout-out and nominate them in the app to be our next featured skater!
+[2025-11-17 10:27:20] DEBUG: Checking snippet key 'reviews_section' for links.
+[2025-11-17 10:27:20] DEBUG: Content for 'reviews_section': No new gear or spot reviews came through from the LA crew this time, but your experience is invaluable. Did you just break in some new wheels that feel like a dream? Or find a spot that was less than ideal? Leave a review in the app and help your fellow skaters roll smart.
+[2025-11-17 10:27:20] DEBUG: Checking snippet key 'sessions_section' for links.
+[2025-11-17 10:27:20] DEBUG: Content for 'sessions_section': The public session feed was quiet for LA, but we know you were out there putting in the miles. Logging your skate sessions is the best way to track your progress, connect with skaters who frequent your spots, and put your favorite routes on the map. Let's fill up that August feed and show everyone how LA rolls!
+[2025-11-17 10:27:20] DEBUG: Final AI snippets before rendering: {
+    "post_title": "Post-'Skate is Love' Vibes: What's Rolling for LA Skaters in August 2025?",
+    "top_summary": "What's up, Los Angeles! The energy in the SoCal skate scene is absolutely electric right now. July was a blast, and we know so many of you rolled out for the incredible [Skate is Love 2k25](https:\/\/www.eventbrite.com\/e\/skate-is-love-2k25-tickets-1320390346069) party in Long Beach. That event was a perfect reminder of why our community is the best\u2014all about good music, great people, and smooth eight-wheeled action.\n\nAs we cruise into August, we're looking to keep that momentum going! While our Let's Roll app feed was a little quiet on new discoveries this past month, it feels like the calm before the storm. The streets are buzzing, the rinks are packed, and we're counting on YOU to be our eyes and ears on the pavement. Let's make August a month of discovery and share all the amazing things happening in the City of Angels!",
+    "spots_section": {
+        "heading": "Seeking SoCal's Smoothest Surfaces",
+        "intro": "The Let's Roll map didn't get any new pins dropped for LA this past month, and we know that can't be right! From hidden parking garages in the Valley to freshly paved bike paths by the beach, we're counting on you, the community, to tag the next legendary spot. Get exploring and be the first to share your secret paradise!"
+    },
+    "events_section": {
+        "heading": "Where's the Next Big Rollout?",
+        "intro": "After the amazing turnout for Skate is Love, the bar is set high for August! Our event calendar is looking for its next star. Are you hosting a skate night, a park meetup, or a trail skate? Make sure to add it to the Let's Roll app so the whole community can join the fun and keep the party rolling."
+    },
+    "skaters_section": {
+        "heading": "LA's Most Valuable Skaters (MVS)",
+        "intro": "We didn't feature any new skaters from the City of Angels this cycle, but we see you shining on the boardwalks and at the rinks. Who has been inspiring you with their style and flow? Give them a shout-out and nominate them in the app to be our next featured skater!"
+    },
+    "reviews_section": {
+        "heading": "Your Gear, Your Voice",
+        "intro": "No new gear or spot reviews came through from the LA crew this time, but your experience is invaluable. Did you just break in some new wheels that feel like a dream? Or find a spot that was less than ideal? Leave a review in the app and help your fellow skaters roll smart."
+    },
+    "sessions_section": {
+        "heading": "Log Your Rolls and Share the Stoke!",
+        "intro": "The public session feed was quiet for LA, but we know you were out there putting in the miles. Logging your skate sessions is the best way to track your progress, connect with skaters who frequent your spots, and put your favorite routes on the map. Let's fill up that August feed and show everyone how LA rolls!"
+    },
+    "post_summary": "Recapping the awesome energy from July's Skate is Love event, this Los Angeles update calls on the community to light up the app in August by sharing the city's best new spots, events, and sessions."
+}
+[2025-11-17 10:27:20] DEBUG: Inside lr_generate_fallback_post_content. AI snippets received: {
+    "post_title": "Post-'Skate is Love' Vibes: What's Rolling for LA Skaters in August 2025?",
+    "top_summary": "What's up, Los Angeles! The energy in the SoCal skate scene is absolutely electric right now. July was a blast, and we know so many of you rolled out for the incredible [Skate is Love 2k25](https:\/\/www.eventbrite.com\/e\/skate-is-love-2k25-tickets-1320390346069) party in Long Beach. That event was a perfect reminder of why our community is the best\u2014all about good music, great people, and smooth eight-wheeled action.\n\nAs we cruise into August, we're looking to keep that momentum going! While our Let's Roll app feed was a little quiet on new discoveries this past month, it feels like the calm before the storm. The streets are buzzing, the rinks are packed, and we're counting on YOU to be our eyes and ears on the pavement. Let's make August a month of discovery and share all the amazing things happening in the City of Angels!",
+    "spots_section": {
+        "heading": "Seeking SoCal's Smoothest Surfaces",
+        "intro": "The Let's Roll map didn't get any new pins dropped for LA this past month, and we know that can't be right! From hidden parking garages in the Valley to freshly paved bike paths by the beach, we're counting on you, the community, to tag the next legendary spot. Get exploring and be the first to share your secret paradise!"
+    },
+    "events_section": {
+        "heading": "Where's the Next Big Rollout?",
+        "intro": "After the amazing turnout for Skate is Love, the bar is set high for August! Our event calendar is looking for its next star. Are you hosting a skate night, a park meetup, or a trail skate? Make sure to add it to the Let's Roll app so the whole community can join the fun and keep the party rolling."
+    },
+    "skaters_section": {
+        "heading": "LA's Most Valuable Skaters (MVS)",
+        "intro": "We didn't feature any new skaters from the City of Angels this cycle, but we see you shining on the boardwalks and at the rinks. Who has been inspiring you with their style and flow? Give them a shout-out and nominate them in the app to be our next featured skater!"
+    },
+    "reviews_section": {
+        "heading": "Your Gear, Your Voice",
+        "intro": "No new gear or spot reviews came through from the LA crew this time, but your experience is invaluable. Did you just break in some new wheels that feel like a dream? Or find a spot that was less than ideal? Leave a review in the app and help your fellow skaters roll smart."
+    },
+    "sessions_section": {
+        "heading": "Log Your Rolls and Share the Stoke!",
+        "intro": "The public session feed was quiet for LA, but we know you were out there putting in the miles. Logging your skate sessions is the best way to track your progress, connect with skaters who frequent your spots, and put your favorite routes on the map. Let's fill up that August feed and show everyone how LA rolls!"
+    },
+    "post_summary": "Recapping the awesome energy from July's Skate is Love event, this Los Angeles update calls on the community to light up the app in August by sharing the city's best new spots, events, and sessions."
+}
+[2025-11-17 10:27:20] Successfully generated and saved new post for los-angeles (Bucket: sessions_section).
+[2025-11-17 10:27:20] --- Starting Post Generation for los-angeles (Bucket: 2025-06) ---
+[2025-11-17 10:27:35] Researcher AI Data for Los Angeles: {
+    "news": [],
+    "events": [
+        {
+            "title": "Skate Oddity presents: A Vampire Rollerdisco",
+            "link": "https:\/\/www.eventbrite.com\/e\/skate-oddity-presents-a-vampire-rollerdisco-tickets-894234436 skates-oddity-presents-a-vampire-rollerdisco-tickets-894234436",
+            "summary": "A vampire-themed roller disco event presented by Skate Oddity, scheduled to take place on June 21, 2025, at the LA Kings Burbank Sports Center."
+        },
+        {
+            "title": "2025 LAFSC SHOWCASE FOR SKATERS",
+            "link": "https:\/\/www.lafsc.org\/competitions",
+            "summary": "A theatrical skating competition hosted by the Los Angeles Figure Skating Club, scheduled for June 7-8, 2025, at the L.A. Kings Pickwick Ice in Burbank, CA."
+        }
+    ]
+}
+[2025-11-17 10:28:00] DEBUG: lr_prepare_and_get_ai_content returning: {
+    "post_title": "Your July LA Skate Guide: A Vampire Rollerdisco Awaits!",
+    "top_summary": "What's up, LA skaters! June was a surprisingly quiet month for new discoveries in the Let's Roll app. It looks like you were all so busy shredding your favorite spots that no one had a chance to log new ones! Let's make a pact to get out there and map some fresh pavement this July.\n\nBut just because our app map was quiet doesn't mean the city was! The LA skate scene is always buzzing, and we've got our eyes on one of the coolest upcoming events. Sharpen your fangs and get your darkest gear ready for the [Skate Oddity presents: A Vampire Rollerdisco](https:\/\/www.eventbrite.com\/e\/skate-oddity-presents-a-vampire-rollerdisco-tickets-894234436). This is the kind of uniquely awesome, spooky-fun event that makes the LA scene so legendary. Don't miss out!",
+    "spots_section": {
+        "heading": "No New Spots Discovered",
+        "intro": "Whoa, LA! For the first time in a while, no new skate spots were added this month. Is there a hidden gem in your neighborhood? A perfect patch of pavement? Be the first to add it to the map in July and become a local legend!"
+    },
+    "events_section": {
+        "heading": "Community Events Update",
+        "intro": "Our community-submitted events calendar was quiet this month. Don't forget, if you're hosting a local meetup, a skate park session, or a trail skate, you can add it directly to the app to get the word out!"
+    },
+    "skaters_section": {
+        "heading": "Shout-Out to New Skaters",
+        "intro": "We didn't have any featured skaters from the app this month, but we know you're out there! Tag us in your clips and use the app to log your sessions\u2014you might just get a feature in our next roundup."
+    },
+    "reviews_section": {
+        "heading": "Fresh Reviews Needed!",
+        "intro": "No new spot reviews were left by the LA crew in June. Your feedback is crucial! Take a minute to drop a review on your last skate spot. Did it have smooth ground? Good lighting? Let your fellow skaters know!"
+    },
+    "sessions_section": {
+        "heading": "Log Your Sessions!",
+        "intro": "It looks like everyone was too busy skating to log their public sessions this month! Remember, logging a session is the best way to link up with other skaters in your area. Let's fill up that July calendar!"
+    },
+    "post_summary": "June 2025 was a quiet month for new app discoveries in Los Angeles, but the scene is gearing up for a major external event: the can't-miss Vampire Rollerdisco."
+}
+[2025-11-17 10:28:00] DEBUG: Raw AI snippets received: {
+    "post_title": "Your July LA Skate Guide: A Vampire Rollerdisco Awaits!",
+    "top_summary": "What's up, LA skaters! June was a surprisingly quiet month for new discoveries in the Let's Roll app. It looks like you were all so busy shredding your favorite spots that no one had a chance to log new ones! Let's make a pact to get out there and map some fresh pavement this July.\n\nBut just because our app map was quiet doesn't mean the city was! The LA skate scene is always buzzing, and we've got our eyes on one of the coolest upcoming events. Sharpen your fangs and get your darkest gear ready for the [Skate Oddity presents: A Vampire Rollerdisco](https:\/\/www.eventbrite.com\/e\/skate-oddity-presents-a-vampire-rollerdisco-tickets-894234436). This is the kind of uniquely awesome, spooky-fun event that makes the LA scene so legendary. Don't miss out!",
+    "spots_section": {
+        "heading": "No New Spots Discovered",
+        "intro": "Whoa, LA! For the first time in a while, no new skate spots were added this month. Is there a hidden gem in your neighborhood? A perfect patch of pavement? Be the first to add it to the map in July and become a local legend!"
+    },
+    "events_section": {
+        "heading": "Community Events Update",
+        "intro": "Our community-submitted events calendar was quiet this month. Don't forget, if you're hosting a local meetup, a skate park session, or a trail skate, you can add it directly to the app to get the word out!"
+    },
+    "skaters_section": {
+        "heading": "Shout-Out to New Skaters",
+        "intro": "We didn't have any featured skaters from the app this month, but we know you're out there! Tag us in your clips and use the app to log your sessions\u2014you might just get a feature in our next roundup."
+    },
+    "reviews_section": {
+        "heading": "Fresh Reviews Needed!",
+        "intro": "No new spot reviews were left by the LA crew in June. Your feedback is crucial! Take a minute to drop a review on your last skate spot. Did it have smooth ground? Good lighting? Let your fellow skaters know!"
+    },
+    "sessions_section": {
+        "heading": "Log Your Sessions!",
+        "intro": "It looks like everyone was too busy skating to log their public sessions this month! Remember, logging a session is the best way to link up with other skaters in your area. Let's fill up that July calendar!"
+    },
+    "post_summary": "June 2025 was a quiet month for new app discoveries in Los Angeles, but the scene is gearing up for a major external event: the can't-miss Vampire Rollerdisco."
+}
+[2025-11-17 10:28:00] DEBUG: Checking snippet key 'top_summary' for links.
+[2025-11-17 10:28:00] DEBUG: Content for 'top_summary': What's up, LA skaters! June was a surprisingly quiet month for new discoveries in the Let's Roll app. It looks like you were all so busy shredding your favorite spots that no one had a chance to log new ones! Let's make a pact to get out there and map some fresh pavement this July.
+
+But just because our app map was quiet doesn't mean the city was! The LA skate scene is always buzzing, and we've got our eyes on one of the coolest upcoming events. Sharpen your fangs and get your darkest gear ready for the [Skate Oddity presents: A Vampire Rollerdisco](https://www.eventbrite.com/e/skate-oddity-presents-a-vampire-rollerdisco-tickets-894234436). This is the kind of uniquely awesome, spooky-fun event that makes the LA scene so legendary. Don't miss out!
+[2025-11-17 10:28:15] DEBUG: Checking snippet key 'spots_section' for links.
+[2025-11-17 10:28:15] DEBUG: Content for 'spots_section': Whoa, LA! For the first time in a while, no new skate spots were added this month. Is there a hidden gem in your neighborhood? A perfect patch of pavement? Be the first to add it to the map in July and become a local legend!
+[2025-11-17 10:28:15] DEBUG: Checking snippet key 'events_section' for links.
+[2025-11-17 10:28:15] DEBUG: Content for 'events_section': Our community-submitted events calendar was quiet this month. Don't forget, if you're hosting a local meetup, a skate park session, or a trail skate, you can add it directly to the app to get the word out!
+[2025-11-17 10:28:15] DEBUG: Checking snippet key 'skaters_section' for links.
+[2025-11-17 10:28:15] DEBUG: Content for 'skaters_section': We didn't have any featured skaters from the app this month, but we know you're out there! Tag us in your clips and use the app to log your sessions—you might just get a feature in our next roundup.
+[2025-11-17 10:28:15] DEBUG: Checking snippet key 'reviews_section' for links.
+[2025-11-17 10:28:15] DEBUG: Content for 'reviews_section': No new spot reviews were left by the LA crew in June. Your feedback is crucial! Take a minute to drop a review on your last skate spot. Did it have smooth ground? Good lighting? Let your fellow skaters know!
+[2025-11-17 10:28:15] DEBUG: Checking snippet key 'sessions_section' for links.
+[2025-11-17 10:28:15] DEBUG: Content for 'sessions_section': It looks like everyone was too busy skating to log their public sessions this month! Remember, logging a session is the best way to link up with other skaters in your area. Let's fill up that July calendar!
+[2025-11-17 10:28:15] DEBUG: Final AI snippets before rendering: {
+    "post_title": "Your July LA Skate Guide: A Vampire Rollerdisco Awaits!",
+    "top_summary": "What's up, LA skaters! June was a surprisingly quiet month for new discoveries in the Let's Roll app. It looks like you were all so busy shredding your favorite spots that no one had a chance to log new ones! Let's make a pact to get out there and map some fresh pavement this July.\n\nBut just because our app map was quiet doesn't mean the city was! The LA skate scene is always buzzing, and we've got our eyes on one of the coolest upcoming events. Sharpen your fangs and get your darkest gear ready for the [Skate Oddity presents: A Vampire Rollerdisco](https:\/\/www.eventbrite.com\/e\/skate-oddity-presents-a-vampire-rollerdisco-tickets-1333596435839). This is the kind of uniquely awesome, spooky-fun event that makes the LA scene so legendary. Don't miss out!",
+    "spots_section": {
+        "heading": "No New Spots Discovered",
+        "intro": "Whoa, LA! For the first time in a while, no new skate spots were added this month. Is there a hidden gem in your neighborhood? A perfect patch of pavement? Be the first to add it to the map in July and become a local legend!"
+    },
+    "events_section": {
+        "heading": "Community Events Update",
+        "intro": "Our community-submitted events calendar was quiet this month. Don't forget, if you're hosting a local meetup, a skate park session, or a trail skate, you can add it directly to the app to get the word out!"
+    },
+    "skaters_section": {
+        "heading": "Shout-Out to New Skaters",
+        "intro": "We didn't have any featured skaters from the app this month, but we know you're out there! Tag us in your clips and use the app to log your sessions\u2014you might just get a feature in our next roundup."
+    },
+    "reviews_section": {
+        "heading": "Fresh Reviews Needed!",
+        "intro": "No new spot reviews were left by the LA crew in June. Your feedback is crucial! Take a minute to drop a review on your last skate spot. Did it have smooth ground? Good lighting? Let your fellow skaters know!"
+    },
+    "sessions_section": {
+        "heading": "Log Your Sessions!",
+        "intro": "It looks like everyone was too busy skating to log their public sessions this month! Remember, logging a session is the best way to link up with other skaters in your area. Let's fill up that July calendar!"
+    },
+    "post_summary": "June 2025 was a quiet month for new app discoveries in Los Angeles, but the scene is gearing up for a major external event: the can't-miss Vampire Rollerdisco."
+}
+[2025-11-17 10:28:15] DEBUG: Inside lr_generate_fallback_post_content. AI snippets received: {
+    "post_title": "Your July LA Skate Guide: A Vampire Rollerdisco Awaits!",
+    "top_summary": "What's up, LA skaters! June was a surprisingly quiet month for new discoveries in the Let's Roll app. It looks like you were all so busy shredding your favorite spots that no one had a chance to log new ones! Let's make a pact to get out there and map some fresh pavement this July.\n\nBut just because our app map was quiet doesn't mean the city was! The LA skate scene is always buzzing, and we've got our eyes on one of the coolest upcoming events. Sharpen your fangs and get your darkest gear ready for the [Skate Oddity presents: A Vampire Rollerdisco](https:\/\/www.eventbrite.com\/e\/skate-oddity-presents-a-vampire-rollerdisco-tickets-1333596435839). This is the kind of uniquely awesome, spooky-fun event that makes the LA scene so legendary. Don't miss out!",
+    "spots_section": {
+        "heading": "No New Spots Discovered",
+        "intro": "Whoa, LA! For the first time in a while, no new skate spots were added this month. Is there a hidden gem in your neighborhood? A perfect patch of pavement? Be the first to add it to the map in July and become a local legend!"
+    },
+    "events_section": {
+        "heading": "Community Events Update",
+        "intro": "Our community-submitted events calendar was quiet this month. Don't forget, if you're hosting a local meetup, a skate park session, or a trail skate, you can add it directly to the app to get the word out!"
+    },
+    "skaters_section": {
+        "heading": "Shout-Out to New Skaters",
+        "intro": "We didn't have any featured skaters from the app this month, but we know you're out there! Tag us in your clips and use the app to log your sessions\u2014you might just get a feature in our next roundup."
+    },
+    "reviews_section": {
+        "heading": "Fresh Reviews Needed!",
+        "intro": "No new spot reviews were left by the LA crew in June. Your feedback is crucial! Take a minute to drop a review on your last skate spot. Did it have smooth ground? Good lighting? Let your fellow skaters know!"
+    },
+    "sessions_section": {
+        "heading": "Log Your Sessions!",
+        "intro": "It looks like everyone was too busy skating to log their public sessions this month! Remember, logging a session is the best way to link up with other skaters in your area. Let's fill up that July calendar!"
+    },
+    "post_summary": "June 2025 was a quiet month for new app discoveries in Los Angeles, but the scene is gearing up for a major external event: the can't-miss Vampire Rollerdisco."
+}
+[2025-11-17 10:28:15] Successfully generated and saved new post for los-angeles (Bucket: sessions_section).
+[2025-11-17 10:28:15] --- Starting Post Generation for los-angeles (Bucket: 2025-11) ---
+[2025-11-17 10:28:28] Researcher AI Data for Los Angeles: {
+    "news": [],
+    "events": [
+        {
+            "title": "Cali Slide Skate Party",
+            "link": "https:\/\/skategroove.com\/metro-rollers-skate-groove-events-2025\/",
+            "summary": "A four-day roller skating celebration from November 6-9, 2025, hosted by Sk8 Fanatics in the Los Angeles\/San Bernardino area. The event will feature a lineup of national DJs and includes a VIP Sk8 Pre-Party, skating at Cal Skate, and events at Venice Beach Skate Dance Plaza."
+        },
+        {
+            "title": "The Night Skate - Downtown Los Angeles",
+            "link": "https:\/\/www.meetup.com\/southern-california-urban-inlineroller-skating\/events\/303903173\/",
+            "summary": "A weekly Tuesday night skate through Downtown Los Angeles, starting at 8:08 PM from Weller Court. This is an intermediate-level skate covering about 10 miles in the streets with traffic."
+        },
+        {
+            "title": "Blading Cup",
+            "link": "https:\/\/www.thuroshop.com\/pages\/inline-skating-events-and-competitions",
+            "summary": "An annual aggressive inline skating competition that brings skaters from around the world to Southern California. The event is scheduled for October 31-November 1, 2025, in Santa Ana."
+        },
+        {
+            "title": "Moonlight Rollerway Themed Skate Nights",
+            "link": "https:\/\/www.moonlightrollerway.com\/",
+            "summary": "Moonlight Rollerway in Glendale hosts several themed roller skating events in November 2025, including a Veteran's Day skate on November 11th, a Boy Bands theme on November 15th, a Showtunes and Musicals night on November 22nd, and a Thanksgiving Day skate on November 27th."
+        },
+        {
+            "title": "Netflix x CicLAvia\u2014Melrose Ave: Stranger Things 5 One Last Ride",
+            "link": "https:\/\/www.ciclavia.org\/ciclavia_melrose_ave_stranger_things_5",
+            "summary": "On Sunday, November 23, 2025, from 9am to 3pm, a stretch of Melrose Ave will be closed to cars for a \"Stranger Things\" themed open streets event. Participants are encouraged to walk, jog, bike, or roller skate along the route."
+        }
+    ]
+}
+[2025-11-17 10:28:55] DEBUG: lr_prepare_and_get_ai_content returning: {
+    "post_title": "Roll Through the Upside Down: Your Guide to Skating Los Angeles in December 2025",
+    "top_summary": "Get ready, Los Angeles! This holiday season is shaping up to be one of the most exciting months for skating we've seen all year. The absolute must-do event is the incredible [Netflix x CicLAvia\u2014Melrose Ave: Stranger Things 5 One Last Ride](https:\/\/www.ciclavia.org\/ciclavia_melrose_ave_stranger_things_5) on November 23rd. Imagine rolling down a car-free Melrose with your crew, 80s tunes blasting, as we all celebrate the final season of a cultural phenomenon. This is a massive, open-to-all event that puts skating right in the heart of LA's biggest cultural moments.\n\nThe energy is already buzzing after a packed November. From the world-class talent at the [Blading Cup](https:\/\/www.thuroshop.com\/pages\/inline-skating-events-and-competitions) to the non-stop vibes of the [Cali Slide Skate Party](https:\/\/skategroove.com\/metro-rollers-skate-groove-events-2025\/), the scene is on fire. This momentum continues with awesome themed nights at [Moonlight Rollerway](https:\/\/www.moonlightrollerway.com\/) and the reliable thrill of the weekly [The Night Skate - Downtown Los Angeles](https:\/\/www.meetup.com\/southern-california-urban-inlineroller-skating\/events\/303903173\/) for our street skaters. Whether you're a rink regular or a street warrior, LA has something for you this month.",
+    "spots_section": {
+        "heading": "Where Are You Rolling?",
+        "intro": "The streets were alive this month, but no new skate spots were added to the Let's Roll map! Did you find a hidden patch of smooth pavement or a perfect practice spot during the CicLAvia event? Be the first to drop a pin and share your discovery with the community."
+    },
+    "events_section": {
+        "heading": "Your Next Community Meetup",
+        "intro": "While the city is buzzing with major organized events, we didn't see any new community-led meetups added to the app. Got a recurring group skate, a trail meetup, or a special holiday event planned? Let's get it on the calendar for everyone to see!"
+    },
+    "skaters_section": {
+        "heading": "Welcome, New Rollers!",
+        "intro": "The LA scene is absolutely massive, but no new skaters created a profile on the app this month. Don't be shy! We want to see you. Create a profile, share your skate style, and connect with the thousands of other skaters in our crew."
+    },
+    "reviews_section": {
+        "heading": "Share Your Local Knowledge",
+        "intro": "From the classic floors of Moonlight Rollerway to the urban landscape of the DTLA Night Skate, you've been everywhere! Help out your fellow skaters by dropping a review for a rink, a trail, or a street spot you've visited recently."
+    },
+    "sessions_section": {
+        "heading": "Log Your Skate Sessions",
+        "intro": "We know you've been putting in the miles, but no new skate sessions were logged in the app this past month. Start tracking your skates to see your progress, map your favorite routes, and share your adventures with the community!"
+    },
+    "post_summary": "Los Angeles gears up for a massive month of skating in December 2025, headlined by a 'Stranger Things' themed CicLAvia on Melrose and a packed calendar of rink nights and street skates."
+}
+[2025-11-17 10:28:55] DEBUG: Raw AI snippets received: {
+    "post_title": "Roll Through the Upside Down: Your Guide to Skating Los Angeles in December 2025",
+    "top_summary": "Get ready, Los Angeles! This holiday season is shaping up to be one of the most exciting months for skating we've seen all year. The absolute must-do event is the incredible [Netflix x CicLAvia\u2014Melrose Ave: Stranger Things 5 One Last Ride](https:\/\/www.ciclavia.org\/ciclavia_melrose_ave_stranger_things_5) on November 23rd. Imagine rolling down a car-free Melrose with your crew, 80s tunes blasting, as we all celebrate the final season of a cultural phenomenon. This is a massive, open-to-all event that puts skating right in the heart of LA's biggest cultural moments.\n\nThe energy is already buzzing after a packed November. From the world-class talent at the [Blading Cup](https:\/\/www.thuroshop.com\/pages\/inline-skating-events-and-competitions) to the non-stop vibes of the [Cali Slide Skate Party](https:\/\/skategroove.com\/metro-rollers-skate-groove-events-2025\/), the scene is on fire. This momentum continues with awesome themed nights at [Moonlight Rollerway](https:\/\/www.moonlightrollerway.com\/) and the reliable thrill of the weekly [The Night Skate - Downtown Los Angeles](https:\/\/www.meetup.com\/southern-california-urban-inlineroller-skating\/events\/303903173\/) for our street skaters. Whether you're a rink regular or a street warrior, LA has something for you this month.",
+    "spots_section": {
+        "heading": "Where Are You Rolling?",
+        "intro": "The streets were alive this month, but no new skate spots were added to the Let's Roll map! Did you find a hidden patch of smooth pavement or a perfect practice spot during the CicLAvia event? Be the first to drop a pin and share your discovery with the community."
+    },
+    "events_section": {
+        "heading": "Your Next Community Meetup",
+        "intro": "While the city is buzzing with major organized events, we didn't see any new community-led meetups added to the app. Got a recurring group skate, a trail meetup, or a special holiday event planned? Let's get it on the calendar for everyone to see!"
+    },
+    "skaters_section": {
+        "heading": "Welcome, New Rollers!",
+        "intro": "The LA scene is absolutely massive, but no new skaters created a profile on the app this month. Don't be shy! We want to see you. Create a profile, share your skate style, and connect with the thousands of other skaters in our crew."
+    },
+    "reviews_section": {
+        "heading": "Share Your Local Knowledge",
+        "intro": "From the classic floors of Moonlight Rollerway to the urban landscape of the DTLA Night Skate, you've been everywhere! Help out your fellow skaters by dropping a review for a rink, a trail, or a street spot you've visited recently."
+    },
+    "sessions_section": {
+        "heading": "Log Your Skate Sessions",
+        "intro": "We know you've been putting in the miles, but no new skate sessions were logged in the app this past month. Start tracking your skates to see your progress, map your favorite routes, and share your adventures with the community!"
+    },
+    "post_summary": "Los Angeles gears up for a massive month of skating in December 2025, headlined by a 'Stranger Things' themed CicLAvia on Melrose and a packed calendar of rink nights and street skates."
+}
+[2025-11-17 10:28:55] DEBUG: Checking snippet key 'top_summary' for links.
+[2025-11-17 10:28:55] DEBUG: Content for 'top_summary': Get ready, Los Angeles! This holiday season is shaping up to be one of the most exciting months for skating we've seen all year. The absolute must-do event is the incredible [Netflix x CicLAvia—Melrose Ave: Stranger Things 5 One Last Ride](https://www.ciclavia.org/ciclavia_melrose_ave_stranger_things_5) on November 23rd. Imagine rolling down a car-free Melrose with your crew, 80s tunes blasting, as we all celebrate the final season of a cultural phenomenon. This is a massive, open-to-all event that puts skating right in the heart of LA's biggest cultural moments.
+
+The energy is already buzzing after a packed November. From the world-class talent at the [Blading Cup](https://www.thuroshop.com/pages/inline-skating-events-and-competitions) to the non-stop vibes of the [Cali Slide Skate Party](https://skategroove.com/metro-rollers-skate-groove-events-2025/), the scene is on fire. This momentum continues with awesome themed nights at [Moonlight Rollerway](https://www.moonlightrollerway.com/) and the reliable thrill of the weekly [The Night Skate - Downtown Los Angeles](https://www.meetup.com/southern-california-urban-inlineroller-skating/events/303903173/) for our street skaters. Whether you're a rink regular or a street warrior, LA has something for you this month.
+[2025-11-17 10:29:59] DEBUG: Checking snippet key 'spots_section' for links.
+[2025-11-17 10:29:59] DEBUG: Content for 'spots_section': The streets were alive this month, but no new skate spots were added to the Let's Roll map! Did you find a hidden patch of smooth pavement or a perfect practice spot during the CicLAvia event? Be the first to drop a pin and share your discovery with the community.
+[2025-11-17 10:29:59] DEBUG: Checking snippet key 'events_section' for links.
+[2025-11-17 10:29:59] DEBUG: Content for 'events_section': While the city is buzzing with major organized events, we didn't see any new community-led meetups added to the app. Got a recurring group skate, a trail meetup, or a special holiday event planned? Let's get it on the calendar for everyone to see!
+[2025-11-17 10:29:59] DEBUG: Checking snippet key 'skaters_section' for links.
+[2025-11-17 10:29:59] DEBUG: Content for 'skaters_section': The LA scene is absolutely massive, but no new skaters created a profile on the app this month. Don't be shy! We want to see you. Create a profile, share your skate style, and connect with the thousands of other skaters in our crew.
+[2025-11-17 10:29:59] DEBUG: Checking snippet key 'reviews_section' for links.
+[2025-11-17 10:29:59] DEBUG: Content for 'reviews_section': From the classic floors of Moonlight Rollerway to the urban landscape of the DTLA Night Skate, you've been everywhere! Help out your fellow skaters by dropping a review for a rink, a trail, or a street spot you've visited recently.
+[2025-11-17 10:29:59] DEBUG: Checking snippet key 'sessions_section' for links.
+[2025-11-17 10:29:59] DEBUG: Content for 'sessions_section': We know you've been putting in the miles, but no new skate sessions were logged in the app this past month. Start tracking your skates to see your progress, map your favorite routes, and share your adventures with the community!
+[2025-11-17 10:29:59] DEBUG: Final AI snippets before rendering: {
+    "post_title": "Roll Through the Upside Down: Your Guide to Skating Los Angeles in December 2025",
+    "top_summary": "Get ready, Los Angeles! This holiday season is shaping up to be one of the most exciting months for skating we've seen all year. The absolute must-do event is the incredible [Netflix x CicLAvia\u2014Melrose Ave: Stranger Things 5 One Last Ride](https:\/\/www.ciclavia.org\/ciclavia_melrose_ave25) on November 23rd. Imagine rolling down a car-free Melrose with your crew, 80s tunes blasting, as we all celebrate the final season of a cultural phenomenon. This is a massive, open-to-all event that puts skating right in the heart of LA's biggest cultural moments.\n\nThe energy is already buzzing after a packed November. From the world-class talent at the [Blading Cup](https:\/\/bladingcup.com\/) to the non-stop vibes of the [Cali Slide Skate Party](https:\/\/www.sk8fanatics.com\/cali-slide.html), the scene is on fire. This momentum continues with awesome themed nights at [Moonlight Rollerway](https:\/\/www.moonlightrollerway.com\/) and the reliable thrill of the weekly The Night Skate - Downtown Los Angeles for our street skaters. Whether you're a rink regular or a street warrior, LA has something for you this month.",
+    "spots_section": {
+        "heading": "Where Are You Rolling?",
+        "intro": "The streets were alive this month, but no new skate spots were added to the Let's Roll map! Did you find a hidden patch of smooth pavement or a perfect practice spot during the CicLAvia event? Be the first to drop a pin and share your discovery with the community."
+    },
+    "events_section": {
+        "heading": "Your Next Community Meetup",
+        "intro": "While the city is buzzing with major organized events, we didn't see any new community-led meetups added to the app. Got a recurring group skate, a trail meetup, or a special holiday event planned? Let's get it on the calendar for everyone to see!"
+    },
+    "skaters_section": {
+        "heading": "Welcome, New Rollers!",
+        "intro": "The LA scene is absolutely massive, but no new skaters created a profile on the app this month. Don't be shy! We want to see you. Create a profile, share your skate style, and connect with the thousands of other skaters in our crew."
+    },
+    "reviews_section": {
+        "heading": "Share Your Local Knowledge",
+        "intro": "From the classic floors of Moonlight Rollerway to the urban landscape of the DTLA Night Skate, you've been everywhere! Help out your fellow skaters by dropping a review for a rink, a trail, or a street spot you've visited recently."
+    },
+    "sessions_section": {
+        "heading": "Log Your Skate Sessions",
+        "intro": "We know you've been putting in the miles, but no new skate sessions were logged in the app this past month. Start tracking your skates to see your progress, map your favorite routes, and share your adventures with the community!"
+    },
+    "post_summary": "Los Angeles gears up for a massive month of skating in December 2025, headlined by a 'Stranger Things' themed CicLAvia on Melrose and a packed calendar of rink nights and street skates."
+}
+[2025-11-17 10:29:59] DEBUG: Inside lr_generate_fallback_post_content. AI snippets received: {
+    "post_title": "Roll Through the Upside Down: Your Guide to Skating Los Angeles in December 2025",
+    "top_summary": "Get ready, Los Angeles! This holiday season is shaping up to be one of the most exciting months for skating we've seen all year. The absolute must-do event is the incredible [Netflix x CicLAvia\u2014Melrose Ave: Stranger Things 5 One Last Ride](https:\/\/www.ciclavia.org\/ciclavia_melrose_ave25) on November 23rd. Imagine rolling down a car-free Melrose with your crew, 80s tunes blasting, as we all celebrate the final season of a cultural phenomenon. This is a massive, open-to-all event that puts skating right in the heart of LA's biggest cultural moments.\n\nThe energy is already buzzing after a packed November. From the world-class talent at the [Blading Cup](https:\/\/bladingcup.com\/) to the non-stop vibes of the [Cali Slide Skate Party](https:\/\/www.sk8fanatics.com\/cali-slide.html), the scene is on fire. This momentum continues with awesome themed nights at [Moonlight Rollerway](https:\/\/www.moonlightrollerway.com\/) and the reliable thrill of the weekly The Night Skate - Downtown Los Angeles for our street skaters. Whether you're a rink regular or a street warrior, LA has something for you this month.",
+    "spots_section": {
+        "heading": "Where Are You Rolling?",
+        "intro": "The streets were alive this month, but no new skate spots were added to the Let's Roll map! Did you find a hidden patch of smooth pavement or a perfect practice spot during the CicLAvia event? Be the first to drop a pin and share your discovery with the community."
+    },
+    "events_section": {
+        "heading": "Your Next Community Meetup",
+        "intro": "While the city is buzzing with major organized events, we didn't see any new community-led meetups added to the app. Got a recurring group skate, a trail meetup, or a special holiday event planned? Let's get it on the calendar for everyone to see!"
+    },
+    "skaters_section": {
+        "heading": "Welcome, New Rollers!",
+        "intro": "The LA scene is absolutely massive, but no new skaters created a profile on the app this month. Don't be shy! We want to see you. Create a profile, share your skate style, and connect with the thousands of other skaters in our crew."
+    },
+    "reviews_section": {
+        "heading": "Share Your Local Knowledge",
+        "intro": "From the classic floors of Moonlight Rollerway to the urban landscape of the DTLA Night Skate, you've been everywhere! Help out your fellow skaters by dropping a review for a rink, a trail, or a street spot you've visited recently."
+    },
+    "sessions_section": {
+        "heading": "Log Your Skate Sessions",
+        "intro": "We know you've been putting in the miles, but no new skate sessions were logged in the app this past month. Start tracking your skates to see your progress, map your favorite routes, and share your adventures with the community!"
+    },
+    "post_summary": "Los Angeles gears up for a massive month of skating in December 2025, headlined by a 'Stranger Things' themed CicLAvia on Melrose and a packed calendar of rink nights and street skates."
+}
+[2025-11-17 10:29:59] Successfully generated and saved new post for los-angeles (Bucket: sessions_section).
+[2025-11-17 10:29:59] --- Finished Historical Seeding for los-angeles ---

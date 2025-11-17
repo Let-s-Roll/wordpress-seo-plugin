@@ -179,67 +179,59 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                     lr_log_discovery_message("DEBUG: Content for '{$key}': " . $text_to_process);
                     preg_match_all('/\[([^\]]+)\]\(([^)]+)\)/', $text_to_process, $matches, PREG_SET_ORDER);
                     
-                    $modified_text = $text_to_process;
-                    $link_id_counter = 1; // Initialize link ID counter for this snippet
+                    $modified_text = $text_to_process; // Initialize with original text to prevent erasure.
+                    $link_id_counter = 1; 
+                    $options = get_option('lr_options');
+                    $enable_refresh_search = isset($options['enable_refresh_search']) && $options['enable_refresh_search'] === '1';
+
                     foreach ($matches as $match) {
                         $link_text = $match[1];
                         $original_url = $match[2];
-                        $final_verified_url = null; // This will hold the URL that passes verification.
-                        
-                        // --- Link Verification Cascade ---
-                        // This multi-step process attempts to find a valid, live URL for the link.
-                        // It stops at the first successful step.
+                        $final_verified_url = null; 
 
-                        // Skip verification for internal links to our own site.
                         if (strpos($original_url, home_url()) === 0) {
                             continue;
                         }
 
-                        // Step 1: Perform the intelligent liveness check on the AI's original URL.
-                        // This is the fastest and most direct check.
-                        $is_live = lr_intelligent_liveness_check($original_url, $link_id_counter, $link_text, $original_url);
+                        // Step 1: Perform the intelligent quality check.
+                        $quality_url = lr_intelligent_quality_check($original_url, $link_id_counter, $link_text, $original_url, $city_name);
 
-                        if ($is_live) {
-                            $final_verified_url = $original_url;
+                        if ($quality_url) {
+                            $final_verified_url = $quality_url;
                             lr_log_link_verification_csv([
-                                'link_id' => $link_id_counter,
-                                'link_text' => $link_text,
-                                'original_url' => $original_url,
-                                'resulting_url' => $original_url,
-                                'status' => 'SUCCESS',
-                                'notes' => 'Passed intelligent liveness check.'
+                                'link_id' => $link_id_counter, 'link_text' => $link_text, 'original_url' => $original_url,
+                                'resulting_url' => $final_verified_url, 'status' => 'SUCCESS',
+                                'notes' => 'Passed intelligent quality check.' . ($original_url !== $final_verified_url ? ' (Redirect resolved)' : '')
                             ]);
                         } else {
-                            // The initial URL is likely dead or problematic.
+                            // The specific reason for failure has already been logged inside lr_intelligent_quality_check.
+                            // This log entry just marks the start of the replacement process.
                             lr_log_link_verification_csv([
-                                'link_id' => $link_id_counter,
-                                'link_text' => $link_text,
-                                'original_url' => $original_url,
-                                'status' => 'FAILURE',
-                                'notes' => 'Failed intelligent liveness check. Attempting Refresh Search.'
+                                'link_id' => $link_id_counter, 'link_text' => $link_text, 'original_url' => $original_url,
+                                'status' => 'ATTEMPTING_REPLACEMENT',
+                                'notes' => 'Quality check failed (see previous log entry for details). Starting replacement cascade.'
                             ]);
 
-                            // Step 2: If liveness check fails, try a "Refresh Search".
-                            // This uses the dead URL itself as a search query to find its new location.
-                            $refreshed_url = lr_verify_link_with_google_search($original_url, $city_name, $publish_date_str, $original_url, 'refresh', $link_id_counter, $link_text);
+                            $refreshed_url = null;
+                            if ($enable_refresh_search) {
+                                $refresh_results = lr_verify_link_with_google_search($original_url, $city_name, $publish_date_str, $original_url, 'refresh', $link_id_counter, $link_text);
+                                if (!is_wp_error($refresh_results) && !empty($refresh_results)) {
+                                    $refreshed_url = $refresh_results[0]['link'];
+                                }
+                            }
 
-                            if (!is_wp_error($refreshed_url)) {
-                                // The refresh search was successful.
-                                $final_verified_url = $refreshed_url[0]['link'];
+                            if ($refreshed_url) {
+                                $final_verified_url = $refreshed_url;
                                 lr_log_link_verification_csv([
                                     'link_id' => $link_id_counter, 'link_text' => $link_text, 'original_url' => $original_url,
                                     'resulting_url' => $final_verified_url, 'status' => 'SUCCESS',
                                     'notes' => 'URL corrected via refresh search.'
                                 ]);
                             } else {
-                                // Step 3: If Refresh Search fails, try a "Broad Search".
-                                // This uses the link's anchor text to find other potential pages about the same topic.
                                 $broad_search_results = lr_verify_link_with_google_search($link_text, $city_name, $publish_date_str, $original_url, 'broad', $link_id_counter, $link_text);
-
                                 if (!is_wp_error($broad_search_results) && !empty($broad_search_results)) {
-                                    // Step 4: Use the AI to evaluate the broad search candidates.
-                                    // This prevents using contextually irrelevant results.
-                                    $best_url = lr_evaluate_best_link_from_search($link_text, $broad_search_results);
+                                    $context_sentence = lr_get_sentence_from_text($text_to_process, $match[0]);
+                                    $best_url = lr_evaluate_best_link_from_search($link_text, $broad_search_results, $city_name, $context_sentence);
                                     
                                     if ($best_url) {
                                         $final_verified_url = $best_url;
@@ -249,7 +241,6 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                                             'notes' => 'AI evaluated and chose the best link from broad search.'
                                         ]);
                                     } else {
-                                        // Log the AI's decision to reject all candidates as irrelevant.
                                         lr_log_link_verification_csv([
                                             'link_id' => $link_id_counter, 'link_text' => $link_text, 'original_url' => $original_url,
                                             'status' => 'FAILURE',
@@ -257,21 +248,17 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                                         ]);
                                     }
                                 }
-                                // If broad search or evaluation fails, $final_verified_url remains null.
                             }
                         }
 
                         // After the cascade, update the text based on the outcome.
-                        if ($final_verified_url) {
-                            // If a valid URL was found, update the link in the content.
+                        if ($final_verified_url && $final_verified_url !== $original_url) {
                             $modified_text = str_replace($original_url, $final_verified_url, $modified_text);
-                        } else {
-                            // If no valid URL was found after all attempts, remove the link entirely
-                            // but keep the anchor text.
+                        } elseif (!$final_verified_url) {
                             $full_markdown_link = $match[0];
                             $modified_text = str_replace($full_markdown_link, $link_text, $modified_text);
                         }
-                        $link_id_counter++; // Increment for the next link in the snippet.
+                        $link_id_counter++;
                     }
 
                     // Explicitly re-assign the modified text back to the main AI snippets array.
@@ -617,4 +604,21 @@ function lr_select_featured_image($grouped_content) {
             lr_log_discovery_message("--- Seeding Batch End. Next batch scheduled in 1 minute. ---");
         }
         
+/**
+ * Extracts the full sentence containing a specific substring from a block of text.
+ *
+ * @param string $text The full block of text to search within.
+ * @param string $substring The substring (e.g., a Markdown link) to find.
+ * @return string The full sentence containing the substring, or an empty string if not found.
+ */
+function lr_get_sentence_from_text($text, $substring) {
+    // Split the text into sentences, preserving the delimiters.
+    $sentences = preg_split('/(?<=[.?!])\s+/', $text, -1, PREG_SPLIT_NO_EMPTY);
+    foreach ($sentences as $sentence) {
+        if (strpos($sentence, $substring) !== false) {
+            return $sentence;
+        }
+    }
+    return ''; // Return empty string if no sentence contains the substring.
+}
             
