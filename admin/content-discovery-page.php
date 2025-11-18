@@ -152,9 +152,14 @@ function lr_render_content_discovery_page() {
     $all_locations = lr_get_location_data();
     $discovery_status = lr_get_discovery_run_status();
     $lock_timestamp = get_option('lr_seeding_in_progress');
-    $is_seeding_in_progress = (bool) $lock_timestamp;
+    $is_batch_running = (bool) $lock_timestamp; // A single batch is running if the lock is set
     $crashed_city_slug = get_option('lr_seeding_current_city');
     $seeding_overview = lr_get_seeding_status_overview();
+
+    // Determine if the entire multi-batch process is ongoing.
+    $processed_count = get_option('lr_seeding_batch_progress', 0);
+    $is_seeding_process_ongoing = ($processed_count > 0 && $processed_count < $seeding_overview['total_cities']);
+
     ?>
     <div class="wrap">
         <h1>Content Discovery & Seeding</h1>
@@ -177,7 +182,7 @@ function lr_render_content_discovery_page() {
         $time_locked = $lock_timestamp ? (time() - $lock_timestamp) : 0;
         $is_stalled = $time_locked > 300; // 5 minutes
 
-        if ($is_seeding_in_progress && $is_stalled) {
+        if ($is_batch_running && $is_stalled) {
             $city_details = $crashed_city_slug ? lr_get_city_details_by_slug($crashed_city_slug) : null;
             $city_name = $city_details['name'] ?? ucfirst($crashed_city_slug ?? 'an unknown city');
             echo '<div class="notice notice-error"><p><strong>CRITICAL ERROR:</strong> The seeder appears to have stalled for over 5 minutes while processing <strong>' . esc_html($city_name) . '</strong>. The process is currently locked. Please check the `content_discovery.log` for any specific errors. You will need to use the "Force Unlock & Reset" button to try again.</p></div>';
@@ -193,16 +198,21 @@ function lr_render_content_discovery_page() {
                 <?php wp_nonce_field('lr_discovery_actions'); ?>
                 <?php submit_button('Run Full Discovery Now', 'primary', 'lr_run_discovery_now', false); ?>
                 <?php submit_button('Generate City Update Posts', 'secondary', 'lr_run_publication_now', false); ?>
-                <input type="submit" name="lr_seed_all_cities" class="button button-primary" value="Seed All Cities (Historical)" <?php disabled(!$discovery_status['is_complete'] || $is_seeding_in_progress); ?>>
-                <?php if ($is_seeding_in_progress) : ?>
+                <input type="submit" name="lr_seed_all_cities" class="button button-primary" value="Seed All Cities (Historical)" <?php disabled(!$discovery_status['is_complete'] || $is_seeding_process_ongoing || $is_batch_running); ?>>
+                <?php if ($is_seeding_process_ongoing || $is_batch_running) : ?>
                     <input type="submit" name="lr_force_unlock" class="button button-secondary" value="Force Unlock & Reset">
                 <?php endif; ?>
             </form>
             <div class="description-container" style="margin-top: -5px;">
                  <p class="description">First, run discovery to find new content. Then, generate the posts for that content.</p>
                 <?php
-                    if ($is_seeding_in_progress && !$is_stalled) {
-                        echo '<p class="description" style="color: #d63638;"><strong>Status:</strong> Seeding for all cities is currently in progress. The page will refresh automatically. (Time elapsed: ' . esc_html($time_locked) . ' seconds)</p>';
+                    if ($is_seeding_process_ongoing || $is_batch_running) {
+                        $progress_message = sprintf(
+                            '<strong>Status:</strong> Seeding for all cities is currently in progress... (%d / %d cities complete)',
+                            esc_html($processed_count),
+                            esc_html($seeding_overview['total_cities'])
+                        );
+                        echo '<p class="description" style="color: #d63638;">' . $progress_message . '</p>';
                     } elseif ($discovery_status['is_complete']) {
                         echo '<p class="description" style="color: #227122;"><strong>Status:</strong> Ready. Discovery has run for all ' . esc_html($discovery_status['total_count']) . ' cities this month.</p>';
                     } else {
