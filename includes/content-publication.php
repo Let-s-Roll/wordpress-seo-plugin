@@ -606,7 +606,7 @@ function lr_select_featured_image($grouped_content) {
             lr_log_discovery_message("NOTICE: Seeding batch triggered, but a seeding process is already running. Aborting.");
             return;
         }
-        update_option('lr_seeding_in_progress', true);
+        update_option('lr_seeding_in_progress', time());
     
         // Get all cities flattened into a single array
         $all_locations = lr_get_location_data();

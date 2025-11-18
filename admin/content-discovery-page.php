@@ -151,7 +151,8 @@ function lr_render_content_discovery_page() {
     // --- Render Page ---
     $all_locations = lr_get_location_data();
     $discovery_status = lr_get_discovery_run_status();
-    $is_seeding_in_progress = get_option('lr_seeding_in_progress');
+    $lock_timestamp = get_option('lr_seeding_in_progress');
+    $is_seeding_in_progress = (bool) $lock_timestamp;
     $crashed_city_slug = get_option('lr_seeding_current_city');
     $seeding_overview = lr_get_seeding_status_overview();
     ?>
@@ -172,11 +173,14 @@ function lr_render_content_discovery_page() {
 
 
         <?php
-        // CRASH DETECTION: If the seeder is locked AND a specific city was being processed, it indicates a crash.
-        if ($is_seeding_in_progress && $crashed_city_slug) {
-            $city_details = lr_get_city_details_by_slug($crashed_city_slug);
-            $city_name = $city_details['name'] ?? ucfirst($crashed_city_slug);
-            echo '<div class="notice notice-error"><p><strong>CRITICAL ERROR:</strong> The seeder appears to have crashed while processing the city: <strong>' . esc_html($city_name) . '</strong>. The process is currently locked. Please check the `content_discovery.log` for any specific errors. You will need to use the "Force Unlock & Reset" button to try again.</p></div>';
+        // CRASH DETECTION: A crash is detected if the process has been locked for more than 5 minutes.
+        $time_locked = $lock_timestamp ? (time() - $lock_timestamp) : 0;
+        $is_stalled = $time_locked > 300; // 5 minutes
+
+        if ($is_seeding_in_progress && $is_stalled) {
+            $city_details = $crashed_city_slug ? lr_get_city_details_by_slug($crashed_city_slug) : null;
+            $city_name = $city_details['name'] ?? ucfirst($crashed_city_slug ?? 'an unknown city');
+            echo '<div class="notice notice-error"><p><strong>CRITICAL ERROR:</strong> The seeder appears to have stalled for over 5 minutes while processing <strong>' . esc_html($city_name) . '</strong>. The process is currently locked. Please check the `content_discovery.log` for any specific errors. You will need to use the "Force Unlock & Reset" button to try again.</p></div>';
         }
         ?>
 
@@ -197,8 +201,8 @@ function lr_render_content_discovery_page() {
             <div class="description-container" style="margin-top: -5px;">
                  <p class="description">First, run discovery to find new content. Then, generate the posts for that content.</p>
                 <?php
-                    if ($is_seeding_in_progress) {
-                        echo '<p class="description" style="color: #d63638;"><strong>Status:</strong> Seeding for all cities is currently in progress. If you are sure it has stalled, you can force unlock it.</p>';
+                    if ($is_seeding_in_progress && !$is_stalled) {
+                        echo '<p class="description" style="color: #d63638;"><strong>Status:</strong> Seeding for all cities is currently in progress. The page will refresh automatically. (Time elapsed: ' . esc_html($time_locked) . ' seconds)</p>';
                     } elseif ($discovery_status['is_complete']) {
                         echo '<p class="description" style="color: #227122;"><strong>Status:</strong> Ready. Discovery has run for all ' . esc_html($discovery_status['total_count']) . ' cities this month.</p>';
                     } else {
