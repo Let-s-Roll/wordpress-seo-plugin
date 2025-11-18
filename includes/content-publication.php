@@ -540,6 +540,29 @@ function lr_run_historical_seeding_for_city($city_slug) {
         $is_complete = ($frequency === 'monthly' && $key < $current_monthly_key) || ($frequency === 'weekly' && $key < $current_weekly_key);
 
         if ($is_complete) {
+            // OPTIMIZATION: Check if a post for this city and bucket already exists.
+            if ($frequency === 'monthly') {
+                $publish_date = new DateTime($key . '-01');
+                $publish_date_str = $publish_date->format('Y-m-t 23:59:59');
+            } else {
+                $year = substr($key, 0, 4);
+                $week = substr($key, 5, 2);
+                $publish_date = new DateTime();
+                $publish_date->setISODate($year, $week, 7);
+                $publish_date_str = $publish_date->format('Y-m-d H:i:s');
+            }
+            
+            $existing_post_count = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $updates_table WHERE city_slug = %s AND publish_date = %s",
+                $city_slug,
+                $publish_date_str
+            ));
+
+            if ($existing_post_count > 0) {
+                lr_log_discovery_message("Skipping already generated post for $city_slug (Bucket: $key).");
+                continue;
+            }
+
             lr_generate_city_update_post($city_slug, $items, $key, $frequency);
         } else {
             lr_log_discovery_message("Skipping incomplete bucket for $city_slug (Bucket: $key).");
