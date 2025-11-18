@@ -300,7 +300,8 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
         lr_log_discovery_message("DEBUG: Final AI snippets before rendering: " . json_encode($ai_snippets, JSON_PRETTY_PRINT));
     }
 
-    $post_slug = sanitize_title($post_title) . '-' . $key;
+    // Create a deterministic slug to prevent duplicates.
+    $post_slug = sanitize_title('update-' . $city_slug . '-' . $key);
     $featured_image_url = lr_select_featured_image($grouped_content);
     $post_content = lr_generate_fallback_post_content($city_name, $grouped_content, $post_title, $ai_snippets);
 

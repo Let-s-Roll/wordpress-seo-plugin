@@ -269,10 +269,19 @@ function lr_render_content_discovery_page() {
             $current_page_updates = isset($_GET['paged_updates']) ? max(1, intval($_GET['paged_updates'])) : 1;
             $offset_updates = ($current_page_updates - 1) * $per_page_updates;
 
-            $total_items_updates = $wpdb->get_var("SELECT COUNT(id) FROM $updates_table_name");
+            // Handle filtering
+            $updates_where_clauses = [];
+            $selected_city_filter = '';
+            if (!empty($_GET['filter_city_posts'])) {
+                $selected_city_filter = sanitize_text_field($_GET['filter_city_posts']);
+                $updates_where_clauses[] = $wpdb->prepare("city_slug = %s", $selected_city_filter);
+            }
+            $updates_where_sql = !empty($updates_where_clauses) ? "WHERE " . implode(' AND ', $updates_where_clauses) : '';
+
+            $total_items_updates = $wpdb->get_var("SELECT COUNT(id) FROM $updates_table_name $updates_where_sql");
             $total_pages_updates = ceil($total_items_updates / $per_page_updates);
 
-            $generated_posts = $wpdb->get_results("SELECT * FROM $updates_table_name ORDER BY publish_date DESC LIMIT $per_page_updates OFFSET $offset_updates");
+            $generated_posts = $wpdb->get_results("SELECT * FROM $updates_table_name $updates_where_sql ORDER BY publish_date DESC LIMIT $per_page_updates OFFSET $offset_updates");
 
             // Create a lookup map for city_slug -> country_slug for efficient URL generation
             $city_to_country_map = [];
@@ -286,6 +295,26 @@ function lr_render_content_discovery_page() {
                 }
             }
         ?>
+
+        <!-- Filter Form for Generated Posts -->
+        <form method="get">
+            <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>">
+            <select name="filter_city_posts">
+                <option value="">Filter by City</option>
+                <?php 
+                 if (!empty($all_locations)) {
+                     foreach ($all_locations as $country_data) {
+                         if (empty($country_data['cities'])) continue;
+                         foreach ($country_data['cities'] as $city_slug => $city_details) {
+                             echo '<option value="' . esc_attr($city_slug) . '" ' . selected($selected_city_filter, $city_slug, false) . '>' . esc_html($city_details['name']) . '</option>';
+                         }
+                     }
+                 }
+                ?>
+            </select>
+            <?php submit_button('Filter', 'secondary', '', false); ?>
+        </form>
+
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
