@@ -3,6 +3,40 @@
 if (!defined('ABSPATH')) exit; // Exit if accessed directly
 
 /**
+ * Calculates and returns an overview of the content seeding status.
+ *
+ * @return array An array containing total cities, cities with posts, and total posts.
+ */
+function lr_get_seeding_status_overview() {
+    global $wpdb;
+    $updates_table_name = $wpdb->prefix . 'lr_city_updates';
+
+    // 1. Count total cities from the JSON file
+    $total_cities = 0;
+    $locations = lr_get_location_data();
+    if (!empty($locations)) {
+        foreach ($locations as $country_data) {
+            if (!empty($country_data['cities'])) {
+                $total_cities += count($country_data['cities']);
+            }
+        }
+    }
+
+    // 2. Count cities with at least one post
+    $cities_with_posts = $wpdb->get_var("SELECT COUNT(DISTINCT city_slug) FROM $updates_table_name");
+
+    // 3. Count total generated posts
+    $total_posts = $wpdb->get_var("SELECT COUNT(id) FROM $updates_table_name");
+
+    return [
+        'total_cities' => $total_cities,
+        'cities_with_posts' => (int) $cities_with_posts,
+        'total_posts' => (int) $total_posts,
+    ];
+}
+
+
+/**
  * Renders the Content Discovery admin page and handles its form submissions.
  */
 function lr_render_content_discovery_page() {
@@ -119,10 +153,23 @@ function lr_render_content_discovery_page() {
     $discovery_status = lr_get_discovery_run_status();
     $is_seeding_in_progress = get_option('lr_seeding_in_progress');
     $crashed_city_slug = get_option('lr_seeding_current_city');
+    $seeding_overview = lr_get_seeding_status_overview();
     ?>
     <div class="wrap">
-        <h1>Content Discovery</h1>
-        <p>This page allows you to monitor and control the automated content discovery process.</p>
+        <h1>Content Discovery & Seeding</h1>
+        <p>This page allows you to monitor and control the automated content discovery and historical seeding processes.</p>
+
+        <!-- Seeding Status Overview -->
+        <div class="notice notice-info" style="padding: 10px; margin-top: 15px;">
+            <h2>Current Status</h2>
+            <p>
+                <strong>City Coverage:</strong> <?php echo esc_html($seeding_overview['cities_with_posts']); ?> / <?php echo esc_html($seeding_overview['total_cities']); ?> cities have at least one update post.
+            </p>
+            <p>
+                <strong>Total Posts:</strong> <?php echo esc_html($seeding_overview['total_posts']); ?> generated posts.
+            </p>
+        </div>
+
 
         <?php
         // CRASH DETECTION: If the seeder is locked AND a specific city was being processed, it indicates a crash.
@@ -135,7 +182,7 @@ function lr_render_content_discovery_page() {
 
         <!-- Manual Triggers -->
         <div class="notice notice-info" style="padding: 10px; margin-top: 15px;">
-            <h2>Run Discovery Manually</h2>
+            <h2>Manual Controls</h2>
             <p><strong>Next Scheduled Full Run:</strong> <?php $ts = wp_next_scheduled('lr_content_discovery_cron'); echo $ts ? get_date_from_gmt(date('Y-m-d H:i:s', $ts), 'F j, Y g:i a') : 'Not scheduled.'; ?></p>
             
             <form method="post" action="" style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
@@ -204,7 +251,14 @@ function lr_render_content_discovery_page() {
         <p>This table shows all the city update posts that have been generated and saved to the database.</p>
         <?php
             $updates_table_name = $wpdb->prefix . 'lr_city_updates';
-            $generated_posts = $wpdb->get_results("SELECT * FROM $updates_table_name ORDER BY publish_date DESC");
+            $per_page_updates = 20;
+            $current_page_updates = isset($_GET['paged_updates']) ? max(1, intval($_GET['paged_updates'])) : 1;
+            $offset_updates = ($current_page_updates - 1) * $per_page_updates;
+
+            $total_items_updates = $wpdb->get_var("SELECT COUNT(id) FROM $updates_table_name");
+            $total_pages_updates = ceil($total_items_updates / $per_page_updates);
+
+            $generated_posts = $wpdb->get_results("SELECT * FROM $updates_table_name ORDER BY publish_date DESC LIMIT $per_page_updates OFFSET $offset_updates");
 
             // Create a lookup map for city_slug -> country_slug for efficient URL generation
             $city_to_country_map = [];
@@ -246,6 +300,26 @@ function lr_render_content_discovery_page() {
                 <?php endif; ?>
             </tbody>
         </table>
+
+        <!-- Pagination for Generated Posts -->
+        <div class="tablenav">
+            <div class="tablenav-pages">
+                <span class="displaying-num"><?php echo $total_items_updates; ?> items</span>
+                <span class="pagination-links">
+                    <?php
+                    echo paginate_links([
+                        'base' => add_query_arg('paged_updates', '%#%'),
+                        'format' => '',
+                        'prev_text' => __('&laquo;'),
+                        'next_text' => __('&raquo;'),
+                        'total' => $total_pages_updates,
+                        'current' => $current_page_updates,
+                    ]);
+                    ?>
+                </span>
+            </div>
+        </div>
+
 
         <div style="margin-top: 10px;">
             <form method="post" action="">
