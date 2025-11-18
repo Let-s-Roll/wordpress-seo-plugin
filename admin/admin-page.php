@@ -21,6 +21,16 @@ function lr_handle_sitemap_generation() {
         if (!empty($locations)) {
             $urls[] = home_url('/explore/'); // Add the main explore page
 
+            // Create a lookup map for city_slug -> country_slug for efficient URL generation
+            $city_to_country_map = [];
+            foreach ($locations as $country_slug => $country_data) {
+                if (!empty($country_data['cities'])) {
+                    foreach ($country_data['cities'] as $city_slug_key => $city_details) {
+                        $city_to_country_map[$city_slug_key] = $country_slug;
+                    }
+                }
+            }
+
             foreach ($locations as $country_slug => $country_data) {
                 $urls[] = home_url('/' . $country_slug . '/'); // Add Country URL
 
@@ -31,6 +41,20 @@ function lr_handle_sitemap_generation() {
                         $urls[] = home_url('/' . $country_slug . '/' . $city_slug . '/skatespots/');
                         $urls[] = home_url('/' . $country_slug . '/' . $city_slug . '/events/');
                         $urls[] = home_url('/' . $country_slug . '/' . $city_slug . '/skaters/');
+                    }
+                }
+            }
+
+            // Add all city update post URLs
+            global $wpdb;
+            $updates_table_name = $wpdb->prefix . 'lr_city_updates';
+            $generated_posts = $wpdb->get_results("SELECT city_slug, post_slug FROM $updates_table_name");
+
+            if (!empty($generated_posts)) {
+                foreach ($generated_posts as $post) {
+                    $country_slug = $city_to_country_map[$post->city_slug] ?? '';
+                    if ($country_slug) {
+                        $urls[] = home_url('/' . $country_slug . '/' . $post->city_slug . '/updates/' . $post->post_slug . '/');
                     }
                 }
             }
