@@ -22,6 +22,7 @@ $lr_debug_messages = []; // Global for cache debugging
 require_once plugin_dir_path(__FILE__) . 'admin/admin-page.php'; 
 require_once plugin_dir_path(__FILE__) . 'admin/brevo-sync-page.php';
 require_once plugin_dir_path(__FILE__) . 'admin/content-discovery-page.php';
+require_once plugin_dir_path(__FILE__) . 'admin/import-export-page.php';
 require_once plugin_dir_path(__FILE__) . 'brevo-integration.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-explore-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-country-page.php';
@@ -84,6 +85,16 @@ function lr_setup_admin_menu() {
         'manage_options',           // Capability
         'lr-content-discovery',     // Menu slug
         'lr_render_content_discovery_page' // Function
+    );
+
+    // Add the new Import/Export sub-menu page
+    add_submenu_page(
+        'lets-roll-settings',       // Parent slug
+        'Import/Export',            // Page title
+        'Import/Export',            // Menu title
+        'manage_options',           // Capability
+        'lr-import-export',         // Menu slug
+        'lr_render_import_export_page' // Function
     );
 }
 

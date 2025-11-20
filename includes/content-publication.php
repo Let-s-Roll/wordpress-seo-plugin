@@ -190,19 +190,19 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
 
         // Iterate over all AI snippets that might contain Markdown links.
         $snippets_to_check = ['top_summary', 'spots_section', 'events_section', 'skaters_section', 'reviews_section', 'sessions_section'];
-        foreach ($snippets_to_check as $key) {
-            if (isset($ai_snippets[$key])) {
-                lr_log_discovery_message("DEBUG: Checking snippet key '{$key}' for links.");
+        foreach ($snippets_to_check as $snippet_key) {
+            if (isset($ai_snippets[$snippet_key])) {
+                lr_log_discovery_message("DEBUG: Checking snippet key '{$snippet_key}' for links.");
                 // Handle both single string snippets and array snippets with an 'intro' key.
                 $text_to_process = '';
-                if (is_array($ai_snippets[$key]) && isset($ai_snippets[$key]['intro'])) {
-                    $text_to_process = $ai_snippets[$key]['intro'];
-                } elseif (is_string($ai_snippets[$key])) {
-                    $text_to_process = $ai_snippets[$key];
+                if (is_array($ai_snippets[$snippet_key]) && isset($ai_snippets[$snippet_key]['intro'])) {
+                    $text_to_process = $ai_snippets[$snippet_key]['intro'];
+                } elseif (is_string($ai_snippets[$snippet_key])) {
+                    $text_to_process = $ai_snippets[$snippet_key];
                 }
 
                 if (!empty($text_to_process)) {
-                    lr_log_discovery_message("DEBUG: Content for '{$key}': " . $text_to_process);
+                    lr_log_discovery_message("DEBUG: Content for '{$snippet_key}': " . $text_to_process);
                     preg_match_all('/\[([^\]]+)\]\(([^)]+)\)/', $text_to_process, $matches, PREG_SET_ORDER);
                     
                     $modified_text = $text_to_process; // Initialize with original text to prevent erasure.
@@ -288,10 +288,10 @@ function lr_generate_city_update_post($city_slug, $items, $key, $frequency) {
                     }
 
                     // Explicitly re-assign the modified text back to the main AI snippets array.
-                    if (is_array($ai_snippets[$key]) && isset($ai_snippets[$key]['intro'])) {
-                        $ai_snippets[$key]['intro'] = $modified_text;
-                    } elseif (is_string($ai_snippets[$key])) {
-                        $ai_snippets[$key] = $modified_text;
+                    if (is_array($ai_snippets[$snippet_key]) && isset($ai_snippets[$snippet_key]['intro'])) {
+                        $ai_snippets[$snippet_key]['intro'] = $modified_text;
+                    } elseif (is_string($ai_snippets[$snippet_key])) {
+                        $ai_snippets[$snippet_key] = $modified_text;
                     }
                 }
             }
@@ -686,8 +686,8 @@ function lr_select_featured_image($grouped_content) {
         delete_option('lr_seeding_in_progress');
 
         // Schedule the next batch
-        wp_schedule_single_event(time() + 60, 'lr_historical_seeding_batch_cron');
-            lr_log_discovery_message("--- Seeding Batch End. Next batch scheduled in 1 minute. ---");
+        wp_schedule_single_event(time() + 5, 'lr_historical_seeding_batch_cron');
+            lr_log_discovery_message("--- Seeding Batch End. Next batch scheduled in 5 seconds. ---");
         }
         
 /**

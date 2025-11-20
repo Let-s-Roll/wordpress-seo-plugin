@@ -298,6 +298,15 @@ function lr_verify_link_with_google_search($query_input, $city_name, $publicatio
  * @return string|false The final, valid URL if it passes all checks, or `false` otherwise.
  */
 function lr_intelligent_quality_check($url, $link_id, $link_text, $original_url, $city_name) {
+    // --- NEW: URL Validation Guard ---
+    if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
+        lr_log_link_verification_csv([
+            'link_id' => $link_id, 'link_text' => $link_text, 'original_url' => $original_url,
+            'status' => 'FAILURE', 'notes' => 'Quality Check Failed: Invalid or malformed URL provided: ' . $url
+        ]);
+        return false;
+    }
+
     $final_url = $url; // Start with the URL we were given.
 
     // 1. Check for Vertex AI search redirect URLs and resolve them.

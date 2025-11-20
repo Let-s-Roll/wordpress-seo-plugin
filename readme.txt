@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.12.0
+Stable tag: 1.13.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -85,6 +85,17 @@ AMP-Compatible CTA Banner: A dismissible "Install the App" banner that works cor
 Robust Caching Strategy: The plugin is designed to work with caching plugins like W3 Total Cache. By pre-warming the cache (using the caching plugin's sitemap feature), the dynamically generated pages can be served as fast, static HTML files to all users.
 
 == Changelog ==
+
+= 1.13.0 =
+* Feature: Skip Existing Posts during Historical Seeding. The historical seeder now checks for existing posts (based on a deterministic slug) before generating new AI content, significantly improving efficiency on re-runs and preventing redundant AI calls.
+* Feature: City Filter for Generated Posts. Added a dropdown filter to the "Generated City Update Posts" section on the admin page, allowing users to easily view posts for a specific city.
+* Fix: Prevented Duplicate Posts. Resolved an issue where `wpdb->replace()` was creating duplicate posts due to non-deterministic post slugs. The `post_slug` is now consistently generated from the city slug and time bucket, ensuring proper overwriting.
+* Fix: Improved Seeder Stability & Crash Recovery. Implemented several enhancements to prevent crashes and improve recovery:
+    * Reduced `LR_SEEDING_BATCH_SIZE` to 1 to prevent memory accumulation and crashes across multiple city processes.
+    * Increased PHP memory limit to `512M` in `lets-roll-seo-pages.php` to handle larger data payloads during AI content generation.
+    * Added a "heartbeat" mechanism (`lr_seeding_current_city`) for granular crash detection, allowing the admin page to display the exact city where a crash occurred.
+    * Updated the "Force Unlock & Reset" button to clear the new heartbeat option.
+* Under the Hood: Removed temporary diagnostic logging from `includes/ai-content.php` that was used for crash analysis.
 
 = 1.10.0 =
 *   **Feature:** Intelligent Link Verification Cascade. Implemented a robust, multi-step cascade to verify and correct external links in AI-generated content. The system uses an intelligent liveness check, a "Refresh Search" for dead links, and an AI-powered "Broad Search" to evaluate and select the most contextually relevant replacement link, significantly improving link quality and reliability.

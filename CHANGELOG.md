@@ -1,5 +1,21 @@
 # Changelog
 
+= 1.13.1 =
+*   **Feature:** Added a new "Import/Export" admin page. This allows for the easy migration of all discovered content and generated city update posts between different WordPress instances (e.g., from a staging site to a live site) via a JSON file.
+*   **Fix:** Hardened the historical seeder against fatal crashes caused by malformed URLs in the AI-generated content. The system now validates URLs before attempting to fetch them, logging the error and skipping the invalid link instead of halting the entire process.
+*   **Tweak:** Reduced the delay between historical seeding batches from 60 seconds to 5 seconds to accelerate the process of catching up on cities that have already been processed.
+
+= 1.13.0 =
+*   **Feature:** Skip Existing Posts during Historical Seeding. The historical seeder now checks for existing posts (based on a deterministic slug) before generating new AI content, significantly improving efficiency on re-runs and preventing redundant AI calls.
+*   **Feature:** City Filter for Generated Posts. Added a dropdown filter to the "Generated City Update Posts" section on the admin page, allowing users to easily view posts for a specific city.
+*   **Fix:** Prevented Duplicate Posts. Resolved an issue where `wpdb->replace()` was creating duplicate posts due to non-deterministic post slugs. The `post_slug` is now consistently generated from the city slug and time bucket, ensuring proper overwriting.
+*   **Fix:** Improved Seeder Stability & Crash Recovery. Implemented several enhancements to prevent crashes and improve recovery:
+    *   Reduced `LR_SEEDING_BATCH_SIZE` to 1 to prevent memory accumulation and crashes across multiple city processes.
+    *   Increased PHP memory limit to `512M` in `lets-roll-seo-pages.php` to handle larger data payloads during AI content generation.
+    *   Added a "heartbeat" mechanism (`lr_seeding_current_city`) for granular crash detection, allowing the admin page to display the exact city where a crash occurred.
+    *   Updated the "Force Unlock & Reset" button to clear the new heartbeat option.
+*   **Under the Hood:** Removed temporary diagnostic logging from `includes/ai-content.php` that was used for crash analysis.
+
 = 1.11.1 =
 *   **Fix:** Prevented Premature Post Generation by Historical Seeder. Corrected a bug in the historical seeder (`lr_run_historical_seeding_for_city`) that caused it to generate posts for the current, incomplete month. The seeder now includes a completeness check, ensuring posts are only created for past time periods, aligning its behavior with the live content publication cron job.
 
