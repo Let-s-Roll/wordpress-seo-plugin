@@ -1,6 +1,7 @@
 # Changelog
 
 = 1.15.0 =
+*   **Refactor: Consistent Image Proxy URL Generation:** Introduced the `LR_PLUGIN_FILE` constant and updated image proxy URL generation in `lets-roll-seo-pages.php`, `includes/rendering-functions.php`, and `includes/content-publication.php` to use `plugins_url()`. This ensures that `image-proxy.php` URLs are consistently resolved based on the plugin's actual installed directory name, fixing "file not found" errors when the plugin folder name changes between local and live environments.
 *   **Fix: Data Tools Page Enhanced for Image URLs:** The "Data Tools" admin page's search and replace utility now correctly updates the `featured_image_url` column in `wp_lr_city_updates`, resolving hardcoded local URLs for featured images.
 *   **Fix: Relative Image URLs in Content Publication:** Modified `includes/content-publication.php` to use `wp_make_link_relative()` when storing image proxy URLs. This ensures newly generated city update posts will store relative paths, preventing future hardcoding of absolute domains.
 *   **Feature: Data Tools Admin Page:** Introduced a new "Data Tools" admin page with a search and replace utility. This tool allows administrators to perform bulk search and replace operations on the plugin's custom database tables, specifically targeting `post_content` and `post_summary` in `wp_lr_city_updates` to correct hardcoded URLs or other text.
