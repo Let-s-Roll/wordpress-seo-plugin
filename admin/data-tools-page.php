@@ -46,7 +46,16 @@ function lr_process_search_replace_action() {
         )
     );
 
-    $total_affected = $rows_affected_content + $rows_affected_summary;
+    // Update featured_image_url
+    $rows_affected_image = $wpdb->query(
+        $wpdb->prepare(
+            "UPDATE {$table_name} SET featured_image_url = REPLACE(featured_image_url, %s, %s)",
+            $search_for,
+            $replace_with
+        )
+    );
+
+    $total_affected = $rows_affected_content + $rows_affected_summary + $rows_affected_image;
 
     wp_redirect(admin_url('admin.php?page=lr-data-tools&lr-notice=success&rows=' . $total_affected));
     exit;
