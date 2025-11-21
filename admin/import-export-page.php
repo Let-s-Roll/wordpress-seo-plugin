@@ -14,57 +14,27 @@ function lr_render_import_export_page() {
         <!-- Export Section -->
         <div class="card">
             <h2>Export Data</h2>
-            <p>Click a button below to generate and download a JSON file for a specific data type. This is useful for migrating data between environments.</p>
-            
-            <div style="display: flex; gap: 10px;">
-                <!-- Discovered Content Export Form -->
-                <form method="post" action="">
-                    <?php wp_nonce_field('lr_export_data_nonce', 'lr_export_nonce'); ?>
-                    <input type="hidden" name="lr_action" value="export_discovered_content">
-                    <?php submit_button('Export Discovered Content', 'primary', 'lr_export_discovered_submit', false); ?>
-                </form>
-
-                <!-- City Updates Export Form -->
-                <form method="post" action="">
-                    <?php wp_nonce_field('lr_export_data_nonce', 'lr_export_nonce'); ?>
-                    <input type="hidden" name="lr_action" value="export_city_updates">
-                    <?php submit_button('Export City Update Posts', 'primary', 'lr_export_updates_submit', false); ?>
-                </form>
-            </div>
+            <p>Click the button below to generate and download a JSON file containing all data from the <code>wp_lr_discovered_content</code> and <code>wp_lr_city_updates</code> tables.</p>
+            <form method="post" action="">
+                <?php wp_nonce_field('lr_export_data_nonce', 'lr_export_nonce'); ?>
+                <input type="hidden" name="lr_action" value="export_data">
+                <?php submit_button('Export All Data', 'primary', 'lr_export_submit'); ?>
+            </form>
         </div>
 
         <!-- Import Section -->
         <div class="card" style="margin-top: 20px;">
             <h2>Import Data</h2>
-            <p>Upload a JSON file that was previously exported from this plugin. Ensure you are uploading the correct file to the correct section.</p>
-
-            <!-- Discovered Content Import Form -->
-            <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccd0d4;">
-                <h4>Import Discovered Content</h4>
-                <form method="post" action="" enctype="multipart/form-data">
-                    <?php wp_nonce_field('lr_import_data_nonce', 'lr_import_nonce'); ?>
-                    <input type="hidden" name="lr_action" value="import_data">
-                    <p>
-                        <label for="lr_import_discovered_file">Choose a <code>discovered-content</code> file to upload:</label>
-                        <input type="file" id="lr_import_discovered_file" name="lr_import_file" accept=".json">
-                    </p>
-                    <?php submit_button('Import Discovered Content', 'secondary', 'lr_import_discovered_submit'); ?>
-                </form>
-            </div>
-
-            <!-- City Updates Import Form -->
-            <div style="padding: 10px; border: 1px solid #ccd0d4;">
-                <h4>Import City Update Posts</h4>
-                <form method="post" action="" enctype="multipart/form-data">
-                    <?php wp_nonce_field('lr_import_data_nonce', 'lr_import_nonce'); ?>
-                    <input type="hidden" name="lr_action" value="import_data">
-                    <p>
-                        <label for="lr_import_updates_file">Choose a <code>city-updates</code> file to upload:</label>
-                        <input type="file" id="lr_import_updates_file" name="lr_import_file" accept=".json">
-                    </p>
-                    <?php submit_button('Import City Update Posts', 'secondary', 'lr_import_updates_submit'); ?>
-                </form>
-            </div>
+            <p>Upload a JSON file that was previously exported from this plugin. The data will be imported into the database.</p>
+            <form method="post" action="" enctype="multipart/form-data">
+                <?php wp_nonce_field('lr_import_data_nonce', 'lr_import_nonce'); ?>
+                <input type="hidden" name="lr_action" value="import_data">
+                <p>
+                    <label for="lr_import_file">Choose a file to upload:</label>
+                    <input type="file" id="lr_import_file" name="lr_import_file" accept=".json">
+                </p>
+                <?php submit_button('Import Data', 'secondary', 'lr_import_submit'); ?>
+            </form>
         </div>
     </div>
     <?php
@@ -79,15 +49,9 @@ function lr_handle_import_export_actions() {
         return;
     }
 
-    // Handle Export: Discovered Content
-    if ($_POST['lr_action'] === 'export_discovered_content' && isset($_POST['lr_export_nonce']) && wp_verify_nonce($_POST['lr_export_nonce'], 'lr_export_data_nonce')) {
-        lr_export_discovered_content_data();
-        exit; // Important to prevent any further output
-    }
-
-    // Handle Export: City Updates
-    if ($_POST['lr_action'] === 'export_city_updates' && isset($_POST['lr_export_nonce']) && wp_verify_nonce($_POST['lr_export_nonce'], 'lr_export_data_nonce')) {
-        lr_export_city_updates_data();
+    // Handle Export
+    if ($_POST['lr_action'] === 'export_data' && isset($_POST['lr_export_nonce']) && wp_verify_nonce($_POST['lr_export_nonce'], 'lr_export_data_nonce')) {
+        lr_export_data();
         exit; // Important to prevent any further output
     }
 
@@ -115,33 +79,24 @@ function lr_handle_import_export_actions() {
 add_action('admin_init', 'lr_handle_import_export_actions');
 
 /**
- * Exports just the discovered content.
+ * Queries the database, packages the data, and serves it as a JSON file.
  */
-function lr_export_discovered_content_data() {
+function lr_export_data() {
     global $wpdb;
+
     $discovered_content_table = $wpdb->prefix . 'lr_discovered_content';
+    $city_updates_table = $wpdb->prefix . 'lr_city_updates';
+
     $data_to_export = [
         'discovered_content' => $wpdb->get_results("SELECT * FROM $discovered_content_table", ARRAY_A),
+        'city_updates'       => $wpdb->get_results("SELECT * FROM $city_updates_table", ARRAY_A),
     ];
-    $filename = 'lets-roll-discovered-content-export-' . date('Y-m-d-H-i-s') . '.json';
-    header('Content-Type: application/json');
-    header('Content-Disposition: attachment; filename=' . $filename);
-    echo json_encode($data_to_export, JSON_PRETTY_PRINT);
-    exit;
-}
 
-/**
- * Exports just the city update posts.
- */
-function lr_export_city_updates_data() {
-    global $wpdb;
-    $city_updates_table = $wpdb->prefix . 'lr_city_updates';
-    $data_to_export = [
-        'city_updates' => $wpdb->get_results("SELECT * FROM $city_updates_table", ARRAY_A),
-    ];
-    $filename = 'lets-roll-city-updates-export-' . date('Y-m-d-H-i-s') . '.json';
+    $filename = 'lets-roll-data-export-' . date('Y-m-d-H-i-s') . '.json';
+
     header('Content-Type: application/json');
     header('Content-Disposition: attachment; filename=' . $filename);
+    
     echo json_encode($data_to_export, JSON_PRETTY_PRINT);
     exit;
 }
