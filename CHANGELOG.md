@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.15.0 =
+*   **Feature: Data Tools Admin Page:** Introduced a new "Data Tools" admin page with a search and replace utility. This tool allows administrators to perform bulk search and replace operations on the plugin's custom database tables, specifically targeting `post_content` and `post_summary` in `wp_lr_city_updates` to correct hardcoded URLs or other text.
+
 = 1.14.0 =
 *   **Major Feature: Content Automation Engine:**
     *   **Content Discovery:** Implemented a new, daily background process that automatically scans the Let's Roll API to discover new content (spots, events, reviews, sessions, and newly seen skaters).
