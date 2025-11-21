@@ -26,7 +26,7 @@ function lr_render_spot_card($spot) {
     
     $image_url = 'https://placehold.co/400x240/e0e0e0/757575?text=Spot';
     if (!empty($spot_details->satelliteAttachment)) {
-        $image_url = plugin_dir_url(__DIR__) . 'image-proxy.php?type=spot_satellite&id=' . $spot_details->satelliteAttachment . '&width=400&quality=75';
+        $image_url = plugins_url('image-proxy.php?type=spot_satellite&id=' . $spot_details->satelliteAttachment . '&width=400&quality=75', LR_PLUGIN_FILE);
     }
 
     $output = '<div class="lr-grid-item">';
@@ -85,7 +85,7 @@ function lr_render_event_card($event) {
 
     // Use the attachments that were already enriched during discovery.
     if (!empty($event->attachments[0]->_id)) {
-        $image_url = plugin_dir_url(__DIR__) . 'image-proxy.php?type=event_attachment&id=' . $event->attachments[0]->_id . '&session_id=' . $event->_id . '&width=400&quality=75';
+        $image_url = plugins_url('image-proxy.php?type=event_attachment&id=' . $event->attachments[0]->_id . '&session_id=' . $event->_id . '&width=400&quality=75', LR_PLUGIN_FILE);
     }
 
     $output = '<div class="lr-grid-item">';

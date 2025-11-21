@@ -596,7 +596,7 @@ function lr_select_featured_image($grouped_content) {
     if (!empty($grouped_content['event'])) {
         foreach ($grouped_content['event'] as $event) {
             if (!empty($event->attachments[0]->_id)) {
-                $absolute_url = plugin_dir_url(__DIR__) . 'image-proxy.php?type=event_attachment&id=' . $event->attachments[0]->_id . '&session_id=' . $event->_id . '&width=400&quality=75';
+                $absolute_url = plugins_url('image-proxy.php?type=event_attachment&id=' . $event->attachments[0]->_id . '&session_id=' . $event->_id . '&width=400&quality=75', LR_PLUGIN_FILE);
                 return wp_make_link_relative($absolute_url);
             }
         }
@@ -604,7 +604,7 @@ function lr_select_featured_image($grouped_content) {
     if (!empty($grouped_content['spot'])) {
         foreach ($grouped_content['spot'] as $spot) {
             if (!empty($spot->spotWithAddress->satelliteAttachment)) {
-                $absolute_url = plugin_dir_url(__DIR__) . 'image-proxy.php?type=spot_satellite&id=' . $spot->spotWithAddress->satelliteAttachment . '&width=400&quality=75';
+                $absolute_url = plugins_url('image-proxy.php?type=spot_satellite&id=' . $spot->spotWithAddress->satelliteAttachment . '&width=400&quality=75', LR_PLUGIN_FILE);
                 return wp_make_link_relative($absolute_url);
             }
         }

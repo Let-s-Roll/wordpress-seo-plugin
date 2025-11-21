@@ -14,6 +14,7 @@ if (!defined('ABSPATH')) exit; // Exit if accessed directly
 // --- Guard against double loading ---
 if (defined('LR_SEO_PAGES_LOADED')) return;
 define('LR_SEO_PAGES_LOADED', true);
+define('LR_PLUGIN_FILE', __FILE__); // Define the main plugin file for consistent URL generation
 
 define('LR_CACHE_VERSION', 'v3'); // Increment to invalidate all caches
 $lr_debug_messages = []; // Global for cache debugging
