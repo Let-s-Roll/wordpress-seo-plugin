@@ -1,4 +1,7 @@
 headless_test_config.txt
 .env
 search-console-reports/
-country_data/Backups/"content_discovery.log" 
+country_data/Backups/
+content_discovery.log
+link_verification.csv
+count_cities.php

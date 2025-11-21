@@ -2,7 +2,7 @@
 Contributors: (Your Name)
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.13.1
+Stable tag: 1.14.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
@@ -85,6 +85,24 @@ AMP-Compatible CTA Banner: A dismissible "Install the App" banner that works cor
 Robust Caching Strategy: The plugin is designed to work with caching plugins like W3 Total Cache. By pre-warming the cache (using the caching plugin's sitemap feature), the dynamically generated pages can be served as fast, static HTML files to all users.
 
 == Changelog ==
+
+= 1.14.0 =
+*   **Major Feature: Content Automation Engine:**
+    *   **Content Discovery:** Implemented a new, daily background process that automatically scans the Let's Roll API to discover new content (spots, events, reviews, sessions, and newly seen skaters).
+    *   **Content Publication:** A new cron job (`lr_publication_cron`) generates monthly "City Update" posts, summarizing all new content for each city.
+    *   **AI-Powered Summaries:** The publication system uses AI to generate engaging, SEO-friendly titles, summaries, and section intros for each city update post.
+*   **New Admin Interface:**
+    *   **"Content Discovery" Page:** A new admin page to monitor the discovery process, view logs, and manually trigger content discovery.
+    *   **Historical Seeding:** Added a "Seed All Cities (Historical)" feature to generate a baseline of content for the last 6 months across all cities.
+*   **Database Schema:**
+    *   Added new custom database tables (`wp_lr_discovered_content`, `wp_lr_city_updates`, `wp_lr_seen_skaters`) to store discovered content and manage the publication process.
+*   **Under the Hood:**
+    *   Implemented a robust, queue-based background processing system for content discovery to ensure reliability and prevent server timeouts.
+
+= 1.13.1 =
+*   **Feature:** Added a new "Import/Export" admin page. This allows for the easy migration of all discovered content and generated city update posts between different WordPress instances (e.g., from a staging site to a live site) via a JSON file.
+*   **Fix:** Hardened the historical seeder against fatal crashes caused by malformed URLs in the AI-generated content. The system now validates URLs before attempting to fetch them, logging the error and skipping the invalid link instead of halting the entire process.
+*   **Tweak:** Reduced the delay between historical seeding batches from 60 seconds to 5 seconds to accelerate the process of catching up on cities that have already been processed.
 
 = 1.13.0 =
 * Feature: Skip Existing Posts during Historical Seeding. The historical seeder now checks for existing posts (based on a deterministic slug) before generating new AI content, significantly improving efficiency on re-runs and preventing redundant AI calls.
