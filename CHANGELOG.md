@@ -1,6 +1,8 @@
 # Changelog
 
 = 1.15.0 =
+*   **Fix: Data Tools Page Enhanced for Image URLs:** The "Data Tools" admin page's search and replace utility now correctly updates the `featured_image_url` column in `wp_lr_city_updates`, resolving hardcoded local URLs for featured images.
+*   **Fix: Relative Image URLs in Content Publication:** Modified `includes/content-publication.php` to use `wp_make_link_relative()` when storing image proxy URLs. This ensures newly generated city update posts will store relative paths, preventing future hardcoding of absolute domains.
 *   **Feature: Data Tools Admin Page:** Introduced a new "Data Tools" admin page with a search and replace utility. This tool allows administrators to perform bulk search and replace operations on the plugin's custom database tables, specifically targeting `post_content` and `post_summary` in `wp_lr_city_updates` to correct hardcoded URLs or other text.
 
 = 1.14.0 =
