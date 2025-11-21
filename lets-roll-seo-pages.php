@@ -717,10 +717,19 @@ function lr_virtual_page_controller($posts, $query) {
             
             $updates = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE city_slug = %s ORDER BY publish_date DESC LIMIT 20", $city_slug));
             $content = lr_get_breadcrumbs(); // Add breadcrumbs here
+            
+            // Add custom styles for this page to reduce heading size
+            $content .= '<style>
+                .lr-updates-list h2 a {
+                    font-size: 1.5rem; /* Adjust this value as needed */
+                    line-height: 1.3;
+                }
+            </style>';
+
             if (empty($updates)) {
                 $content .= '<p>No updates found for this city yet.</p>';
             } else {
-                $content .= '<ul style="list-style: none; padding: 0;">';
+                $content .= '<ul class="lr-updates-list" style="list-style: none; padding: 0;">';
                 foreach ($updates as $update) {
                     $update_url = home_url('/' . $country_slug . '/' . $city_slug . '/updates/' . $update->post_slug . '/');
                     $content .= '<li style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; overflow: hidden;">';

@@ -51,6 +51,16 @@ function lr_handle_sitemap_generation() {
             $generated_posts = $wpdb->get_results("SELECT city_slug, post_slug FROM $updates_table_name");
 
             if (!empty($generated_posts)) {
+                // Add the main archive URL for each city that has posts
+                $cities_with_posts = array_unique(wp_list_pluck($generated_posts, 'city_slug'));
+                foreach ($cities_with_posts as $city_slug) {
+                    $country_slug = $city_to_country_map[$city_slug] ?? '';
+                    if ($country_slug) {
+                        $urls[] = home_url('/' . $country_slug . '/' . $city_slug . '/updates/');
+                    }
+                }
+
+                // Add the individual post URLs
                 foreach ($generated_posts as $post) {
                     $country_slug = $city_to_country_map[$post->city_slug] ?? '';
                     if ($country_slug) {
