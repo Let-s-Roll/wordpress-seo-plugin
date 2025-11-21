@@ -23,6 +23,7 @@ require_once plugin_dir_path(__FILE__) . 'admin/admin-page.php';
 require_once plugin_dir_path(__FILE__) . 'admin/brevo-sync-page.php';
 require_once plugin_dir_path(__FILE__) . 'admin/content-discovery-page.php';
 require_once plugin_dir_path(__FILE__) . 'admin/import-export-page.php';
+require_once plugin_dir_path(__FILE__) . 'admin/data-tools-page.php'; // <-- Add this line
 require_once plugin_dir_path(__FILE__) . 'brevo-integration.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-explore-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-country-page.php';
@@ -95,6 +96,16 @@ function lr_setup_admin_menu() {
         'manage_options',           // Capability
         'lr-import-export',         // Menu slug
         'lr_render_import_export_page' // Function
+    );
+
+    // Add the new Data Tools sub-menu page
+    add_submenu_page(
+        'lets-roll-settings',       // Parent slug
+        'Data Tools',               // Page title
+        'Data Tools',               // Menu title
+        'manage_options',           // Capability
+        'lr-data-tools',            // Menu slug
+        'lr_render_data_tools_page' // Function for the new page
     );
 }
 
