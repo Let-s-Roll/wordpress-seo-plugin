@@ -159,46 +159,18 @@ function lr_import_data($data) {
 
     $discovered_content_count = 0;
     $city_updates_count = 0;
-    $chunk_size = 500; // Process 500 records at a time
 
     if (!empty($data['discovered_content'])) {
-        $chunks = array_chunk($data['discovered_content'], $chunk_size);
-        foreach ($chunks as $chunk) {
-            $placeholders = [];
-            $values = [];
-            $query = "REPLACE INTO $discovered_content_table (`content_id`, `city_id`, `type`, `source_id`, `title`, `image_url`, `url`, `created_at`, `status`, `meta`) VALUES ";
-
-            foreach ($chunk as $row) {
-                array_push($values, $row['content_id'], $row['city_id'], $row['type'], $row['source_id'], $row['title'], $row['image_url'], $row['url'], $row['created_at'], $row['status'], $row['meta']);
-                $placeholders[] = "(%s, %d, %s, %s, %s, %s, %s, %s, %s, %s)";
-            }
-
-            $query .= implode(', ', $placeholders);
-            $wpdb->query($wpdb->prepare($query, $values));
-            $discovered_content_count += count($chunk);
+        foreach ($data['discovered_content'] as $row) {
+            $wpdb->replace($discovered_content_table, $row);
+            $discovered_content_count++;
         }
     }
 
     if (!empty($data['city_updates'])) {
-        $chunks = array_chunk($data['city_updates'], $chunk_size);
-        foreach ($chunks as $chunk) {
-            $placeholders = [];
-            $values = [];
-            $query = "REPLACE INTO $city_updates_table (`post_id`, `city_id`, `post_title`, `post_content`, `post_slug`, `featured_image_url`, `time_bucket`, `published_at`) VALUES ";
-
-            foreach ($chunk as $row) {
-                // Ensure post_id is treated as an integer
-                $post_id = !empty($row['post_id']) ? intval($row['post_id']) : 0;
-
-                array_push($values, $post_id, $row['city_id'], $row['post_title'], $row['post_content'], $row['post_slug'], $row['featured_image_url'], $row['time_bucket'], $row['published_at']);
-                
-                // If post_id is 0, it will be auto-incremented by the DB. Use NULL placeholder.
-                $placeholders[] = $post_id === 0 ? "(NULL, %d, %s, %s, %s, %s, %s, %s)" : "(%d, %d, %s, %s, %s, %s, %s, %s)";
-            }
-             
-            $query .= implode(', ', $placeholders);
-            $wpdb->query($wpdb->prepare($query, $values));
-            $city_updates_count += count($chunk);
+        foreach ($data['city_updates'] as $row) {
+            $wpdb->replace($city_updates_table, $row);
+            $city_updates_count++;
         }
     }
 
