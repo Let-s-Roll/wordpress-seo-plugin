@@ -1,5 +1,10 @@
 # Changelog
 
+= 1.16.0 =
+*   **Feature: Configurable Logging:** Added new options to the "Development & Testing" settings page to provide granular control over logging. Administrators can now enable or disable the generation of the `link_verification.csv` file and choose whether to clear the `content_discovery.log` before each run, reducing log noise on production sites while preserving debugging capabilities.
+*   **Cosmetic: Plugin Name Update:** Changed the plugin's display name in the WordPress admin UI from "Let's Roll SEO Pages" to "Let's Roll SEO" for brevity.
+*   **Cosmetic: Admin Menu Title Update:** Changed the main admin menu title in the dashboard sidebar to "Let's Roll SEO" to match the new plugin name.
+
 = 1.15.0 =
 *   **Refactor: Consistent Image Proxy URL Generation:** Introduced the `LR_PLUGIN_FILE` constant and updated image proxy URL generation in `lets-roll-seo-pages.php`, `includes/rendering-functions.php`, and `includes/content-publication.php` to use `plugins_url()`. This ensures that `image-proxy.php` URLs are consistently resolved based on the plugin's actual installed directory name, fixing "file not found" errors when the plugin folder name changes between local and live environments.
 *   **Fix: Data Tools Page Enhanced for Image URLs:** The "Data Tools" admin page's search and replace utility now correctly updates the `featured_image_url` column in `wp_lr_city_updates`, resolving hardcoded local URLs for featured images.

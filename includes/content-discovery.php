@@ -49,6 +49,10 @@ function lr_log_discovery_message($message) {
  * @param int|null $link_id Optional. A unique ID for the original link being verified.
  */
 function lr_log_link_verification_csv($data) {
+    $options = get_option('lr_options');
+    if (!isset($options['enable_link_verification_csv']) || $options['enable_link_verification_csv'] !== '1') {
+        return;
+    }
     $log_file = plugin_dir_path(__DIR__) . 'link_verification.csv';
     $file_exists = file_exists($log_file);
 
@@ -173,7 +177,10 @@ function lr_run_content_discovery() {
 
     // If starting a new full run, clear the log and reset progress
     if ($processed_cities_count === 0) {
-        lr_clear_discovery_log_file();
+        $options = get_option('lr_options');
+        if (isset($options['clear_discovery_log_on_run']) && $options['clear_discovery_log_on_run'] === '1') {
+            lr_clear_discovery_log_file();
+        }
         lr_log_discovery_message("Starting full content discovery run...");
         lr_log_discovery_message("Total cities to process: " . $total_cities);
     } else {

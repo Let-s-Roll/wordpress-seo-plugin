@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Let's Roll SEO Pages
+ * Plugin Name: Let's Roll SEO
  * Description: A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
  * Version: 1.12.0
  * Author: Your Name
@@ -50,8 +50,8 @@ add_action('admin_init', 'lr_update_discovered_content_table');
 function lr_setup_admin_menu() {
     // Add the top-level menu page
     add_menu_page(
-        'Let\'s Roll',               // Page title
-        'Let\'s Roll',               // Menu title
+        'Let\'s Roll SEO',           // Page title
+        'Let\'s Roll SEO',           // Menu title
         'manage_options',           // Capability
         'lets-roll-settings',       // Menu slug (for the parent)
         'lr_options_page_html',     // Correct function for the first submenu page

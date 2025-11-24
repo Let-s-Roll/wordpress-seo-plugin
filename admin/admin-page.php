@@ -114,6 +114,8 @@ function lr_settings_init() {
 
     // New Section for Testing Mode
     add_settings_section('lr_testing_section', 'Development & Testing', null, 'lr_options_group');
+    add_settings_field('lr_clear_discovery_log_on_run', 'Clear Discovery Log', 'lr_clear_discovery_log_on_run_render', 'lr_options_group', 'lr_testing_section');
+    add_settings_field('lr_enable_link_verification_csv', 'Enable Link Verification CSV', 'lr_enable_link_verification_csv_render', 'lr_options_group', 'lr_testing_section');
     add_settings_field('lr_testing_mode', 'Testing Mode', 'lr_testing_mode_render', 'lr_options_group', 'lr_testing_section');
 }
 add_action('admin_init', 'lr_settings_init');
@@ -210,6 +212,20 @@ function lr_google_search_query_template_render() {
 }
 
 
+
+function lr_clear_discovery_log_on_run_render() {
+    $options = get_option('lr_options');
+    $checked = isset($options['clear_discovery_log_on_run']) && $options['clear_discovery_log_on_run'] === '1' ? 'checked' : '';
+    echo "<input type='checkbox' name='lr_options[clear_discovery_log_on_run]' value='1' " . $checked . ">";
+    echo '<p class="description">When checked, the `content_discovery.log` will be cleared at the start of a new content discovery or publication run. (Default: Off)</p>';
+}
+
+function lr_enable_link_verification_csv_render() {
+    $options = get_option('lr_options');
+    $checked = isset($options['enable_link_verification_csv']) && $options['enable_link_verification_csv'] === '1' ? 'checked' : '';
+    echo "<input type='checkbox' name='lr_options[enable_link_verification_csv]' value='1' " . $checked . ">";
+    echo '<p class="description">When checked, the plugin will generate a `link_verification.csv` file in the plugin root with detailed logs of the link verification process. (Default: Off)</p>';
+}
 
 // New Render Function for the Checkbox
 function lr_testing_mode_render() {
