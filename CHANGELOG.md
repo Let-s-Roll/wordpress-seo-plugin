@@ -1,5 +1,13 @@
 # Changelog
 
+= 1.17.0 =
+*   **Feature: Brevo Campaign Sender (Manual):** Introduced a new "Brevo Sender" admin page, allowing administrators to manually create and send email campaigns. Campaigns can combine a City Update post with a standard WordPress blog post, targeting city-specific Brevo lists.
+*   **Enhancement: Brevo Campaign Draft Mode:** Added an option to the "Brevo Sender" to create campaigns as drafts in Brevo, enabling review and manual sending from the Brevo dashboard.
+*   **Fix: Brevo Sender API Sender Configuration:** Corrected the Brevo API call for creating campaigns to use the verified sender "Let's Roll Team <hey@lets-roll.app>", resolving "Sender is invalid / inactive" errors.
+*   **Enhancement: Brevo Settings (Sender ID Field):** Added a "Brevo Sender ID" field to the "Brevo Sync" settings page, though the campaign sender now uses email/name directly as per Brevo API documentation.
+*   **Enhancement: Admin Menu Reorganization:** Reordered the main "Let's Roll SEO" admin menu items to: "SEO Settings" (parent), "Content Discovery" (under SEO Settings), "Brevo Sync", "Brevo Sender", "Import/Export", "Data Tools".
+*   **Refactor: Improved Brevo API Logging:** Enhanced logging within `lr_create_and_send_brevo_campaign` to include full raw API responses for better debugging.
+
 = 1.16.0 =
 *   **Feature: Configurable Logging:** Added new options to the "Development & Testing" settings page to provide granular control over logging. Administrators can now enable or disable the generation of the `link_verification.csv` file and choose whether to clear the `content_discovery.log` before each run, reducing log noise on production sites while preserving debugging capabilities.
 *   **Cosmetic: Plugin Name Update:** Changed the plugin's display name in the WordPress admin UI from "Let's Roll SEO Pages" to "Let's Roll SEO" for brevity.

@@ -861,3 +861,132 @@ function lr_brevo_ajax_test_contact_lookup() {
         ]);
     }
 }
+
+/**
+ * =================================================================================
+ * Brevo Campaign Sender Functions
+ * =================================================================================
+ */
+
+/**
+ * Creates and sends a Brevo email campaign.
+ *
+ * @param string $city_slug The slug of the city.
+ * @param int    $city_update_id The ID of the city update post.
+ * @param int    $blog_post_id The ID of the standard blog post.
+ * @return array|WP_Error An array with a success message or a WP_Error on failure.
+ */
+function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_post_id, $send_now = true) {
+    global $wpdb;
+    lr_brevo_log_message("Starting campaign creation for city: {$city_slug}. Send immediately: " . ($send_now ? 'Yes' : 'No'));
+
+    // 1. --- Validation and Setup ---
+    $options = get_option('lr_brevo_options');
+    $brevo_api_key = $options['api_key'] ?? '';
+    // Removed sender_id validation as we are now using name/email directly.
+
+    if (empty($brevo_api_key)) {
+        return new WP_Error('missing_api_key', 'Brevo API key is not configured.');
+    }
+
+    $city_list_ids = lr_get_city_list_ids();
+    $city_details = lr_get_city_details_by_slug($city_slug);
+    $city_name = $city_details['name'] ?? ucfirst($city_slug);
+
+    if (!isset($city_list_ids[$city_name])) {
+        return new WP_Error('missing_list', "No Brevo list found for the city: {$city_name}. Please sync lists first.");
+    }
+    $recipient_list_id = $city_list_ids[$city_name];
+
+    // 2. --- Fetch Content ---
+    $city_update = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}lr_city_updates WHERE id = %d", $city_update_id));
+    $blog_post = get_post($blog_post_id);
+
+    if (!$city_update || !$blog_post) {
+        return new WP_Error('content_not_found', 'Could not retrieve the selected posts from the database.');
+    }
+
+    // 3. --- Construct Email Content ---
+    $subject = "Skate News & Updates for {$city_name}!";
+    $city_update_url = home_url("/" . ($city_details['country_slug'] ?? '') . "/{$city_slug}/updates/{$city_update->post_slug}/");
+    $blog_post_url = get_permalink($blog_post);
+
+    $html_content = "
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto;'>
+            <h2>Latest Update for {$city_name}</h2>
+            <h3><a href='{$city_update_url}'>{$city_update->post_title}</a></h3>
+            <p>{$city_update->post_summary}</p>
+            <p><a href='{$city_update_url}'>Read more...</a></p>
+            <hr>
+            <h2>From the Blog</h2>
+            <h3><a href='{$blog_post_url}'>{$blog_post->post_title}</a></h3>
+            <p>" . get_the_excerpt($blog_post) . "</p>
+            <p><a href='{$blog_post_url}'>Read more...</a></p>
+            <hr>
+            <p style='font-size: 0.8em; color: #888; text-align: center;'>Sent by the Let's Roll Team</p>
+        </div>
+    ";
+
+    // 4. --- Create Campaign via Brevo API ---
+    lr_brevo_log_message("Creating campaign draft in Brevo...");
+    $url = 'https://api.brevo.com/v3/emailCampaigns';
+    $body = [
+        'name'          => "Manual Campaign - {$city_name} - " . date('Y-m-d'),
+        'subject'       => $subject,
+        'htmlContent'   => $html_content,
+        'sender'        => ['name' => 'Let\'s Roll Team', 'email' => 'hey@lets-roll.app'], // Use explicit name/email
+        'recipients'    => ['listIds' => [$recipient_list_id]],
+        'type'          => 'classic'
+    ];
+
+    $args = [
+        'method'  => 'POST',
+        'headers' => ['api-key' => $brevo_api_key, 'Content-Type' => 'application/json', 'Accept' => 'application/json'],
+        'body'    => json_encode($body)
+    ];
+
+    $response = wp_remote_post($url, $args);
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body_raw = wp_remote_retrieve_body($response);
+    $response_body = json_decode($response_body_raw);
+
+    // Always log the raw response body for debugging
+    lr_brevo_log_message("Brevo API (Create Campaign) Raw Response: " . $response_body_raw);
+
+    if ($response_code !== 201 || !isset($response_body->id)) {
+        $error_message = $response_body->message ?? 'Unknown error';
+        lr_brevo_log_message("ERROR: Failed to create campaign draft. API Message: " . $error_message . ". Full Response: " . $response_body_raw);
+        return new WP_Error('campaign_creation_failed', 'Failed to create campaign draft in Brevo. API responded with HTTP code ' . $response_code . '. Message: ' . $error_message);
+    }
+
+    $campaign_id = $response_body->id;
+    lr_brevo_log_message("Successfully created campaign draft with ID: {$campaign_id}.");
+
+    // 5. --- Conditionally Send Campaign ---
+    if ($send_now) {
+        lr_brevo_log_message("Sending campaign ID: {$campaign_id}...");
+        $send_url = "https://api.brevo.com/v3/emailCampaigns/{$campaign_id}/sendNow";
+        $send_args = [
+            'method'  => 'POST',
+            'headers' => ['api-key' => $brevo_api_key, 'Accept' => 'application/json']
+        ];
+
+        $send_response = wp_remote_post($send_url, $send_args);
+        $send_response_code = wp_remote_retrieve_response_code($send_response);
+        $send_response_body_raw = wp_remote_retrieve_body($send_response);
+
+        lr_brevo_log_message("Brevo API (Send Campaign) Raw Response: " . $send_response_body_raw);
+
+        if ($send_response_code !== 204) {
+            $send_error_message = json_decode($send_response_body_raw)->message ?? 'Unknown error';
+            lr_brevo_log_message("ERROR: Failed to send campaign. API Message: " . $send_error_message . ". Full Response: " . $send_response_body_raw);
+            return new WP_Error('campaign_send_failed', "Campaign was created as a draft (ID: {$campaign_id}), but failed to send. API responded with HTTP code " . $send_response_code . '. Message: ' . $send_error_message);
+        }
+
+        lr_brevo_log_message("SUCCESS: Campaign sent successfully.");
+        return ['message' => "Campaign for {$city_name} sent successfully!"];
+    } else {
+        lr_brevo_log_message("SUCCESS: Campaign created as a draft.");
+        return ['message' => "Campaign for {$city_name} was created as a draft (ID: {$campaign_id}) in Brevo. You can review and send it from your Brevo dashboard."];
+    }
+}

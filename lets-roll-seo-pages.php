@@ -25,6 +25,7 @@ require_once plugin_dir_path(__FILE__) . 'admin/brevo-sync-page.php';
 require_once plugin_dir_path(__FILE__) . 'admin/content-discovery-page.php';
 require_once plugin_dir_path(__FILE__) . 'admin/import-export-page.php';
 require_once plugin_dir_path(__FILE__) . 'admin/data-tools-page.php'; // <-- Add this line
+require_once plugin_dir_path(__FILE__) . 'admin/brevo-sender-page.php'; // NEW: Brevo Campaign Sender
 require_once plugin_dir_path(__FILE__) . 'brevo-integration.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-explore-page.php';
 require_once plugin_dir_path(__FILE__) . 'templates/template-country-page.php';
@@ -59,7 +60,7 @@ function lr_setup_admin_menu() {
         30                          // Position
     );
 
-    // Add the main settings page (this will be the first item, using the parent's slug)
+    // 1. Add the main SEO Settings page (this will be the first item, using the parent's slug)
     add_submenu_page(
         'lets-roll-settings',       // Parent slug
         'SEO Settings',             // Page title
@@ -69,17 +70,7 @@ function lr_setup_admin_menu() {
         'lr_options_page_html'      // Correct function
     );
 
-    // Add the Brevo Sync sub-menu page
-    add_submenu_page(
-        'lets-roll-settings',       // Parent slug
-        'Brevo Sync',               // Page title
-        'Brevo Sync',               // Menu title
-        'manage_options',           // Capability
-        'lr-brevo-sync',            // Menu slug
-        'lr_render_brevo_sync_page' // Function
-    );
-
-    // Add the new Content Discovery sub-menu page
+    // 2. Add Content Discovery under SEO Settings
     add_submenu_page(
         'lets-roll-settings',       // Parent slug
         'Content Discovery',        // Page title
@@ -89,7 +80,27 @@ function lr_setup_admin_menu() {
         'lr_render_content_discovery_page' // Function
     );
 
-    // Add the new Import/Export sub-menu page
+    // 3. Add the Brevo Sync sub-menu page
+    add_submenu_page(
+        'lets-roll-settings',       // Parent slug
+        'Brevo Sync',               // Page title
+        'Brevo Sync',               // Menu title
+        'manage_options',           // Capability
+        'lr-brevo-sync',            // Menu slug
+        'lr_render_brevo_sync_page' // Function
+    );
+
+    // 4. Add the NEW Brevo Sender sub-menu page
+    add_submenu_page(
+        'lets-roll-settings',       // Parent slug
+        'Brevo Sender',             // Page title
+        'Brevo Sender',             // Menu title
+        'manage_options',           // Capability
+        'lr-brevo-sender',          // Menu slug
+        'lr_render_brevo_sender_page' // Function for the new page
+    );
+
+    // Add the new Import/Export sub-menu page (retained position after new additions)
     add_submenu_page(
         'lets-roll-settings',       // Parent slug
         'Import/Export',            // Page title
@@ -99,7 +110,7 @@ function lr_setup_admin_menu() {
         'lr_render_import_export_page' // Function
     );
 
-    // Add the new Data Tools sub-menu page
+    // Add the new Data Tools sub-menu page (retained position)
     add_submenu_page(
         'lets-roll-settings',       // Parent slug
         'Data Tools',               // Page title
