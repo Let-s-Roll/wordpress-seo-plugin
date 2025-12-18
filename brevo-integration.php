@@ -945,6 +945,10 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
     $featured_image = 'https://creative-assets.mailinblue.com/editor/templates/image-placeholder-2x-2.png';
     if (!empty($city_update->featured_image_url)) {
         $featured_image = $city_update->featured_image_url;
+        // Ensure absolute URL
+        if (strpos($featured_image, 'http') !== 0) {
+            $featured_image = home_url($featured_image);
+        }
     }
 
     // 4. Determine Blog Post Image
@@ -961,10 +965,14 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
     // Assemble the full HTML content
     $assembled_html = $html_header . $html_section1 . $html_section2 . $html_footer;
     
+    $current_month = date('F');
+    $subject = "{$current_month} Skate News & Updates for {$city_name}!";
+    $preview_text = wp_strip_all_tags($city_update->post_summary);
+
     $replacements = [
         // Keys for the 'lr.' syntax
-        '{{ lr.SUBJECT }}' => "Skate News & Updates for {$city_name}!",
-        '{{ lr.PREVIEW }}' => $city_update->post_summary,
+        '{{ lr.SUBJECT }}' => $subject,
+        '{{ lr.PREVIEW }}' => $preview_text,
         '{{ lr.TOPTITLE }}' => "Skate Vibes in {$city_name} 🤘",
         '{{ lr.MAINHEADING }}' => "What's Rolling in {$city_name}?",
         '{{ lr.SECTION1HEADING }}' => $city_update->post_title,
@@ -974,11 +982,11 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
         '{{ lr.city_name }}' => $city_name,
         '{{ lr.city_update_url }}' => $city_update_url,
         '{{ lr.blog_post_url }}' => $blog_post_url,
-        '{{ lr.TITLE }}' => "Skate News & Updates for {$city_name}!",
+        '{{ lr.TITLE }}' => $subject,
 
         // Keys for the 'params.' syntax
-        '{{ params.SUBJECT }}' => "Skate News & Updates for {$city_name}!",
-        '{{ params.PREVIEW }}' => $city_update->post_summary,
+        '{{ params.SUBJECT }}' => $subject,
+        '{{ params.PREVIEW }}' => $preview_text,
         '{{ params.TOPTITLE }}' => "Skate Vibes in {$city_name} 🤘",
         '{{ params.MAINHEADING }}' => "What's Rolling in {$city_name}?",
         '{{ params.SECTION1HEADING }}' => $city_update->post_title,
@@ -988,21 +996,20 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
         '{{ params.city_name }}' => $city_name,
         '{{ params.city_update_url }}' => $city_update_url,
         '{{ params.blog_post_url }}' => $blog_post_url,
-        '{{ params.TITLE }}' => "Skate News & Updates for {$city_name}!",
+        '{{ params.TITLE }}' => $subject,
         '{{ params.FEATURED_IMAGE }}' => $featured_image,
         '{{ params.BLOG_IMAGE }}' => $blog_image,
     ];
 
     $html_content = str_replace(array_keys($replacements), array_values($replacements), $assembled_html);
     
-    $subject = "Skate News & Updates for {$city_name}!";
-
     // 4. --- Create Campaign via Brevo API ---
     lr_brevo_log_message("Creating campaign draft in Brevo using local HTML template...");
     $url = 'https://api.brevo.com/v3/emailCampaigns';
     $body = [
         'name'          => "City Update: {$city_name} - " . date('Y-m-d'),
         'subject'       => $subject,
+        'previewText'   => $preview_text,
         'htmlContent'   => $html_content,
         'sender'        => ['name' => 'Let\'s Roll Team', 'email' => 'hey@lets-roll.app'],
         'recipients'    => ['listIds' => [$recipient_list_id]],
