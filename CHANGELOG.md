@@ -1,5 +1,11 @@
 # Changelog
 
+= 1.17.2 =
+*   **Enhancement: Refined Brevo Email Templates:** Polished the email template partials (`header.php`, `section_city_update.php`, etc.) to match a cleaner, professional HTML structure.
+*   **Enhancement: Dynamic Featured Images in Email:** The campaign header now dynamically pulls the featured image from the selected City Update or Blog Post.
+*   **Fix: Functioning Campaign Links:** Resolved an issue where "Read More" links in Brevo campaigns were missing their destination URLs.
+*   **Cleanup:** Integrated the `standard_template.html` as a reference for future template refinements.
+
 = 1.17.1 =
 *   **Refactor: Email Template Partials:** Refactored the Brevo email campaign template into smaller, more manageable partial files (`header.php`, `section_city_update.php`, `section_blog_post.php`, `footer.php`) located in `email-templates/`. This significantly improves maintainability and flexibility for email content.
 *   **Fix: Malformed CSS @import in Email Template:** Corrected a malformed CSS `@import` rule in the email template, resolving an issue where extraneous text was displayed at the top of generated email campaigns.
