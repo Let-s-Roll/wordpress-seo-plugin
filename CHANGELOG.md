@@ -1,5 +1,11 @@
 # Changelog
 
+= 1.17.1 =
+*   **Refactor: Email Template Partials:** Refactored the Brevo email campaign template into smaller, more manageable partial files (`header.php`, `section_city_update.php`, `section_blog_post.php`, `footer.php`) located in `email-templates/`. This significantly improves maintainability and flexibility for email content.
+*   **Fix: Malformed CSS @import in Email Template:** Corrected a malformed CSS `@import` rule in the email template, resolving an issue where extraneous text was displayed at the top of generated email campaigns.
+*   **Enhancement: 'Read More' Links in Email Campaigns:** Added dynamic "Read more..." links to the end of content sections within generated email campaigns, leading to the full City Update and Blog Post pages.
+*   **Documentation: Brevo Campaign Sender:** Added comprehensive docblocks to `brevo-integration.php` and `admin/brevo-sender-page.php` to clearly explain the new Brevo campaign sender functionality, its parameters, and AJAX interactions.
+
 = 1.17.0 =
 *   **Feature: Brevo Campaign Sender (Manual):** Introduced a new "Brevo Sender" admin page, allowing administrators to manually create and send email campaigns. Campaigns can combine a City Update post with a standard WordPress blog post, targeting city-specific Brevo lists.
 *   **Enhancement: Brevo Campaign Draft Mode:** Added an option to the "Brevo Sender" to create campaigns as drafts in Brevo, enabling review and manual sending from the Brevo dashboard.

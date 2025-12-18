@@ -866,15 +866,26 @@ function lr_brevo_ajax_test_contact_lookup() {
  * =================================================================================
  * Brevo Campaign Sender Functions
  * =================================================================================
+ *
+ * This section handles the creation and dispatch of email campaigns via the Brevo API.
+ * It combines content from the plugin's custom post types (City Updates) and
+ * standard WordPress posts, assembles the final HTML from local template partials,
+ * and sends it to the appropriate city-specific contact list in Brevo.
  */
 
 /**
- * Creates and sends a Brevo email campaign.
+ * Creates and sends a Brevo email campaign by assembling HTML from local partials.
  *
- * @param string $city_slug The slug of the city.
- * @param int    $city_update_id The ID of the city update post.
- * @param int    $blog_post_id The ID of the standard blog post.
- * @return array|WP_Error An array with a success message or a WP_Error on failure.
+ * This function fetches a city update and a blog post, combines them using a set of
+ * template partials (header, sections, footer), performs variable replacements,
+ * and then sends the final HTML content to the Brevo API to create and
+ * optionally send a campaign.
+ *
+ * @param string $city_slug      The slug of the city to target.
+ * @param int    $city_update_id The ID of the `lr_city_updates` post.
+ * @param int    $blog_post_id   The ID of the standard WordPress blog post.
+ * @param bool   $send_now       If true, the campaign is sent immediately. If false, it's created as a draft in Brevo.
+ * @return array|WP_Error An array with a success message and campaign ID on success, or a WP_Error on failure.
  */
 function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_post_id, $send_now = true) {
     global $wpdb;
@@ -883,7 +894,6 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
     // 1. --- Validation and Setup ---
     $options = get_option('lr_brevo_options');
     $brevo_api_key = $options['api_key'] ?? '';
-    // Removed sender_id validation as we are now using name/email directly.
 
     if (empty($brevo_api_key)) {
         return new WP_Error('missing_api_key', 'Brevo API key is not configured.');
@@ -906,35 +916,66 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
         return new WP_Error('content_not_found', 'Could not retrieve the selected posts from the database.');
     }
 
-    // 3. --- Construct Email Content ---
-    $subject = "Skate News & Updates for {$city_name}!";
-    $city_update_url = home_url("/" . ($city_details['country_slug'] ?? '') . "/{$city_slug}/updates/{$city_update->post_slug}/");
-    $blog_post_url = get_permalink($blog_post);
+    // 3. --- Construct Email Content from Local File Partials ---
+    $header_path = plugin_dir_path(LR_PLUGIN_FILE) . 'email-templates/header.php';
+    $section1_path = plugin_dir_path(LR_PLUGIN_FILE) . 'email-templates/section_city_update.php';
+    $section2_path = plugin_dir_path(LR_PLUGIN_FILE) . 'email-templates/section_blog_post.php';
+    $footer_path = plugin_dir_path(LR_PLUGIN_FILE) . 'email-templates/footer.php';
 
-    $html_content = "
-        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto;'>
-            <h2>Latest Update for {$city_name}</h2>
-            <h3><a href='{$city_update_url}'>{$city_update->post_title}</a></h3>
-            <p>{$city_update->post_summary}</p>
-            <p><a href='{$city_update_url}'>Read more...</a></p>
-            <hr>
-            <h2>From the Blog</h2>
-            <h3><a href='{$blog_post_url}'>{$blog_post->post_title}</a></h3>
-            <p>" . get_the_excerpt($blog_post) . "</p>
-            <p><a href='{$blog_post_url}'>Read more...</a></p>
-            <hr>
-            <p style='font-size: 0.8em; color: #888; text-align: center;'>Sent by the Let's Roll Team</p>
-        </div>
-    ";
+    if (!file_exists($header_path) || !file_exists($section1_path) || !file_exists($section2_path) || !file_exists($footer_path)) {
+        return new WP_Error('template_partials_missing', 'One or more email template partials could not be found.');
+    }
+
+    $html_header = file_get_contents($header_path);
+    $html_section1 = file_get_contents($section1_path);
+    $html_section2 = file_get_contents($section2_path);
+    $html_footer = file_get_contents($footer_path);
+
+    // Assemble the full HTML content
+    $assembled_html = $html_header . $html_section1 . $html_section2 . $html_footer;
+    
+    $replacements = [
+        // Keys for the 'lr.' syntax
+        '{{ lr.SUBJECT }}' => "Skate News & Updates for {$city_name}!",
+        '{{ lr.PREVIEW }}' => $city_update->post_summary,
+        '{{ lr.TOPTITLE }}' => "Skate Vibes in {$city_name} 🤘",
+        '{{ lr.MAINHEADING }}' => "What's Rolling in {$city_name}?",
+        '{{ lr.SECTION1HEADING }}' => $city_update->post_title,
+        '{{ lr.SECTION1TEXT }}' => $city_update->post_summary,
+        '{{ lr.SECTION2HEADING }}' => $blog_post->post_title,
+        '{{ lr.SECTION2TEXT }}' => get_the_excerpt($blog_post),
+        '{{ lr.city_name }}' => $city_name,
+        '{{ lr.city_update_url }}' => $city_update_url,
+        '{{ lr.blog_post_url }}' => $blog_post_url,
+        '{{ lr.TITLE }}' => "Skate News & Updates for {$city_name}!",
+
+        // Keys for the 'params.' syntax
+        '{{ params.SUBJECT }}' => "Skate News & Updates for {$city_name}!",
+        '{{ params.PREVIEW }}' => $city_update->post_summary,
+        '{{ params.TOPTITLE }}' => "Skate Vibes in {$city_name} 🤘",
+        '{{ params.MAINHEADING }}' => "What's Rolling in {$city_name}?",
+        '{{ params.SECTION1HEADING }}' => $city_update->post_title,
+        '{{ params.SECTION1TEXT }}' => $city_update->post_summary,
+        '{{ params.SECTION2HEADING }}' => $blog_post->post_title,
+        '{{ params.SECTION2TEXT }}' => get_the_excerpt($blog_post),
+        '{{ params.city_name }}' => $city_name,
+        '{{ params.city_update_url }}' => $city_update_url,
+        '{{ params.blog_post_url }}' => $blog_post_url,
+        '{{ params.TITLE }}' => "Skate News & Updates for {$city_name}!",
+    ];
+
+    $html_content = str_replace(array_keys($replacements), array_values($replacements), $assembled_html);
+    
+    $subject = "Skate News & Updates for {$city_name}!";
 
     // 4. --- Create Campaign via Brevo API ---
-    lr_brevo_log_message("Creating campaign draft in Brevo...");
+    lr_brevo_log_message("Creating campaign draft in Brevo using local HTML template...");
     $url = 'https://api.brevo.com/v3/emailCampaigns';
     $body = [
-        'name'          => "Manual Campaign - {$city_name} - " . date('Y-m-d'),
+        'name'          => "City Update: {$city_name} - " . date('Y-m-d'),
         'subject'       => $subject,
         'htmlContent'   => $html_content,
-        'sender'        => ['name' => 'Let\'s Roll Team', 'email' => 'hey@lets-roll.app'], // Use explicit name/email
+        'sender'        => ['name' => 'Let\'s Roll Team', 'email' => 'hey@lets-roll.app'],
         'recipients'    => ['listIds' => [$recipient_list_id]],
         'type'          => 'classic'
     ];

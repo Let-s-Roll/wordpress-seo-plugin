@@ -1,9 +1,97 @@
 <?php
+/**
+ * Renders the "Brevo Sender" admin page and handles its AJAX interactions.
+ *
+ * This file is responsible for creating the UI that allows an administrator
+ * to manually select content (a city, a city update, a blog post) and
+ * send it as an email campaign via Brevo. It includes the necessary HTML,
+ * CSS, and JavaScript for the form, as well as the server-side PHP functions
+ * that handle the AJAX requests for populating dropdowns and triggering the
+ * campaign sending process.
+ *
+ * @package lets-roll-seo-pages
+ * @since 1.17.0
+ */
 
 if (!defined('ABSPATH')) exit; // Exit if accessed directly
 
 /**
- * Renders the Brevo Sender admin page.
+ * AJAX handler to get recent city updates for the sender form.
+ *
+ * This function is triggered via AJAX when the user selects a city in the
+ * "Brevo Sender" form. It queries the custom database table for `lr_city_updates`
+ * and returns a JSON object containing the 10 most recent updates for that city,
+ * which are then used to populate the "Select City Update" dropdown.
+ *
+ * @since 1.17.0
+ */
+function lr_get_city_updates_for_sender_ajax() {
+    check_ajax_referer('lr_get_city_updates_nonce', 'nonce');
+
+    $city_slug = isset($_POST['city_slug']) ? sanitize_text_field($_POST['city_slug']) : '';
+    if (empty($city_slug)) {
+        wp_send_json_error(['message' => 'City slug not provided.']);
+        return;
+    }
+
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'lr_city_updates';
+    $updates = $wpdb->get_results($wpdb->prepare(
+        "SELECT id, post_title FROM $table_name WHERE city_slug = %s ORDER BY publish_date DESC LIMIT 10",
+        $city_slug
+    ));
+
+    if (empty($updates)) {
+        wp_send_json_error(['message' => 'No city updates found for the selected city.']);
+        return;
+    }
+
+    wp_send_json_success($updates);
+}
+add_action('wp_ajax_lr_get_city_updates_for_sender', 'lr_get_city_updates_for_sender_ajax');
+
+/**
+ * AJAX handler to process the campaign sending request.
+ *
+ * This function is the endpoint for the main "Create Campaign" button. It receives
+ * the selected content IDs and options from the form, sanitizes them, and
+ * then calls the core `lr_create_and_send_brevo_campaign` function to handle
+ * the actual API interaction with Brevo. It returns a JSON response indicating
+ * the success or failure of the operation.
+ *
+ * @since 1.17.0
+ */
+function lr_send_brevo_campaign_ajax() {
+    check_ajax_referer('lr_brevo_send_campaign_nonce', 'lr_brevo_sender_nonce');
+
+    // --- Data Sanitization ---
+    $city_slug = isset($_POST['city_slug']) ? sanitize_text_field($_POST['city_slug']) : '';
+    $city_update_id = isset($_POST['city_update_id']) ? absint($_POST['city_update_id']) : 0;
+    $blog_post_id = isset($_POST['blog_post_id']) ? absint($_POST['blog_post_id']) : 0;
+    $send_now = isset($_POST['send_now']) && $_POST['send_now'] === '1';
+
+    // --- Validation ---
+    if (empty($city_slug) || empty($city_update_id) || empty($blog_post_id)) {
+        wp_send_json_error(['message' => 'Missing required fields. Please select a value for all dropdowns.']);
+        return;
+    }
+
+    // --- Call the main campaign function ---
+    $result = lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_post_id, $send_now);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error(['message' => $result->get_error_message()]);
+    } else {
+        wp_send_json_success($result);
+    }
+}
+add_action('wp_ajax_lr_send_brevo_campaign', 'lr_send_brevo_campaign_ajax');
+
+
+/**
+ * Renders the main HTML content and JavaScript for the Brevo Sender admin page.
+ *
+ * @since 1.17.0
  */
 function lr_render_brevo_sender_page() {
     // Get data for the form selectors
@@ -98,7 +186,7 @@ function lr_render_brevo_sender_page() {
             <!-- Log/Status Section -->
             <div id="lr-sender-log-wrap" style="flex: 1; background: #f7f7f7; border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px;">
                 <p><strong>Log:</strong></p>
-                <div id="lr-sender-log">Please fill out the form and click "Create & Send Campaign".</div>
+                <div id="lr-sender-log">Please fill out the form and click "Create Campaign".</div>
             </div>
         </div>
     </div>
@@ -174,7 +262,11 @@ function lr_render_brevo_sender_page() {
             logDiv.html(''); // Clear log on new submission
             logMessage('Starting campaign creation process...');
 
-            const formData = $(this).serialize();
+            // We need to include the checkbox value in the serialized data correctly.
+            // A simple .serialize() won't include unchecked checkboxes.
+            let sendNow = $('#lr-send-immediately').is(':checked');
+            let formData = $(this).serialize() + '&send_now=' + sendNow;
+
 
             $.ajax({
                 url: ajaxurl,
@@ -198,64 +290,3 @@ function lr_render_brevo_sender_page() {
     </script>
     <?php
 }
-
-// --- AJAX Handlers ---
-
-/**
- * AJAX handler to get recent city updates for the sender form.
- */
-function lr_get_city_updates_for_sender_ajax() {
-    check_ajax_referer('lr_get_city_updates_nonce', 'nonce');
-
-    $city_slug = isset($_POST['city_slug']) ? sanitize_text_field($_POST['city_slug']) : '';
-    if (empty($city_slug)) {
-        wp_send_json_error(['message' => 'City slug not provided.']);
-        return;
-    }
-
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'lr_city_updates';
-    $updates = $wpdb->get_results($wpdb->prepare(
-        "SELECT id, post_title FROM $table_name WHERE city_slug = %s ORDER BY publish_date DESC LIMIT 10",
-        $city_slug
-    ));
-
-    if (empty($updates)) {
-        wp_send_json_error(['message' => 'No city updates found for the selected city.']);
-        return;
-    }
-
-    wp_send_json_success($updates);
-}
-add_action('wp_ajax_lr_get_city_updates_for_sender', 'lr_get_city_updates_for_sender_ajax');
-
-
-/**
- * AJAX handler to process the campaign sending request.
- * (Placeholder for now)
- */
-function lr_send_brevo_campaign_ajax() {
-    check_ajax_referer('lr_brevo_send_campaign_nonce', 'lr_brevo_sender_nonce');
-
-    // --- Data Sanitization ---
-    $city_slug = isset($_POST['city_slug']) ? sanitize_text_field($_POST['city_slug']) : '';
-    $city_update_id = isset($_POST['city_update_id']) ? absint($_POST['city_update_id']) : 0;
-    $blog_post_id = isset($_POST['blog_post_id']) ? absint($_POST['blog_post_id']) : 0;
-    $send_now = isset($_POST['send_now']) && $_POST['send_now'] === '1';
-
-    // --- Validation ---
-    if (empty($city_slug) || empty($city_update_id) || empty($blog_post_id)) {
-        wp_send_json_error(['message' => 'Missing required fields. Please select a value for all dropdowns.']);
-        return;
-    }
-
-    // --- Call the main campaign function ---
-    $result = lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_post_id, $send_now);
-
-    if (is_wp_error($result)) {
-        wp_send_json_error(['message' => $result->get_error_message()]);
-    } else {
-        wp_send_json_success($result);
-    }
-}
-add_action('wp_ajax_lr_send_brevo_campaign', 'lr_send_brevo_campaign_ajax');

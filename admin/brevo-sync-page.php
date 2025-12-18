@@ -12,6 +12,8 @@ function lr_render_brevo_sync_page() {
         $options['api_key'] = sanitize_text_field($_POST['brevo_api_key']);
         $options['list_folder_id'] = intval($_POST['brevo_list_folder_id']);
         $options['sender_id'] = intval($_POST['brevo_sender_id']);
+        $options['template_id'] = intval($_POST['brevo_template_id']);
+        $options['test_template_id'] = intval($_POST['brevo_test_template_id']);
         $options['resync_days'] = intval($_POST['brevo_resync_days']);
         update_option('lr_brevo_options', $options);
         echo '<div class="notice notice-success is-dismissible"><p>Settings saved.</p></div>';
@@ -63,6 +65,20 @@ function lr_render_brevo_sync_page() {
                     <td>
                         <input type="number" id="brevo_sender_id" name="brevo_sender_id" value="<?php echo esc_attr(get_option('lr_brevo_options')['sender_id'] ?? ''); ?>" style="width: 100px;" />
                         <p class="description">The numeric ID of the validated sender in your Brevo account to be used for campaigns.</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row"><label for="brevo_template_id">Campaign Template ID</label></th>
+                    <td>
+                        <input type="number" id="brevo_template_id" name="brevo_template_id" value="<?php echo esc_attr(get_option('lr_brevo_options')['template_id'] ?? 62); ?>" style="width: 100px;" />
+                        <p class="description">The numeric ID of the Brevo email template to use for campaigns.</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row"><label for="brevo_test_template_id">Test Campaign Template ID</label></th>
+                    <td>
+                        <input type="number" id="brevo_test_template_id" name="brevo_test_template_id" value="<?php echo esc_attr(get_option('lr_brevo_options')['test_template_id'] ?? 0); ?>" style="width: 100px;" />
+                        <p class="description">Optional: Use this template ID for testing purposes. If 0, the main Campaign Template ID is used.</p>
                     </td>
                 </tr>
                 <tr valign="top">
