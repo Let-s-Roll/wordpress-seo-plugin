@@ -945,8 +945,12 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
     $featured_image = 'https://creative-assets.mailinblue.com/editor/templates/image-placeholder-2x-2.png';
     if (!empty($city_update->featured_image_url)) {
         $featured_image = $city_update->featured_image_url;
-    } elseif (has_post_thumbnail($blog_post_id)) {
-        $featured_image = get_the_post_thumbnail_url($blog_post_id, 'large');
+    }
+
+    // 4. Determine Blog Post Image
+    $blog_image = 'https://creative-assets.mailinblue.com/editor/templates/image-placeholder-2x-2.png';
+    if (has_post_thumbnail($blog_post_id)) {
+        $blog_image = get_the_post_thumbnail_url($blog_post_id, 'large');
     }
 
     $html_header = file_get_contents($header_path);
@@ -986,6 +990,7 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
         '{{ params.blog_post_url }}' => $blog_post_url,
         '{{ params.TITLE }}' => "Skate News & Updates for {$city_name}!",
         '{{ params.FEATURED_IMAGE }}' => $featured_image,
+        '{{ params.BLOG_IMAGE }}' => $blog_image,
     ];
 
     $html_content = str_replace(array_keys($replacements), array_values($replacements), $assembled_html);

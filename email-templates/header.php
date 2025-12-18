@@ -94,7 +94,7 @@
                                                       <tr>
                                                          <td class="r17-c nl2go-default-textstyle" align="left" style="color: #3b3f44; font-family: Recursive,arial; font-size: 16px; line-height: 1.5; word-break: break-word; padding-top: 15px; text-align: left; valign: top;">
                                                             <div>
-                                                               <h3 class="default-heading3" style="margin: 0; color: #1f2d3d; font-family: Poppins,arial; font-size: 24px; word-break: break-word;"><span style="font-family: Poppins, arial; font-size: 24px;">{{ params.MAINHEADING }}</span></h3>
+                                                               <h3 class="default-heading3" style="margin: 0; color: #1f2d3d; font-family: Poppins,arial; font-size: 24px; word-break: break-word;"><span style="font-family: Poppins, arial; font-size: 24px;">{{ params.SECTION1HEADING }}</span></h3>
                                                             </div>
                                                          </td>
                                                       </tr>
