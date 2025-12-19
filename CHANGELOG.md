@@ -1,5 +1,9 @@
 # Changelog
 
+= 1.17.3 =
+*   **Enhancement: Personalized Email Greetings:** Added "Hey {{ contact.FIRSTNAME }}," to the campaign header for a more personal touch.
+*   **Tweak: Removed App Download CTA:** Deleted the "Download our free app" button from the campaign footer, as recipients are already active app users.
+
 = 1.17.2 =
 *   **Enhancement: Refined Brevo Email Templates:** Polished the email template partials (`header.php`, `section_city_update.php`, etc.) to match a cleaner, professional HTML structure.
 *   **Enhancement: Dynamic Featured Images in Email:** The campaign header now dynamically pulls the featured image from the selected City Update or Blog Post.

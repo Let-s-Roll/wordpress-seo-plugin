@@ -1,13 +1,4 @@
 <tr>
-    <td class="r18-c" align="center" style="align: center; padding-bottom: 15px; padding-top: 15px; valign: top;">
-    <table cellspacing="0" cellpadding="0" border="0" role="presentation" width="300" class="r19-o" style="background-color: #9933cc; border-collapse: separate; border-color: #9933cc; border-radius: 4px; border-style: solid; border-width: 0px; table-layout: fixed; width: 300px;">
-        <tr>
-        <td height="18" align="center" valign="top" class="r20-i nl2go-default-textstyle" style="word-break: break-word; background-color: #9933cc; border-radius: 4px; color: #ffffff; font-family: Recursive, arial; font-size: 16px; font-style: normal; line-height: 1.15; padding-bottom: 12px; padding-left: 5px; padding-right: 5px; padding-top: 12px; text-align: center;"> <a href="https://lets-roll.app" class="r21-r default-button" target="_blank" data-btn="1" style="font-style: normal; font-weight: bold; line-height: 1.15; text-decoration: none; word-break: break-word; word-wrap: break-word; display: block; -webkit-text-size-adjust: none; color: #ffffff; font-family: Recursive, arial; font-size: 16px;"> <span>Download our free app</span></a> </td>
-        </tr>
-    </table>
-    </td>
-</tr>
-<tr>
     <td class="r22-c" align="center" style="padding-bottom: 30px; padding-top: 30px;">
     <table width="100%" cellspacing="0" cellpadding="0" border="0" role="presentation" height="3" style="border-top-style: solid; background-clip: border-box; border-top-color: #4A4A4A; border-top-width: 3px; font-size: 3px; line-height: 3px;">
         <tr>
