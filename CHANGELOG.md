@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.17.9 =
+*   **Enhancement: Exponential Backoff for Rate Limiting:** Improved the bulk campaign sender's retry logic by implementing exponential backoff. Each consecutive rate-limit hit for a specific item now results in a progressively longer wait time (1.5x multiplier), providing a more effective "cooling off" period for the Brevo API.
+
 = 1.17.8 =
 *   **Tweak: Flexible Bulk Content Window:** Relaxed the bulk campaign selection filter to include any city update published within the last 45 days. This ensures that updates generated at the very end of a previous month (for the current month's distribution) are correctly included.
 
