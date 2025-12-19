@@ -1,5 +1,9 @@
 # Changelog
 
+= 1.17.5 =
+*   **Feature: Bulk Campaign Creator:** Added a new "Bulk Campaign Creator" section to the Brevo Sender page. This allows administrators to automatically generate email campaigns for every city that has a published update, featuring a selected blog post.
+*   **Enhancement: Queue-based Bulk Processing:** Implemented a robust, asynchronous processing loop for bulk campaign generation to prevent server timeouts and provide real-time progress updates.
+
 = 1.17.4 =
 *   **Fix: Conditional Image Display in Emails:** Implemented logic to automatically hide image placeholders in email campaigns if a featured image is missing for either the City Update or the Blog Post. This ensures a cleaner layout without broken icons or empty spaces.
 

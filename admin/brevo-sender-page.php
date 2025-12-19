@@ -89,6 +89,73 @@ add_action('wp_ajax_lr_send_brevo_campaign', 'lr_send_brevo_campaign_ajax');
 
 
 /**
+ * AJAX handler to initialize the bulk campaign creation process.
+ * This scans all cities and builds a queue of {city_slug, city_update_id} pairs.
+ * 
+ * @since 1.17.5
+ */
+function lr_init_bulk_campaigns() {
+    check_ajax_referer('lr_brevo_bulk_nonce', 'nonce');
+
+    global $wpdb;
+    $updates_table = $wpdb->prefix . 'lr_city_updates';
+
+    // Query to get the latest update ID for each city
+    // We use a subquery to find the MAX(id) per city_slug, then join back to get details
+    $query = "
+        SELECT city_slug, id as city_update_id, post_title
+        FROM $updates_table
+        WHERE id IN (
+            SELECT MAX(id)
+            FROM $updates_table
+            GROUP BY city_slug
+        )
+    ";
+    
+    $results = $wpdb->get_results($query, ARRAY_A);
+
+    if (empty($results)) {
+        wp_send_json_error(['message' => 'No city updates found in the database.']);
+        return;
+    }
+
+    wp_send_json_success([
+        'queue' => $results,
+        'message' => 'Found ' . count($results) . ' cities with updates. Starting batch process...'
+    ]);
+}
+add_action('wp_ajax_lr_init_bulk_campaigns', 'lr_init_bulk_campaigns');
+
+/**
+ * AJAX handler to process a single item from the bulk queue.
+ * 
+ * @since 1.17.5
+ */
+function lr_process_bulk_campaign_item() {
+    check_ajax_referer('lr_brevo_bulk_nonce', 'nonce');
+
+    $city_slug = isset($_POST['city_slug']) ? sanitize_text_field($_POST['city_slug']) : '';
+    $city_update_id = isset($_POST['city_update_id']) ? absint($_POST['city_update_id']) : 0;
+    $blog_post_id = isset($_POST['blog_post_id']) ? absint($_POST['blog_post_id']) : 0;
+    $send_now = isset($_POST['send_now']) && $_POST['send_now'] === 'true'; // JS sends string 'true'
+
+    if (empty($city_slug) || empty($city_update_id) || empty($blog_post_id)) {
+        wp_send_json_error(['message' => 'Missing parameters for bulk item.']);
+        return;
+    }
+
+    $result = lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_post_id, $send_now);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error(['message' => "Failed for {$city_slug}: " . $result->get_error_message()]);
+    } else {
+        wp_send_json_success(['message' => "Success for {$city_slug}: " . $result['message']]);
+    }
+}
+add_action('wp_ajax_lr_process_bulk_campaign_item', 'lr_process_bulk_campaign_item');
+
+
+/**
  * Renders the main HTML content and JavaScript for the Brevo Sender admin page.
  *
  * @since 1.17.0
@@ -118,81 +185,134 @@ function lr_render_brevo_sender_page() {
         <h1>Brevo Sender</h1>
         <p>Manually create and send a Brevo email campaign by combining a City Update with a recent Blog Post.</p>
 
-        <div id="lr-sender-container" style="display: flex; gap: 20px;">
-            <!-- Form Section -->
-            <div id="lr-sender-form-wrap" style="flex: 1;">
-                <form id="lr-brevo-sender-form">
-                    <?php wp_nonce_field('lr_brevo_send_campaign_nonce', 'lr_brevo_sender_nonce'); ?>
+        <!-- SINGLE CAMPAIGN CREATOR -->
+        <div class="postbox">
+            <h2 class="hndle ui-sortable-handle" style="padding: 10px;"><span>Manual Campaign Creator</span></h2>
+            <div class="inside">
+                <div id="lr-sender-container" style="display: flex; gap: 20px;">
+                    <!-- Form Section -->
+                    <div id="lr-sender-form-wrap" style="flex: 1;">
+                        <form id="lr-brevo-sender-form">
+                            <?php wp_nonce_field('lr_brevo_send_campaign_nonce', 'lr_brevo_sender_nonce'); ?>
 
-                    <!-- City Selector -->
+                            <!-- City Selector -->
+                            <table class="form-table">
+                                <tr valign="top">
+                                    <th scope="row"><label for="lr-city-selector">Select City</label></th>
+                                    <td>
+                                        <select id="lr-city-selector" name="city_slug" style="width: 100%;">
+                                            <option value="">-- Choose a City --</option>
+                                            <?php foreach ($all_cities as $slug => $name) : ?>
+                                                <option value="<?php echo esc_attr($slug); ?>"><?php echo esc_html($name); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <p class="description">Select the city to target. This will determine the recipient list in Brevo.</p>
+                                    </td>
+                                </tr>
+
+                                <!-- City Update Selector (Populated by AJAX) -->
+                                <tr valign="top">
+                                    <th scope="row"><label for="lr-city-update-selector">Select City Update</label></th>
+                                    <td>
+                                        <select id="lr-city-update-selector" name="city_update_id" style="width: 100%;" disabled>
+                                            <option value="">-- Select a city first --</option>
+                                        </select>
+                                        <p class="description">Choose the automated City Update post to feature in the campaign.</p>
+                                    </td>
+                                </tr>
+
+                                <!-- Blog Post Selector -->
+                                <tr valign="top">
+                                    <th scope="row"><label for="lr-blog-post-selector">Select Blog Post</label></th>
+                                    <td>
+                                        <select id="lr-blog-post-selector" name="blog_post_id" style="width: 100%;">
+                                            <option value="">-- Choose a Blog Post --</option>
+                                            <?php foreach ($recent_blog_posts as $post) : ?>
+                                                <option value="<?php echo esc_attr($post->ID); ?>"><?php echo esc_html($post->post_title); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <p class="description">Choose a recent blog post to include in the campaign.</p>
+                                    </td>
+                                </tr>
+
+                                <!-- Send Immediately Checkbox -->
+                                <tr valign="top">
+                                    <th scope="row">Send Options</th>
+                                    <td>
+                                        <fieldset>
+                                            <label for="lr-send-immediately">
+                                                <input name="send_now" type="checkbox" id="lr-send-immediately" value="1" />
+                                                <span>Send Immediately</span>
+                                            </label>
+                                            <p class="description">If checked, the campaign will be sent immediately. If unchecked, it will be saved as a draft in Brevo for you to review and send later.</p>
+                                        </fieldset>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <?php submit_button('Create Campaign', 'primary', 'lr-send-campaign-btn', true, ['disabled' => 'disabled']); ?>
+                        </form>
+                    </div>
+
+                    <!-- Log/Status Section -->
+                    <div id="lr-sender-log-wrap" style="flex: 1; background: #f7f7f7; border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+                        <p><strong>Log:</strong></p>
+                        <div id="lr-sender-log">Please fill out the form and click "Create Campaign".</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BULK CAMPAIGN CREATOR -->
+        <div class="postbox" style="margin-top: 20px;">
+            <h2 class="hndle ui-sortable-handle" style="padding: 10px;"><span>Bulk Campaign Creator (All Cities)</span></h2>
+            <div class="inside">
+                <p>This tool will automatically create a campaign for <strong>every city</strong> that has a published City Update. It will use the <strong>latest update</strong> for each city.</p>
+                
+                <form id="lr-brevo-bulk-form">
                     <table class="form-table">
                         <tr valign="top">
-                            <th scope="row"><label for="lr-city-selector">Select City</label></th>
+                            <th scope="row"><label for="lr-bulk-blog-post">Feature Blog Post</label></th>
                             <td>
-                                <select id="lr-city-selector" name="city_slug" style="width: 100%;">
-                                    <option value="">-- Choose a City --</option>
-                                    <?php foreach ($all_cities as $slug => $name) : ?>
-                                        <option value="<?php echo esc_attr($slug); ?>"><?php echo esc_html($name); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <p class="description">Select the city to target. This will determine the recipient list in Brevo.</p>
-                            </td>
-                        </tr>
-
-                        <!-- City Update Selector (Populated by AJAX) -->
-                        <tr valign="top">
-                            <th scope="row"><label for="lr-city-update-selector">Select City Update</label></th>
-                            <td>
-                                <select id="lr-city-update-selector" name="city_update_id" style="width: 100%;" disabled>
-                                    <option value="">-- Select a city first --</option>
-                                </select>
-                                <p class="description">Choose the automated City Update post to feature in the campaign.</p>
-                            </td>
-                        </tr>
-
-                        <!-- Blog Post Selector -->
-                        <tr valign="top">
-                            <th scope="row"><label for="lr-blog-post-selector">Select Blog Post</label></th>
-                            <td>
-                                <select id="lr-blog-post-selector" name="blog_post_id" style="width: 100%;">
+                                <select id="lr-bulk-blog-post" name="bulk_blog_post_id" style="width: 100%;">
                                     <option value="">-- Choose a Blog Post --</option>
                                     <?php foreach ($recent_blog_posts as $post) : ?>
                                         <option value="<?php echo esc_attr($post->ID); ?>"><?php echo esc_html($post->post_title); ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <p class="description">Choose a recent blog post to include in the campaign.</p>
+                                <p class="description">This blog post will be featured in <strong>all</strong> generated campaigns.</p>
                             </td>
                         </tr>
-
-                        <!-- Send Immediately Checkbox -->
                         <tr valign="top">
-                            <th scope="row">Send Options</th>
+                            <th scope="row">Bulk Options</th>
                             <td>
                                 <fieldset>
-                                    <label for="lr-send-immediately">
-                                        <input name="send_now" type="checkbox" id="lr-send-immediately" value="1" />
-                                        <span>Send Immediately</span>
+                                    <label for="lr-bulk-send-immediately">
+                                        <input name="bulk_send_now" type="checkbox" id="lr-bulk-send-immediately" value="1" />
+                                        <span>Send All Immediately (Warning: Use with caution!)</span>
                                     </label>
-                                    <p class="description">If checked, the campaign will be sent immediately. If unchecked, it will be saved as a draft in Brevo for you to review and send later.</p>
+                                    <p class="description">Default is Draft mode. Check this only if you are sure you want to blast emails to all lists immediately.</p>
                                 </fieldset>
                             </td>
                         </tr>
                     </table>
-
-                    <?php submit_button('Create Campaign', 'primary', 'lr-send-campaign-btn', true, ['disabled' => 'disabled']); ?>
+                    <?php submit_button('Generate Campaigns for All Cities', 'secondary', 'lr-bulk-campaign-btn', true, ['disabled' => 'disabled']); ?>
                 </form>
-            </div>
 
-            <!-- Log/Status Section -->
-            <div id="lr-sender-log-wrap" style="flex: 1; background: #f7f7f7; border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px;">
-                <p><strong>Log:</strong></p>
-                <div id="lr-sender-log">Please fill out the form and click "Create Campaign".</div>
+                <div id="lr-bulk-progress-wrap" style="display: none; margin-top: 15px;">
+                    <div style="background: #f0f0f1; border: 1px solid #ccc; height: 20px; border-radius: 10px; overflow: hidden;">
+                        <div id="lr-bulk-progress-bar" style="background: #2271b1; width: 0%; height: 100%; transition: width 0.3s;"></div>
+                    </div>
+                    <p id="lr-bulk-status-text">Ready to start.</p>
+                </div>
             </div>
         </div>
+
     </div>
 
     <script type="text/javascript">
     jQuery(document).ready(function($) {
+        // --- MANUAL SENDER LOGIC ---
         const citySelector = $('#lr-city-selector');
         const cityUpdateSelector = $('#lr-city-update-selector');
         const sendButton = $('#lr-send-campaign-btn');
@@ -255,18 +375,15 @@ function lr_render_brevo_sender_page() {
         cityUpdateSelector.on('change', updateButtonState);
         $('#lr-blog-post-selector').on('change', updateButtonState);
 
-        // 3. Handle Form Submission
+        // 3. Handle Manual Form Submission
         $('#lr-brevo-sender-form').on('submit', function(e) {
             e.preventDefault();
             sendButton.prop('disabled', true);
             logDiv.html(''); // Clear log on new submission
             logMessage('Starting campaign creation process...');
 
-            // We need to include the checkbox value in the serialized data correctly.
-            // A simple .serialize() won't include unchecked checkboxes.
             let sendNow = $('#lr-send-immediately').is(':checked');
             let formData = $(this).serialize() + '&send_now=' + sendNow;
-
 
             $.ajax({
                 url: ajaxurl,
@@ -286,6 +403,110 @@ function lr_render_brevo_sender_page() {
                 }
             });
         });
+
+        // --- BULK SENDER LOGIC ---
+        const bulkButton = $('#lr-bulk-campaign-btn');
+        const bulkBlogPost = $('#lr-bulk-blog-post');
+        const bulkProgressBar = $('#lr-bulk-progress-bar');
+        const bulkStatusText = $('#lr-bulk-status-text');
+        const bulkProgressWrap = $('#lr-bulk-progress-wrap');
+        
+        let bulkQueue = [];
+        let bulkTotal = 0;
+        let bulkProcessed = 0;
+
+        bulkBlogPost.on('change', function() {
+            if ($(this).val()) {
+                bulkButton.prop('disabled', false);
+            } else {
+                bulkButton.prop('disabled', true);
+            }
+        });
+
+        $('#lr-brevo-bulk-form').on('submit', function(e) {
+            e.preventDefault();
+            if (!confirm('Are you sure you want to generate campaigns for ALL cities? This process may take a few minutes.')) {
+                return;
+            }
+
+            bulkButton.prop('disabled', true);
+            bulkProgressWrap.show();
+            bulkProgressBar.css('width', '0%');
+            bulkStatusText.text('Initializing bulk process...');
+            logDiv.html(''); 
+            logMessage('<strong>Starting Bulk Campaign Generation...</strong>');
+
+            // Step 1: Init (Get Queue)
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'lr_init_bulk_campaigns',
+                    nonce: '<?php echo wp_create_nonce("lr_brevo_bulk_nonce"); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        bulkQueue = response.data.queue;
+                        bulkTotal = bulkQueue.length;
+                        bulkProcessed = 0;
+                        logMessage(response.data.message);
+                        processNextBulkItem();
+                    } else {
+                        logMessage('<strong>Init Error:</strong> ' + response.data.message);
+                        bulkStatusText.text('Error: ' + response.data.message);
+                        bulkButton.prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    logMessage('<strong>Critical Error:</strong> Init request failed.');
+                    bulkButton.prop('disabled', false);
+                }
+            });
+        });
+
+        function processNextBulkItem() {
+            if (bulkQueue.length === 0) {
+                bulkStatusText.text('Bulk process complete! ' + bulkTotal + ' campaigns processed.');
+                logMessage('<strong>Bulk process finished.</strong>');
+                bulkButton.prop('disabled', false);
+                return;
+            }
+
+            let item = bulkQueue.shift(); // Get next city
+            let blogPostId = bulkBlogPost.val();
+            let sendNow = $('#lr-bulk-send-immediately').is(':checked');
+
+            bulkStatusText.text('Processing city: ' + item.city_slug + ' (' + (bulkProcessed + 1) + '/' + bulkTotal + ')...');
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'lr_process_bulk_campaign_item',
+                    nonce: '<?php echo wp_create_nonce("lr_brevo_bulk_nonce"); ?>',
+                    city_slug: item.city_slug,
+                    city_update_id: item.city_update_id,
+                    blog_post_id: blogPostId,
+                    send_now: sendNow
+                },
+                success: function(response) {
+                    if (response.success) {
+                        logMessage('<span style="color:green;">[OK]</span> ' + item.city_slug + ': ' + response.data.message);
+                    } else {
+                        logMessage('<span style="color:red;">[FAIL]</span> ' + item.city_slug + ': ' + response.data.message);
+                    }
+                },
+                error: function() {
+                    logMessage('<span style="color:red;">[ERROR]</span> ' + item.city_slug + ': AJAX request failed.');
+                },
+                complete: function() {
+                    bulkProcessed++;
+                    let percent = Math.round((bulkProcessed / bulkTotal) * 100);
+                    bulkProgressBar.css('width', percent + '%');
+                    processNextBulkItem(); // Recursive loop
+                }
+            });
+        }
     });
     </script>
     <?php
