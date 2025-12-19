@@ -1047,6 +1047,16 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
     // Always log the raw response body for debugging
     lr_brevo_log_message("Brevo API (Create Campaign) Raw Response: " . $response_body_raw);
 
+    // --- HANDLE RATE LIMITING (429) ---
+    if ($response_code === 429) {
+        $retry_after = wp_remote_retrieve_header($response, 'retry-after');
+        $retry_after = $retry_after ? (int)$retry_after : 60; // Default to 60s if header missing
+        
+        lr_brevo_log_message("WARNING: Brevo Rate Limit Hit (429). Retry-After: {$retry_after} seconds.");
+        
+        return new WP_Error('rate_limit', 'Brevo API Rate Limit Exceeded.', ['retry_after' => $retry_after]);
+    }
+
     if ($response_code !== 201 || !isset($response_body->id)) {
         $error_message = $response_body->message ?? 'Unknown error';
         lr_brevo_log_message("ERROR: Failed to create campaign draft. API Message: " . $error_message . ". Full Response: " . $response_body_raw);

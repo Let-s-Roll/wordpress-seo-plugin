@@ -147,7 +147,15 @@ function lr_process_bulk_campaign_item() {
     $result = lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_post_id, $send_now);
 
     if (is_wp_error($result)) {
-        wp_send_json_error(['message' => "Failed for {$city_slug}: " . $result->get_error_message()]);
+        $error_data = $result->get_error_data();
+        $response_data = ['message' => "Failed for {$city_slug}: " . $result->get_error_message()];
+        
+        // Pass rate limit info if available
+        if ($result->get_error_code() === 'rate_limit' && isset($error_data['retry_after'])) {
+            $response_data['retry_after'] = $error_data['retry_after'];
+        }
+        
+        wp_send_json_error($response_data);
     } else {
         wp_send_json_success(['message' => "Success for {$city_slug}: " . $result['message']]);
     }
@@ -478,40 +486,68 @@ function lr_render_brevo_sender_page() {
 
             bulkStatusText.text('Processing city: ' + item.city_slug + ' (' + (bulkProcessed + 1) + '/' + bulkTotal + ')...');
 
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'lr_process_bulk_campaign_item',
-                    nonce: '<?php echo wp_create_nonce("lr_brevo_bulk_nonce"); ?>',
-                    city_slug: item.city_slug,
-                    city_update_id: item.city_update_id,
-                    blog_post_id: blogPostId,
-                    send_now: sendNow
-                },
-                success: function(response) {
-                    if (response.success) {
-                        logMessage('<span style="color:green;">[OK]</span> ' + item.city_slug + ': ' + response.data.message);
-                    } else {
-                        logMessage('<span style="color:red;">[FAIL]</span> ' + item.city_slug + ': ' + response.data.message);
+                        $.ajax({
+                            url: ajaxurl,
+                            type: 'POST',
+                            data: {
+                                action: 'lr_process_bulk_campaign_item',
+                                nonce: '<?php echo wp_create_nonce("lr_brevo_bulk_nonce"); ?>',
+                                city_slug: item.city_slug,
+                                city_update_id: item.city_update_id,
+                                blog_post_id: blogPostId,
+                                send_now: sendNow
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    logMessage('<span style="color:green;">[OK]</span> ' + item.city_slug + ': ' + response.data.message);
+                                    bulkProcessed++;
+                                    let percent = Math.round((bulkProcessed / bulkTotal) * 100);
+                                    bulkProgressBar.css('width', percent + '%');
+                                    
+                                    setTimeout(function() { processNextBulkItem(); }, 1000); // Standard 1s delay
+                                } else {
+                                    // --- RATE LIMIT HANDLING ---
+                                    if (response.data && response.data.retry_after) {
+                                        let waitSeconds = parseInt(response.data.retry_after) + 2; // Add 2s buffer
+                                        logMessage('<span style="color:orange;">[RATE LIMIT]</span> ' + item.city_slug + ': Hit limit. Pausing for ' + waitSeconds + ' seconds...');
+                                        
+                                        // Re-queue the item to try again
+                                        bulkQueue.unshift(item);
+                                        
+                                        // Countdown Timer UI
+                                        let remaining = waitSeconds;
+                                        bulkStatusText.text('Rate limit hit. Resuming in ' + remaining + 's...');
+                                        
+                                        let countdown = setInterval(function() {
+                                            remaining--;
+                                            if (remaining <= 0) {
+                                                clearInterval(countdown);
+                                                bulkStatusText.text('Resuming...');
+                                                processNextBulkItem(); // Resume loop
+                                            } else {
+                                                bulkStatusText.text('Rate limit hit. Resuming in ' + remaining + 's...');
+                                            }
+                                        }, 1000);
+                                        
+                                        return; // Stop here, the interval will resume
+                                    }
+            
+                                    // Normal Failure
+                                    logMessage('<span style="color:red;">[FAIL]</span> ' + item.city_slug + ': ' + response.data.message);
+                                    bulkProcessed++;
+                                    let percent = Math.round((bulkProcessed / bulkTotal) * 100);
+                                    bulkProgressBar.css('width', percent + '%');
+                                    
+                                    setTimeout(function() { processNextBulkItem(); }, 1000);
+                                }
+                            },
+                            error: function() {
+                                logMessage('<span style="color:red;">[ERROR]</span> ' + item.city_slug + ': AJAX request failed.'); 
+                                bulkProcessed++;
+                                setTimeout(function() { processNextBulkItem(); }, 1000);
+                            }
+                        });
                     }
-                },
-                error: function() {
-                    logMessage('<span style="color:red;">[ERROR]</span> ' + item.city_slug + ': AJAX request failed.');
-                },
-                complete: function() {
-                    bulkProcessed++;
-                    let percent = Math.round((bulkProcessed / bulkTotal) * 100);
-                    bulkProgressBar.css('width', percent + '%');
-                    
-                    // Add a delay to prevent hitting API rate limits (429 Too Many Requests)
-                    setTimeout(function() {
-                        processNextBulkItem(); // Recursive loop
-                    }, 1000); 
-                }
-            });
-        }
-    });
-    </script>
-    <?php
+                });
+                </script>    <?php
 }

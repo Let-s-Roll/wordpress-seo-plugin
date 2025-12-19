@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.17.6 =
+*   **Enhancement: Robust Rate-Limit Handling:** The bulk campaign processor now intelligently handles HTTP 429 "Too Many Requests" errors. It automatically pauses execution, respects the "Retry-After" header, and displays a countdown timer before automatically resuming, ensuring all city campaigns are created successfully.
+
 = 1.17.5 =
 *   **Feature: Bulk Campaign Creator:** Added a new "Bulk Campaign Creator" section to the Brevo Sender page. This allows administrators to automatically generate email campaigns for every city that has a published update, featuring a selected blog post.
 *   **Enhancement: Queue-based Bulk Processing:** Implemented a robust, asynchronous processing loop for bulk campaign generation to prevent server timeouts and provide real-time progress updates.
