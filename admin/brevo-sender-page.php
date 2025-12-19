@@ -101,15 +101,15 @@ function lr_init_bulk_campaigns() {
     $updates_table = $wpdb->prefix . 'lr_city_updates';
 
     // Query to get the latest update ID for each city based on PUBLISH_DATE
-    // CRITICAL: We only want posts from the CURRENT CALENDAR MONTH.
+    // We want the most recent post, but it MUST be "recent" (e.g., within the last 45 days)
+    // to avoid sending very old content if a city hasn't had an update lately.
     $query = "
         SELECT t1.city_slug, t1.id as city_update_id, t1.post_title
         FROM $updates_table t1
         JOIN (
             SELECT city_slug, MAX(publish_date) as max_date
             FROM $updates_table
-            WHERE YEAR(publish_date) = YEAR(CURRENT_DATE()) 
-              AND MONTH(publish_date) = MONTH(CURRENT_DATE())
+            WHERE publish_date >= DATE_SUB(NOW(), INTERVAL 45 DAY)
             GROUP BY city_slug
         ) t2 ON t1.city_slug = t2.city_slug AND t1.publish_date = t2.max_date
     ";

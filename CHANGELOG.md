@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.17.8 =
+*   **Tweak: Flexible Bulk Content Window:** Relaxed the bulk campaign selection filter to include any city update published within the last 45 days. This ensures that updates generated at the very end of a previous month (for the current month's distribution) are correctly included.
+
 = 1.17.7 =
 *   **Fix: Smart Bulk Content Selection:** Updated the bulk campaign generator to correctly select the most chronologically recent update for each city using `publish_date`.
 *   **Enhancement: Month-Aware Filtering:** Added a strict filter to the bulk process, ensuring it only targets updates published in the current calendar month to prevent sending outdated content.
