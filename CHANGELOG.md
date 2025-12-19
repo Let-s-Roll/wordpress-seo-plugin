@@ -1,5 +1,9 @@
 # Changelog
 
+= 1.17.7 =
+*   **Fix: Smart Bulk Content Selection:** Updated the bulk campaign generator to correctly select the most chronologically recent update for each city using `publish_date`.
+*   **Enhancement: Month-Aware Filtering:** Added a strict filter to the bulk process, ensuring it only targets updates published in the current calendar month to prevent sending outdated content.
+
 = 1.17.6 =
 *   **Enhancement: Robust Rate-Limit Handling:** The bulk campaign processor now intelligently handles HTTP 429 "Too Many Requests" errors. It automatically pauses execution, respects the "Retry-After" header, and displays a countdown timer before automatically resuming, ensuring all city campaigns are created successfully.
 
