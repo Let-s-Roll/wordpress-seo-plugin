@@ -944,17 +944,22 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
     // 3. Determine Featured Image (City Update > Fallback)
     $featured_image = '';
     if (!empty($city_update->featured_image_url)) {
-        $featured_image = $city_update->featured_image_url;
+        $featured_image = trim($city_update->featured_image_url);
         // Ensure absolute URL
-        if (strpos($featured_image, 'http') !== 0) {
+        if (stripos($featured_image, 'http') !== 0) {
             $featured_image = home_url($featured_image);
         }
+        lr_brevo_log_message("Debug: Resolved City Update Image URL: " . $featured_image);
     }
 
     // 4. Determine Blog Post Image
     $blog_image = '';
     if (has_post_thumbnail($blog_post_id)) {
         $blog_image = get_the_post_thumbnail_url($blog_post_id, 'large');
+        if ($blog_image && stripos($blog_image, 'http') !== 0) {
+            $blog_image = home_url($blog_image);
+        }
+        lr_brevo_log_message("Debug: Resolved Blog Post Image URL: " . $blog_image);
     }
 
     $html_header = file_get_contents($header_path);
