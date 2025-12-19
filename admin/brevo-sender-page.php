@@ -503,7 +503,11 @@ function lr_render_brevo_sender_page() {
                     bulkProcessed++;
                     let percent = Math.round((bulkProcessed / bulkTotal) * 100);
                     bulkProgressBar.css('width', percent + '%');
-                    processNextBulkItem(); // Recursive loop
+                    
+                    // Add a delay to prevent hitting API rate limits (429 Too Many Requests)
+                    setTimeout(function() {
+                        processNextBulkItem(); // Recursive loop
+                    }, 1000); 
                 }
             });
         }
