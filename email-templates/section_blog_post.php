@@ -13,12 +13,13 @@
     </td>
 </tr>
 
-<!-- BLOG POST IMAGE -->
+<!-- BLOG_IMAGE_BLOCK_START -->
 <tr>
     <td class="r16-c" align="center" style="font-size: 0px; line-height: 0px; padding-bottom: 15px; padding-top: 15px; valign: top;"> 
         <img src="{{ params.BLOG_IMAGE }}" width="600" border="0" style="display: block; width: 100%;">
     </td>
 </tr>
+<!-- BLOG_IMAGE_BLOCK_END -->
 
 <!-- BLOG POST CONTENT -->
 <tr>

@@ -88,9 +88,11 @@
                                              <tr>
                                                 <td valign="top" class="r15-i">
                                                    <table width="100%" cellspacing="0" cellpadding="0" border="0" role="presentation">
+                                                      <!-- FEATURED_IMAGE_BLOCK_START -->
                                                       <tr>
                                                          <td class="r16-c" align="center" style="font-size: 0px; line-height: 0px; padding-bottom: 15px; padding-top: 15px; valign: top;"> <img src="{{ params.FEATURED_IMAGE }}" width="600" border="0" style="display: block; width: 100%;"></td>
                                                       </tr>
+                                                      <!-- FEATURED_IMAGE_BLOCK_END -->
                                                       <tr>
                                                          <td class="r17-c nl2go-default-textstyle" align="left" style="color: #3b3f44; font-family: Recursive,arial; font-size: 16px; line-height: 1.5; word-break: break-word; padding-top: 15px; text-align: left; valign: top;">
                                                             <div>

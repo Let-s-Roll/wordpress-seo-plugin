@@ -941,8 +941,8 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
     $city_update_url = home_url("/{$country_slug}/{$city_slug}/updates/{$city_update->post_slug}/");
     $blog_post_url = get_permalink($blog_post_id);
 
-    // 3. Determine Featured Image (City Update > Blog Post > Fallback)
-    $featured_image = 'https://creative-assets.mailinblue.com/editor/templates/image-placeholder-2x-2.png';
+    // 3. Determine Featured Image (City Update > Fallback)
+    $featured_image = '';
     if (!empty($city_update->featured_image_url)) {
         $featured_image = $city_update->featured_image_url;
         // Ensure absolute URL
@@ -952,7 +952,7 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
     }
 
     // 4. Determine Blog Post Image
-    $blog_image = 'https://creative-assets.mailinblue.com/editor/templates/image-placeholder-2x-2.png';
+    $blog_image = '';
     if (has_post_thumbnail($blog_post_id)) {
         $blog_image = get_the_post_thumbnail_url($blog_post_id, 'large');
     }
@@ -965,6 +965,18 @@ function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_po
     // Assemble the full HTML content
     $assembled_html = $html_header . $html_section1 . $html_section2 . $html_footer;
     
+    // --- Conditional Block Removal ---
+    if (empty($featured_image)) {
+        // Remove the featured image block
+        $assembled_html = preg_replace('/<!-- FEATURED_IMAGE_BLOCK_START -->.*?<!-- FEATURED_IMAGE_BLOCK_END -->/s', '', $assembled_html);
+    }
+    if (empty($blog_image)) {
+        // Remove the blog image block
+        $assembled_html = preg_replace('/<!-- BLOG_IMAGE_BLOCK_START -->.*?<!-- BLOG_IMAGE_BLOCK_END -->/s', '', $assembled_html);
+    }
+    // Clean up markers in case images DO exist
+    $assembled_html = str_replace(['<!-- FEATURED_IMAGE_BLOCK_START -->', '<!-- FEATURED_IMAGE_BLOCK_END -->', '<!-- BLOG_IMAGE_BLOCK_START -->', '<!-- BLOG_IMAGE_BLOCK_END -->'], '', $assembled_html);
+
     $current_month = date('F');
     $subject = "{$current_month} Skate News & Updates for {$city_name}!";
     $preview_text = wp_strip_all_tags($city_update->post_summary);

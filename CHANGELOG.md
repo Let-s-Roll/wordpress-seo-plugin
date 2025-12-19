@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.17.4 =
+*   **Fix: Conditional Image Display in Emails:** Implemented logic to automatically hide image placeholders in email campaigns if a featured image is missing for either the City Update or the Blog Post. This ensures a cleaner layout without broken icons or empty spaces.
+
 = 1.17.3 =
 *   **Enhancement: Personalized Email Greetings:** Added "Hey {{ contact.FIRSTNAME }}," to the campaign header for a more personal touch.
 *   **Tweak: Removed App Download CTA:** Deleted the "Download our free app" button from the campaign footer, as recipients are already active app users.
