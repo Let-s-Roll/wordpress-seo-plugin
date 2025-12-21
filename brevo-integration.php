@@ -887,6 +887,155 @@ function lr_brevo_ajax_test_contact_lookup() {
  * @param bool   $send_now       If true, the campaign is sent immediately. If false, it's created as a draft in Brevo.
  * @return array|WP_Error An array with a success message and campaign ID on success, or a WP_Error on failure.
  */
+/**
+ * Creates and sends a General Brevo email campaign (Blog Post only) to a specific list.
+ *
+ * @param int    $list_id      The ID of the Brevo list to target.
+ * @param int    $blog_post_id The ID of the standard WordPress blog post.
+ * @param bool   $send_now     If true, the campaign is sent immediately.
+ * @return array|WP_Error An array with a success message and campaign ID on success, or a WP_Error on failure.
+ */
+function lr_create_general_brevo_campaign($list_id, $blog_post_id, $send_now = true) {
+    lr_brevo_log_message("Starting GENERAL campaign creation for List ID: {$list_id}. Send immediately: " . ($send_now ? 'Yes' : 'No'));
+
+    $options = get_option('lr_brevo_options');
+    $brevo_api_key = $options['api_key'] ?? '';
+
+    if (empty($brevo_api_key)) {
+        return new WP_Error('missing_api_key', 'Brevo API key is not configured.');
+    }
+
+    $blog_post = get_post($blog_post_id);
+    if (!$blog_post) {
+        return new WP_Error('content_not_found', 'Could not retrieve the selected blog post.');
+    }
+
+    // --- Load Templates ---
+    // We skip 'section_city_update.php' for general campaigns
+    $header_path = plugin_dir_path(LR_PLUGIN_FILE) . 'email-templates/header.php';
+    $section2_path = plugin_dir_path(LR_PLUGIN_FILE) . 'email-templates/section_blog_post.php';
+    $footer_path = plugin_dir_path(LR_PLUGIN_FILE) . 'email-templates/footer.php';
+
+    if (!file_exists($header_path) || !file_exists($section2_path) || !file_exists($footer_path)) {
+        return new WP_Error('template_partials_missing', 'One or more email template partials could not be found.');
+    }
+
+    // --- Determine Images ---
+    // No City Update image, so featured image is empty (will be stripped) or we can use the blog image as hero?
+    // Let's stick to the request: "Reuse components". The header expects 'FEATURED_IMAGE'.
+    // Logic: Use Blog Image as the Hero Image for the General Newsletter.
+    
+    $blog_image = '';
+    if (has_post_thumbnail($blog_post_id)) {
+        $blog_image = get_the_post_thumbnail_url($blog_post_id, 'large');
+        if ($blog_image && stripos($blog_image, 'http') !== 0) {
+            $blog_image = home_url($blog_image);
+        }
+    }
+
+    $html_header = file_get_contents($header_path);
+    $html_section2 = file_get_contents($section2_path);
+    $html_footer = file_get_contents($footer_path);
+
+    // Assemble HTML (Skipping City Update Section)
+    $assembled_html = $html_header . $html_section2 . $html_footer;
+
+    // --- Conditional Removal ---
+    // 1. We ALWAYS remove the City Update Image block from the header if we aren't using it.
+    //    BUT, we can repurpose the header block for the Blog Image if we want a Hero.
+    //    Let's use the Blog Image as the 'FEATURED_IMAGE' in the header for a nice look.
+    
+    $featured_image_url = $blog_image; // Use blog image as hero
+    
+    // We remove the *second* image block in the blog post section to avoid duplication
+    $assembled_html = preg_replace('/<!-- BLOG_IMAGE_BLOCK_START -->.*?<!-- BLOG_IMAGE_BLOCK_END -->/s', '', $assembled_html);
+
+    if (empty($featured_image_url)) {
+        $assembled_html = preg_replace('/<!-- FEATURED_IMAGE_BLOCK_START -->.*?<!-- FEATURED_IMAGE_BLOCK_END -->/s', '', $assembled_html);
+    }
+    
+    $assembled_html = str_replace(['<!-- FEATURED_IMAGE_BLOCK_START -->', '<!-- FEATURED_IMAGE_BLOCK_END -->', '<!-- BLOG_IMAGE_BLOCK_START -->', '<!-- BLOG_IMAGE_BLOCK_END -->'], '', $assembled_html);
+
+    $subject = "Latest News from Let's Roll";
+    $preview_text = get_the_excerpt($blog_post);
+
+    $replacements = [
+        // Map generic values to the specific placeholders used in the templates
+        '{{ lr.SUBJECT }}' => $subject,
+        '{{ lr.PREVIEW }}' => $preview_text,
+        '{{ lr.TOPTITLE }}' => "Global Community Update 🌍",
+        '{{ lr.MAINHEADING }}' => "Latest News",
+        '{{ lr.SECTION1HEADING }}' => "Community News",
+        '{{ lr.SECTION1TEXT }}' => "",
+        '{{ lr.SECTION2HEADING }}' => $blog_post->post_title,
+        '{{ lr.SECTION2TEXT }}' => get_the_excerpt($blog_post),
+        '{{ lr.city_name }}' => "Global Community",
+        '{{ lr.city_update_url }}' => "#",
+        '{{ lr.blog_post_url }}' => get_permalink($blog_post_id),
+        '{{ lr.TITLE }}' => $subject,
+        
+        // params syntax (used in templates)
+        '{{ params.SUBJECT }}' => $subject,
+        '{{ params.PREVIEW }}' => $preview_text,
+        '{{ params.TOPTITLE }}' => "Global Community Update 🌍",
+        '{{ params.MAINHEADING }}' => "Latest News",
+        '{{ params.SECTION1HEADING }}' => "",
+        '{{ params.SECTION1TEXT }}' => "",
+        '{{ params.SECTION2HEADING }}' => $blog_post->post_title,
+        '{{ params.SECTION2TEXT }}' => get_the_excerpt($blog_post),
+        '{{ params.city_name }}' => "Global Community",
+        '{{ params.city_update_url }}' => "#",
+        '{{ params.blog_post_url }}' => get_permalink($blog_post_id),
+        '{{ params.TITLE }}' => $subject,
+        '{{ params.FEATURED_IMAGE }}' => $featured_image_url,
+        '{{ params.BLOG_IMAGE }}' => '', 
+    ];
+
+    $html_content = str_replace(array_keys($replacements), array_values($replacements), $assembled_html);
+
+    // --- Create Campaign ---
+    lr_brevo_log_message("Creating GENERAL campaign draft...");
+    $url = 'https://api.brevo.com/v3/emailCampaigns';
+    $body = [
+        'name'          => "General Newsletter - " . date('Y-m-d'),
+        'subject'       => $subject,
+        'previewText'   => $preview_text,
+        'htmlContent'   => $html_content,
+        'sender'        => ['name' => 'Let\'s Roll Team', 'email' => 'hey@lets-roll.app'],
+        'recipients'    => ['listIds' => [(int)$list_id]],
+        'type'          => 'classic'
+    ];
+
+    $args = [
+        'method'  => 'POST',
+        'headers' => ['api-key' => $brevo_api_key, 'Content-Type' => 'application/json', 'Accept' => 'application/json'],
+        'body'    => json_encode($body)
+    ];
+
+    $response = wp_remote_post($url, $args);
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body_raw = wp_remote_retrieve_body($response);
+    $response_body = json_decode($response_body_raw);
+
+    lr_brevo_log_message("Brevo API Response: " . $response_body_raw);
+
+    if ($response_code !== 201 || !isset($response_body->id)) {
+        return new WP_Error('campaign_creation_failed', 'Failed to create campaign. API Code: ' . $response_code);
+    }
+
+    $campaign_id = $response_body->id;
+    lr_brevo_log_message("Draft created with ID: {$campaign_id}.");
+
+    if ($send_now) {
+        $send_url = "https://api.brevo.com/v3/emailCampaigns/{$campaign_id}/sendNow";
+        $send_args = ['method' => 'POST', 'headers' => ['api-key' => $brevo_api_key, 'Accept' => 'application/json']];
+        wp_remote_post($send_url, $send_args);
+        return ['message' => "General Campaign sent successfully!"];
+    } else {
+        return ['message' => "General Campaign created as draft (ID: {$campaign_id})."];
+    }
+}
+
 function lr_create_and_send_brevo_campaign($city_slug, $city_update_id, $blog_post_id, $send_now = true) {
     global $wpdb;
     lr_brevo_log_message("Starting campaign creation for city: {$city_slug}. Send immediately: " . ($send_now ? 'Yes' : 'No'));

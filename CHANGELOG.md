@@ -1,5 +1,10 @@
 # Changelog
 
+= 1.17.10 =
+*   **Feature: General Newsletter Creator:** Introduced a new tool to send a general newsletter (Blog Post only) to a specific Brevo list ID. This is ideal for reaching contacts who are not yet geo-located to a specific city.
+*   **Enhancement: Shared Component Architecture:** The general newsletter leverages existing email partials, repurposing the blog image as the hero image for a consistent branding experience.
+*   **Fix: General Layout Refinements:** Cleaned up the general newsletter layout by removing redundant city-specific headings and fixing placeholder replacements.
+
 = 1.17.9 =
 *   **Enhancement: Exponential Backoff for Rate Limiting:** Improved the bulk campaign sender's retry logic by implementing exponential backoff. Each consecutive rate-limit hit for a specific item now results in a progressively longer wait time (1.5x multiplier), providing a more effective "cooling off" period for the Brevo API.
 

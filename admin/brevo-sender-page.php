@@ -164,6 +164,34 @@ function lr_process_bulk_campaign_item() {
 }
 add_action('wp_ajax_lr_process_bulk_campaign_item', 'lr_process_bulk_campaign_item');
 
+/**
+ * AJAX handler for the General Newsletter creator.
+ * 
+ * @since 1.17.10
+ */
+function lr_send_general_campaign_ajax() {
+    check_ajax_referer('lr_brevo_send_campaign_nonce', 'lr_brevo_sender_nonce');
+
+    $list_id = isset($_POST['list_id']) ? absint($_POST['list_id']) : 0;
+    $blog_post_id = isset($_POST['blog_post_id']) ? absint($_POST['blog_post_id']) : 0;
+    $send_now = isset($_POST['send_now']) && $_POST['send_now'] === '1';
+
+    if (empty($list_id) || empty($blog_post_id)) {
+        wp_send_json_error(['message' => 'Missing List ID or Blog Post.']);
+        return;
+    }
+
+    // Call the new general campaign function
+    $result = lr_create_general_brevo_campaign($list_id, $blog_post_id, $send_now);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error(['message' => $result->get_error_message()]);
+    } else {
+        wp_send_json_success($result);
+    }
+}
+add_action('wp_ajax_lr_send_general_campaign', 'lr_send_general_campaign_ajax');
+
 
 /**
  * Renders the main HTML content and JavaScript for the Brevo Sender admin page.
@@ -270,6 +298,45 @@ function lr_render_brevo_sender_page() {
                         <div id="lr-sender-log">Please fill out the form and click "Create Campaign".</div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+                        <!-- GENERAL NEWSLETTER CREATOR -->
+                        <div class="postbox" style="margin-top: 20px;">
+                            <h2 class="hndle ui-sortable-handle" style="padding: 10px;"><span>General Newsletter (Specific List)</span></h2>
+                            <div class="inside">
+                                <p>Send a general newsletter (Blog Post only) to a specific Brevo contact list ID.</p>
+                                <form id="lr-brevo-general-form">
+                                    <?php wp_nonce_field('lr_brevo_send_campaign_nonce', 'lr_brevo_sender_nonce'); ?>
+                                    <table class="form-table">                        <tr valign="top">
+                            <th scope="row"><label for="lr-general-list-id">Brevo List ID</label></th>
+                            <td>
+                                <input type="number" id="lr-general-list-id" name="list_id" style="width: 100%;" placeholder="e.g. 42" required />
+                            </td>
+                        </tr>
+                        <tr valign="top">
+                            <th scope="row"><label for="lr-general-blog-post">Feature Blog Post</label></th>
+                            <td>
+                                <select id="lr-general-blog-post" name="blog_post_id" style="width: 100%;">
+                                    <option value="">-- Choose a Blog Post --</option>
+                                    <?php foreach ($recent_blog_posts as $post) : ?>
+                                        <option value="<?php echo esc_attr($post->ID); ?>"><?php echo esc_html($post->post_title); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr valign="top">
+                            <th scope="row">Options</th>
+                            <td>
+                                <label for="lr-general-send-immediately">
+                                    <input name="send_now" type="checkbox" id="lr-general-send-immediately" value="1" />
+                                    <span>Send Immediately</span>
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+                    <?php submit_button('Create General Campaign', 'secondary', 'lr-general-campaign-btn', true); ?>
+                </form>
             </div>
         </div>
 
@@ -390,10 +457,13 @@ function lr_render_brevo_sender_page() {
             e.preventDefault();
             sendButton.prop('disabled', true);
             logDiv.html(''); // Clear log on new submission
-            logMessage('Starting campaign creation process...');
+            logMessage('Starting manual campaign creation...');
 
+            // We need to include the checkbox value in the serialized data correctly.
+            // A simple .serialize() won't include unchecked checkboxes.
             let sendNow = $('#lr-send-immediately').is(':checked');
             let formData = $(this).serialize() + '&send_now=' + sendNow;
+
 
             $.ajax({
                 url: ajaxurl,
@@ -410,6 +480,35 @@ function lr_render_brevo_sender_page() {
                 error: function() {
                     logMessage('<strong>CRITICAL ERROR:</strong> The AJAX request failed completely.');
                     updateButtonState();
+                }
+            });
+        });
+
+        // --- GENERAL NEWSLETTER LOGIC ---
+        $('#lr-brevo-general-form').on('submit', function(e) {
+            e.preventDefault();
+            const btn = $('#lr-general-campaign-btn');
+            btn.prop('disabled', true);
+            logMessage('Starting General Newsletter creation...');
+
+            let sendNow = $('#lr-general-send-immediately').is(':checked');
+            let formData = $(this).serialize() + '&send_now=' + sendNow;
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: formData + '&action=lr_send_general_campaign',
+                success: function(response) {
+                    if (response.success) {
+                        logMessage('<strong>SUCCESS:</strong> ' + response.data.message);
+                    } else {
+                        logMessage('<strong>ERROR:</strong> ' + response.data.message);
+                    }
+                    btn.prop('disabled', false);
+                },
+                error: function() {
+                    logMessage('<strong>CRITICAL ERROR:</strong> AJAX failed.');
+                    btn.prop('disabled', false);
                 }
             });
         });
