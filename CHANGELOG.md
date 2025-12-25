@@ -1,8 +1,9 @@
 # Changelog
 
 = 1.17.11 =
-*   **Fix: Restored Open Graph Tags:** Re-implemented the dynamic Open Graph (OG) tag generation for Spot, Event, Skater, and Activity pages. This ensures that social media shares now correctly display the specific title, description, and image (satellite view or avatar) instead of generic site metadata.
-*   **Refactor:** The Open Graph logic has been moved to a dedicated `includes/open-graph.php` file for better code organization and stability.
+*   **Fix: Comprehensive Open Graph Support:** Restored and expanded dynamic Open Graph (OG) tag generation to cover all key pages, including Explore, Country, City, and Item List pages (Spots, Events, Skaters), in addition to Detail and Activity pages.
+*   **Enhancement:** Improved social media sharing by providing page-specific titles, descriptions, and a consistent branding fallback using the plugin's icon.
+*   **Refactor:** Centralized Open Graph logic in `includes/open-graph.php` for easier maintenance.
 
 = 1.17.10 =
 *   **Feature: General Newsletter Creator:** Introduced a new tool to send a general newsletter (Blog Post only) to a specific Brevo list ID. This is ideal for reaching contacts who are not yet geo-located to a specific city.

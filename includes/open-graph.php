@@ -66,16 +66,50 @@ function lr_generate_custom_meta_tags_html($data) {
 
 function lr_get_page_details_from_uri() {
     if (!isset($_SERVER['REQUEST_URI'])) return null;
-    $request_uri = $_SERVER['REQUEST_URI'];
+    $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $request_uri = untrailingslashit($request_uri);
     
-    // Check for activity pages
-    if (preg_match('#^/activity/([^/]+)(?:/|/amp/)?$#', $request_uri, $matches)) {
+    // 1. Explore Page
+    if ($request_uri === '/explore') {
+        return ['type' => 'explore'];
+    }
+
+    // 2. Activity pages
+    if (preg_match('#^/activity/([^/]+)(?:/amp)?$#', $request_uri, $matches)) {
         return ['type' => 'activity', 'id' => $matches[1]];
     }
     
-    // Check for standard entity pages
-    if (preg_match('#^/(spots|events|skaters)/([^/]+)(?:/|/amp/)?$#', $request_uri, $matches)) {
+    // 3. Standard entity detail pages
+    if (preg_match('#^/(spots|events|skaters)/([^/]+)(?:/amp)?$#', $request_uri, $matches)) {
         return ['type' => $matches[1], 'id' => $matches[2]];
+    }
+
+    // 4. Dynamic Locations (Country, City, Lists)
+    $locations = lr_get_location_data();
+    if (empty($locations)) return null;
+
+    $parts = array_values(array_filter(explode('/', $request_uri)));
+    if (empty($parts)) return null;
+
+    $country_slug = $parts[0];
+    if (isset($locations[$country_slug])) {
+        // It's at least a country page
+        if (count($parts) === 1) {
+            return ['type' => 'country', 'country' => $country_slug];
+        }
+
+        $city_slug = $parts[1];
+        if (isset($locations[$country_slug]['cities'][$city_slug])) {
+            // It's at least a city page
+            if (count($parts) === 2) {
+                return ['type' => 'city', 'country' => $country_slug, 'city' => $city_slug];
+            }
+
+            $page_type = $parts[2];
+            if (in_array($page_type, ['skatespots', 'events', 'skaters'])) {
+                return ['type' => 'list', 'country' => $country_slug, 'city' => $city_slug, 'list_type' => $page_type];
+            }
+        }
     }
     
     return null;
@@ -88,6 +122,28 @@ function lr_get_current_page_api_data() {
     $page_details = lr_get_page_details_from_uri();
     if (!$page_details) { $data = false; return null; }
     
+    // Handle Explore page (no API data needed, but return true to allow tag generation)
+    if ($page_details['type'] === 'explore') {
+        $data = (object) ['type' => 'explore'];
+        return $data;
+    }
+
+    // Handle Location pages
+    if (in_array($page_details['type'], ['country', 'city', 'list'])) {
+        if ($page_details['type'] === 'country') {
+            $data = (object) lr_get_country_details($page_details['country']);
+        } else {
+            $data = (object) lr_get_city_details($page_details['country'], $page_details['city']);
+        }
+        if ($data) {
+            $data->lr_page_type = $page_details['type'];
+            if ($page_details['type'] === 'list') {
+                $data->lr_list_type = $page_details['list_type'];
+            }
+        }
+        return $data;
+    }
+
     $single_type = $page_details['type'];
     $item_id = $page_details['id'];
     $transient_key = 'lr_og_data_v5_' . $single_type . '_' . sanitize_key($item_id);
@@ -133,7 +189,17 @@ function lr_get_current_page_api_data() {
 function lr_get_og_title($data) {
     $page_details = lr_get_page_details_from_uri();
     if (!$page_details) return '';
+    
     switch ($page_details['type']) {
+        case 'explore': 
+            return 'Explore Skate Spots Worldwide | Let\'s Roll';
+        case 'country':
+            return 'Roller Skating in ' . ($data->name ?? 'Unknown Country') . ' | Let\'s Roll';
+        case 'city':
+            return 'Roller Skating in ' . ($data->name ?? 'Unknown City') . ' - Spots, Events & Skaters';
+        case 'list':
+            $list_name = ($page_details['list_type'] === 'skatespots') ? 'Skate Spots' : ucfirst($page_details['list_type']);
+            return $list_name . ' in ' . ($data->name ?? 'Unknown City') . ' | Let\'s Roll';
         case 'skaters': return 'Rollerskater Profile: ' . ($data->skateName ?? $data->firstName);
         case 'spots': return 'Skate Spot: ' . ($data->spotWithAddress->name ?? 'Details');
         case 'events': return 'Skate Event: ' . ($data->name ?? 'Details');
@@ -148,7 +214,18 @@ function lr_get_og_title($data) {
 function lr_get_og_description($data) {
     $page_details = lr_get_page_details_from_uri();
     if (!$page_details) return '';
+    
     switch ($page_details['type']) {
+        case 'explore':
+            return 'Discover the best roller skating spots, events, and a global community of skaters. Join Let\'s Roll and explore the world on eight wheels.';
+        case 'country':
+            return 'Find the best places to skate, upcoming events, and local skating communities across ' . ($data->name ?? 'the country') . '.';
+        case 'city':
+            if (!empty($data->description)) return wp_trim_words(esc_html($data->description), 25, '...');
+            return 'Explore the roller skating scene in ' . ($data->name ?? 'this city') . '. Find top skate spots, join local events, and connect with skaters.';
+        case 'list':
+            $list_name = ($page_details['list_type'] === 'skatespots') ? 'skate spots' : $page_details['list_type'];
+            return 'Check out the full list of ' . $list_name . ' in ' . ($data->name ?? 'this city') . ' and see what\'s happening in the local community.';
         case 'skaters':
             if (!empty($data->publicBio)) return wp_trim_words(esc_html($data->publicBio), 25, '...');
             return 'Check out the profile for ' . esc_html($data->skateName ?? '') . ' on Let\'s Roll and connect with skaters from around the world.';
@@ -190,10 +267,16 @@ function lr_get_og_image_url($data) {
     $page_details = lr_get_page_details_from_uri();
     if (!$page_details) return '';
     
-    // Ensure plugin_dir_url is relative to this file, then move up one directory
-    $base_proxy_url = plugins_url('image-proxy.php', dirname(__FILE__)); 
+    $base_proxy_url = plugins_url('image-proxy.php', dirname(__FILE__));
+    $default_image = plugins_url('icon.png', dirname(__FILE__));
 
     switch ($page_details['type']) {
+        case 'explore':
+        case 'country':
+        case 'city':
+        case 'list':
+            return $default_image;
+            
         case 'skaters': 
             return 'https://beta.web.lets-roll.app/api/user/' . $data->userId . '/avatar/content/processed?width=1200&height=630&quality=85';
         
