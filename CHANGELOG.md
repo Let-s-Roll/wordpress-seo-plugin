@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.17.12 =
+*   **Feature: Open Graph for City Updates:** Added dedicated Open Graph support for City Update archive pages and single update posts. Single updates now correctly feature their AI-generated titles, summaries, and featured images when shared on social media.
+
 = 1.17.11 =
 *   **Fix: Comprehensive Open Graph Support:** Restored and expanded dynamic Open Graph (OG) tag generation to cover all key pages, including Explore, Country, City, and Item List pages (Spots, Events, Skaters), in addition to Detail and Activity pages.
 *   **Enhancement:** Improved social media sharing by providing page-specific titles, descriptions, and a consistent branding fallback using the plugin's icon.

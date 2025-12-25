@@ -84,7 +84,7 @@ function lr_get_page_details_from_uri() {
         return ['type' => $matches[1], 'id' => $matches[2]];
     }
 
-    // 4. Dynamic Locations (Country, City, Lists)
+    // 4. Dynamic Locations (Country, City, Lists, Updates)
     $locations = lr_get_location_data();
     if (empty($locations)) return null;
 
@@ -106,8 +106,21 @@ function lr_get_page_details_from_uri() {
             }
 
             $page_type = $parts[2];
+            
+            // Standard lists
             if (in_array($page_type, ['skatespots', 'events', 'skaters'])) {
                 return ['type' => 'list', 'country' => $country_slug, 'city' => $city_slug, 'list_type' => $page_type];
+            }
+            
+            // City Updates
+            if ($page_type === 'updates') {
+                if (isset($parts[3])) {
+                    // Single Update Post: /country/city/updates/post-slug/
+                    return ['type' => 'update_post', 'country' => $country_slug, 'city' => $city_slug, 'post_slug' => $parts[3]];
+                } else {
+                    // Updates List: /country/city/updates/
+                    return ['type' => 'update_list', 'country' => $country_slug, 'city' => $city_slug];
+                }
             }
         }
     }
@@ -129,7 +142,7 @@ function lr_get_current_page_api_data() {
     }
 
     // Handle Location pages
-    if (in_array($page_details['type'], ['country', 'city', 'list'])) {
+    if (in_array($page_details['type'], ['country', 'city', 'list', 'update_list'])) {
         if ($page_details['type'] === 'country') {
             $data = (object) lr_get_country_details($page_details['country']);
         } else {
@@ -142,6 +155,22 @@ function lr_get_current_page_api_data() {
             }
         }
         return $data;
+    }
+
+    // Handle Single City Update Post
+    if ($page_details['type'] === 'update_post') {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'lr_city_updates';
+        $post_slug = $page_details['post_slug'];
+        $city_slug = $page_details['city'];
+        
+        $update_post = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE city_slug = %s AND post_slug = %s", $city_slug, $post_slug));
+        
+        if ($update_post) {
+            $update_post->lr_page_type = 'update_post';
+            return $update_post;
+        }
+        return null;
     }
 
     $single_type = $page_details['type'];
@@ -200,6 +229,10 @@ function lr_get_og_title($data) {
         case 'list':
             $list_name = ($page_details['list_type'] === 'skatespots') ? 'Skate Spots' : ucfirst($page_details['list_type']);
             return $list_name . ' in ' . ($data->name ?? 'Unknown City') . ' | Let\'s Roll';
+        case 'update_list':
+            return 'Skate Updates for ' . ($data->name ?? 'Unknown City') . ' | Let\'s Roll';
+        case 'update_post':
+            return ($data->post_title ?? 'City Update') . ' | Let\'s Roll';
         case 'skaters': return 'Rollerskater Profile: ' . ($data->skateName ?? $data->firstName);
         case 'spots': return 'Skate Spot: ' . ($data->spotWithAddress->name ?? 'Details');
         case 'events': return 'Skate Event: ' . ($data->name ?? 'Details');
@@ -226,6 +259,10 @@ function lr_get_og_description($data) {
         case 'list':
             $list_name = ($page_details['list_type'] === 'skatespots') ? 'skate spots' : $page_details['list_type'];
             return 'Check out the full list of ' . $list_name . ' in ' . ($data->name ?? 'this city') . ' and see what\'s happening in the local community.';
+        case 'update_list':
+            return 'Stay up to date with the latest skate spots, events, and community news in ' . ($data->name ?? 'this city') . '.';
+        case 'update_post':
+            return wp_trim_words(esc_html($data->post_summary ?? ''), 25, '...');
         case 'skaters':
             if (!empty($data->publicBio)) return wp_trim_words(esc_html($data->publicBio), 25, '...');
             return 'Check out the profile for ' . esc_html($data->skateName ?? '') . ' on Let\'s Roll and connect with skaters from around the world.';
@@ -275,6 +312,17 @@ function lr_get_og_image_url($data) {
         case 'country':
         case 'city':
         case 'list':
+        case 'update_list':
+            return $default_image;
+        
+        case 'update_post':
+            if (!empty($data->featured_image_url)) {
+                // If it's a relative URL (which it often is), prepend home_url
+                if (strpos($data->featured_image_url, 'http') === false) {
+                    return home_url($data->featured_image_url);
+                }
+                return $data->featured_image_url;
+            }
             return $default_image;
             
         case 'skaters': 
