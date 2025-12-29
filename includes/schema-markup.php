@@ -268,56 +268,73 @@ function lr_generate_person_schema($data) {
  * Generates CollectionPage Schema for Lists/Cities with embedded ItemList
  */
 function lr_generate_collection_page_schema($data, $page_details) {
-    $schema = [
-        '@type' => 'CollectionPage',
-        'url' => home_url($_SERVER['REQUEST_URI']),
-    ];
-
-    $list_items = [];
-    $city_name = $data->name ?? 'City';
-
+    // === 1. CITY PAGE (The Hub) ===
     if ($page_details['type'] === 'city') {
-        $schema['name'] = 'Roller Skating in ' . $city_name;
-        $schema['description'] = 'Find the best skate spots, events, and skaters in ' . $city_name . '.';
+        $city_name = $data->name ?? 'City';
         
-        // For the main city page, we feature the Top Spots
+        $schema = [
+            '@type' => 'City',
+            'name' => $city_name,
+            'url' => home_url($_SERVER['REQUEST_URI']),
+            'description' => 'Explore the roller skating scene in ' . $city_name . '. Find top skate spots, join local events, and connect with skaters.',
+        ];
+
+        // Add Geo Coordinates
+        if (!empty($data->latitude) && !empty($data->longitude)) {
+            $schema['geo'] = [
+                '@type' => 'GeoCoordinates',
+                'latitude' => $data->latitude,
+                'longitude' => $data->longitude
+            ];
+        }
+
+        // Add "Top Spots" as contained places (not a generic list)
         $spots = lr_get_spots_for_city((array)$data);
         if (!is_wp_error($spots) && !empty($spots)) {
             usort($spots, function($a, $b) { return ($b->sessionsCount ?? 0) <=> ($a->sessionsCount ?? 0); });
             $top_spots = array_slice($spots, 0, 6);
-            $position = 1;
+            
+            $contained_places = [];
             foreach ($top_spots as $spot) {
-                // Fetch spot details for the name if possible, or fallback to API structure
-                // Optimization: To avoid N+1 API calls here just for schema, we might skip the full details 
-                // if we don't have them cached. However, the spot list object often lacks the name.
-                // Let's rely on the cache.
                 $access_token = lr_get_api_access_token();
                 $spot_detail = lr_fetch_api_data($access_token, 'spots/' . $spot->_id, []);
                 
                 if (!is_wp_error($spot_detail) && isset($spot_detail->spotWithAddress)) {
-                    $list_items[] = [
-                        '@type' => 'ListItem',
-                        'position' => $position++,
-                        'item' => [
-                            '@type' => 'SportsActivityLocation',
-                            'name' => $spot_detail->spotWithAddress->name,
-                            'url' => home_url('/spots/' . $spot->_id . '/')
-                        ]
+                    $contained_places[] = [
+                        '@type' => 'SportsActivityLocation',
+                        'name' => $spot_detail->spotWithAddress->name,
+                        'url' => home_url('/spots/' . $spot->_id . '/')
                     ];
                 }
             }
+            
+            if (!empty($contained_places)) {
+                $schema['containsPlace'] = $contained_places;
+            }
         }
-
-    } elseif ($page_details['type'] === 'list') {
+        
+        return $schema;
+    } 
+    
+    // === 2. LIST PAGES (The Directory) ===
+    elseif ($page_details['type'] === 'list') {
+        $schema = [
+            '@type' => 'CollectionPage',
+            'url' => home_url($_SERVER['REQUEST_URI']),
+        ];
+        
+        $list_items = [];
+        $city_name = $data->name ?? 'City';
         $list_type = $page_details['list_type'];
         $list_name_display = ($list_type === 'skatespots') ? 'Skate Spots' : ucfirst($list_type);
         $schema['name'] = $list_name_display . ' in ' . $city_name;
+        $schema['description'] = 'Check out the full list of ' . strtolower($list_name_display) . ' in ' . $city_name . '.';
         
         if ($list_type === 'skatespots') {
             $spots = lr_get_spots_for_city((array)$data);
             if (!is_wp_error($spots) && !empty($spots)) {
                 usort($spots, function($a, $b) { return ($b->sessionsCount ?? 0) <=> ($a->sessionsCount ?? 0); });
-                $top_spots = array_slice($spots, 0, 10); // Top 10 for the list page
+                $top_spots = array_slice($spots, 0, 10);
                 $position = 1;
                 foreach ($top_spots as $spot) {
                     $access_token = lr_get_api_access_token();
@@ -358,14 +375,15 @@ function lr_generate_collection_page_schema($data, $page_details) {
                 }
             }
         }
+        
+        if (!empty($list_items)) {
+            $schema['mainEntity'] = [
+                '@type' => 'ItemList',
+                'itemListElement' => $list_items
+            ];
+        }
+        return $schema;
     }
 
-    if (!empty($list_items)) {
-        $schema['mainEntity'] = [
-            '@type' => 'ItemList',
-            'itemListElement' => $list_items
-        ];
-    }
-
-    return $schema;
+    return null;
 }
