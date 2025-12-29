@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Let's Roll SEO
  * Description: A WordPress plugin to dynamically generate SEO-friendly pages for skate spots, events, and skaters from the external Let's Roll App API.
- * Version: 1.17.13
+ * Version: 1.17.14
  * Author: Your Name
  */
 
@@ -42,7 +42,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/city-updates.php';
 require_once plugin_dir_path(__FILE__) . 'includes/content-publication.php';
 require_once plugin_dir_path(__FILE__) . 'includes/ai-content.php';
 require_once plugin_dir_path(__FILE__) . 'includes/rendering-functions.php';
-require_once plugin_dir_path(__FILE__) . 'includes/open-graph.php';
+require_once plugin_dir_path(__FILE__) . 'includes/seo-metadata.php';
 require_once plugin_dir_path(__FILE__) . 'includes/schema-markup.php';
 
 // Hook for adding admin menus

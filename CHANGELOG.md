@@ -1,5 +1,12 @@
 # Changelog
 
+= 1.17.14 =
+*   **Feature: Standard SEO Meta Tags:** Expanded the SEO engine to generate standard HTML `<title>`, `<meta name="description">`, and `<link rel="canonical">` tags for all virtual pages.
+    *   **Optimized Titles:** Browser tabs now display rich, descriptive titles (e.g., "Skate Spot: [Name] | Let's Roll") instead of generic page names.
+    *   **Canonical URLs:** Self-referencing canonical tags prevent duplicate content issues caused by tracking parameters.
+    *   **Meta Descriptions:** Context-aware descriptions improve click-through rates from search results.
+*   **Refactor:** Renamed `includes/open-graph.php` to `includes/seo-metadata.php` to reflect its expanded role in managing all SEO and social metadata.
+
 = 1.17.13 =
 *   **Feature: JSON-LD Structured Data:** Implemented comprehensive Schema.org markup to boost SEO and enable Rich Snippets in Google search results.
     *   **Skate Spots:** Marked up as `SportsActivityLocation` with ratings, address, and geo-coordinates.
