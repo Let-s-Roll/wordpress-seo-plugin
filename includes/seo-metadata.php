@@ -6,98 +6,106 @@
  * and Open Graph (OG) tags for Let's Roll SEO pages.
  */
 
-// Step 1: Start the output buffer for direct injection (OG, Description, Canonical)
-add_action('init', 'lr_start_html_buffer_for_seo');
+if (!defined('ABSPATH')) exit;
 
-// Step 2: Filter the standard WordPress title tag
-add_filter('pre_get_document_title', 'lr_filter_document_title', 999);
+// --- 1. DATA HELPERS (Defined first for clarity) ---
 
-function lr_start_html_buffer_for_seo() {
-    if (!is_admin() && lr_get_page_details_from_uri()) {
-        ob_start('lr_process_final_html_for_seo');
-    }
-}
-
-function lr_process_final_html_for_seo($buffer) {
-    $data = lr_get_current_page_api_data();
-    if (!$data) {
-        return $buffer;
-    }
+function lr_get_page_details_from_uri() {
+    if (!isset($_SERVER['REQUEST_URI'])) return null;
+    $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $request_uri = untrailingslashit($request_uri);
     
-    // Generate our block of custom tags
-    $custom_tags_html = lr_generate_seo_meta_tags_html($data);
+    if ($request_uri === '/explore') return ['type' => 'explore'];
+    if (preg_match('#^/activity/([^/]+)(?:/amp)?$#', $request_uri, $matches)) return ['type' => 'activity', 'id' => $matches[1]];
+    if (preg_match('#^/(spots|events|skaters)/([^/]+)(?:/amp)?$#', $request_uri, $matches)) return ['type' => $matches[1], 'id' => $matches[2]];
 
-    // Remove existing OG/Twitter tags
-    $buffer = preg_replace('/<meta (property|name)="(og|twitter):[^"]+" content="[^"]*"
-s*\/?>/i', '', $buffer);
-    
-    // Remove existing meta description to avoid duplicates
-    $buffer = preg_replace('/<meta name="description" content="[^"]*"
-s*\/?>/i', '', $buffer);
-    
-    // Remove existing canonical link
-    $buffer = preg_replace('/<link rel="canonical" href="[^"]*"
-s*\/?>/i', '', $buffer);
+    $locations = lr_get_location_data();
+    if (empty($locations)) return null;
 
-    // Inject our new tags
-    $buffer = str_replace('<head>', "<head>\n" . $custom_tags_html, $buffer);
+    $parts = array_values(array_filter(explode('/', $request_uri)));
+    if (empty($parts)) return null;
 
-    return $buffer;
-}
-
-function lr_filter_document_title($title) {
-    $data = lr_get_current_page_api_data();
-    if ($data) {
-        $generated_title = lr_get_seo_title($data);
-        if ($generated_title) {
-            return $generated_title;
+    $country_slug = $parts[0];
+    if (isset($locations[$country_slug])) {
+        if (count($parts) === 1) return ['type' => 'country', 'country' => $country_slug];
+        $city_slug = $parts[1];
+        if (isset($locations[$country_slug]['cities'][$city_slug])) {
+            if (count($parts) === 2) return ['type' => 'city', 'country' => $country_slug, 'city' => $city_slug];
+            $page_type = $parts[2];
+            if (in_array($page_type, ['skatespots', 'events', 'skaters'])) return ['type' => 'list', 'country' => $country_slug, 'city' => $city_slug, 'list_type' => $page_type];
+            if ($page_type === 'updates') {
+                return isset($parts[3]) 
+                    ? ['type' => 'update_post', 'country' => $country_slug, 'city' => $city_slug, 'post_slug' => $parts[3]] 
+                    : ['type' => 'update_list', 'country' => $country_slug, 'city' => $city_slug];
+            }
         }
     }
-    return $title;
+    return null;
 }
 
-function lr_generate_seo_meta_tags_html($data) {
-    $tags_html = "<!-- Let's Roll SEO & Social Tags -->\n";
+function lr_get_current_page_api_data() {
+    static $data = null;
+    if ($data !== null) return $data;
     
-    // 1. Standard SEO Tags
-    $description = lr_get_seo_description($data);
-    $canonical_url = lr_get_canonical_url();
+    $page_details = lr_get_page_details_from_uri();
+    if (!$page_details) { $data = false; return null; }
     
-    if ($description) {
-        $tags_html .= '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
-    }
-    if ($canonical_url) {
-        $tags_html .= '<link rel="canonical" href="' . esc_url($canonical_url) . '">' . "\n";
-    }
+    if ($page_details['type'] === 'explore') { $data = (object) ['type' => 'explore']; return $data; }
 
-    // 2. Open Graph Tags
-    $og_tags = [];
-    $og_tags['og:title']       = lr_get_seo_title($data); // Reuse SEO title
-    $og_tags['og:description'] = $description;            // Reuse SEO description
-    $og_tags['og:image']       = lr_get_og_image_url($data);
-    $og_tags['og:type']        = lr_get_og_type($data);
-    $og_tags['og:url']         = $canonical_url;
-    $og_tags['twitter:card']   = 'summary_large_image';
-    
-    foreach ($og_tags as $property => $content) {
-        if (!empty($content)) {
-            $attribute = (strpos($property, 'twitter') === 0) ? 'name' : 'property';
-            $tags_html .= '<meta ' . $attribute . '="' . esc_attr($property) . '" content="' . esc_attr($content) . '">' . "\n";
+    if (in_array($page_details['type'], ['country', 'city', 'list', 'update_list'])) {
+        if ($page_details['type'] === 'country') $data = (object) lr_get_country_details($page_details['country']);
+        else $data = (object) lr_get_city_details($page_details['country'], $page_details['city']);
+        
+        if ($data) {
+            $data->lr_page_type = $page_details['type'];
+            if ($page_details['type'] === 'list') $data->lr_list_type = $page_details['list_type'];
         }
+        return $data;
     }
-    
-    $tags_html .= "<!-- End Let's Roll SEO Tags -->\n";
 
-    return $tags_html;
+    if ($page_details['type'] === 'update_post') {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'lr_city_updates';
+        $update_post = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE city_slug = %s AND post_slug = %s", $page_details['city'], $page_details['post_slug']));
+        if ($update_post) { $update_post->lr_page_type = 'update_post'; return $update_post; }
+        return null;
+    }
+
+    $single_type = $page_details['type'];
+    $item_id = $page_details['id'];
+    $transient_key = 'lr_og_data_v6_' . $single_type . '_' . sanitize_key($item_id);
+
+    if (!lr_is_testing_mode_enabled()) {
+        $cached_data = get_transient($transient_key);
+        if ($cached_data) { $data = $cached_data; return $data; }
+    }
+
+    $access_token = lr_get_api_access_token();
+    if (is_wp_error($access_token)) { $data = false; return null; }
+
+    $api_data = null;
+    switch ($single_type) {
+        case 'skaters': $api_data = lr_fetch_api_data($access_token, 'user/profile/' . $item_id, []); break;
+        case 'spots': $api_data = lr_fetch_api_data($access_token, 'spots/' . $item_id, []); break;
+        case 'events': $api_data = lr_get_single_event_data($item_id); break;
+        case 'activity': $api_data = lr_get_activity_data($item_id); break;
+    }
+
+    if ($api_data && !is_wp_error($api_data)) {
+        if (!lr_is_testing_mode_enabled()) set_transient($transient_key, $api_data, 10 * MINUTE_IN_SECONDS);
+        $data = $api_data;
+        return $data;
+    }
+    $data = false; return null;
 }
 
-// --- DATA HELPERS ---
+// --- 2. SEO GENERATORS ---
 
 function lr_get_canonical_url() {
     $protocol = is_ssl() ? 'https://' : 'http://';
     $host = $_SERVER['HTTP_HOST'] ?? '';
     $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    return untrailingslashit($protocol . $host . $path) . '/'; // Enforce trailing slash
+    return untrailingslashit($protocol . $host . $path) . '/';
 }
 
 function lr_get_seo_title($data) {
@@ -239,4 +247,85 @@ function lr_get_og_type($data) {
     $page_details = lr_get_page_details_from_uri();
     if ($page_details && $page_details['type'] === 'skaters') return 'profile';
     return 'article';
+}
+
+// --- 3. HOOKS & OUTPUT HANDLERS ---
+
+add_action('init', 'lr_start_html_buffer_for_seo');
+add_filter('pre_get_document_title', 'lr_filter_document_title', 999);
+
+function lr_start_html_buffer_for_seo() {
+    if (!is_admin() && lr_get_page_details_from_uri()) {
+        ob_start('lr_process_final_html_for_seo');
+    }
+}
+
+function lr_process_final_html_for_seo($buffer) {
+    $data = lr_get_current_page_api_data();
+    if (!$data) {
+        return $buffer;
+    }
+    
+    $custom_tags_html = lr_generate_seo_meta_tags_html($data);
+
+    // Remove existing OG/Twitter tags
+    $buffer = preg_replace('/<meta (property|name)="(og|twitter):[^"]+" content="[^"]*"
+*\/?>/i', '', $buffer);
+    
+    // Remove existing meta description
+    $buffer = preg_replace('/<meta name="description" content="[^"]*"
+*\/?>/i', '', $buffer);
+    
+    // Remove existing canonical link
+    $buffer = preg_replace('/<link rel="canonical" href="[^"]*"
+*\/?>/i', '', $buffer);
+
+    // Inject our new tags
+    $buffer = str_replace('<head>', "<head>\n" . $custom_tags_html, $buffer);
+
+    return $buffer;
+}
+
+function lr_filter_document_title($title) {
+    $data = lr_get_current_page_api_data();
+    if ($data) {
+        $generated_title = lr_get_seo_title($data);
+        if ($generated_title) {
+            return $generated_title;
+        }
+    }
+    return $title;
+}
+
+function lr_generate_seo_meta_tags_html($data) {
+    $tags_html = "<!-- Let's Roll SEO & Social Tags -->\n";
+    
+    $description = lr_get_seo_description($data);
+    $canonical_url = lr_get_canonical_url();
+    
+    if ($description) {
+        $tags_html .= '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
+    }
+    if ($canonical_url) {
+        $tags_html .= '<link rel="canonical" href="' . esc_url($canonical_url) . '">' . "\n";
+    }
+
+    $og_tags = [];
+    $og_tags['og:title']       = lr_get_seo_title($data);
+    $og_tags['og:description'] = $description;
+    $og_tags['og:image']       = lr_get_og_image_url($data);
+    $og_tags['og:type']        = lr_get_og_type($data);
+    $og_tags['og:url']         = $canonical_url;
+    $og_tags['twitter:card']   = 'summary_large_image';
+    
+    foreach ($og_tags as $property => $content) {
+        if (!empty($content)) {
+            $attribute = (strpos($property, 'twitter') === 0) ? 'name' : 'property';
+            $tags_html .= '<meta ' . $attribute . '="' . esc_attr($property) . '" content="' . esc_attr($content) . '">' . "\n";
+        }
+    }
+    
+    $tags_html .= "<!-- End Let's Roll SEO Tags -->\n";
+
+    return $tags_html;
 }
