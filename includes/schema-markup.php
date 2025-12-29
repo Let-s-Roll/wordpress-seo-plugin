@@ -374,6 +374,23 @@ function lr_generate_collection_page_schema($data, $page_details) {
                     ];
                 }
             }
+        } elseif ($list_type === 'skaters') {
+            $skaters = lr_fetch_filtered_skaters_for_city((array)$data, 90);
+            if (!is_wp_error($skaters) && !empty($skaters)) {
+                $top_skaters = array_slice($skaters, 0, 10);
+                $position = 1;
+                foreach ($top_skaters as $skater) {
+                    $list_items[] = [
+                        '@type' => 'ListItem',
+                        'position' => $position++,
+                        'item' => [
+                            '@type' => 'Person',
+                            'name' => $skater->skateName ?? $skater->firstName,
+                            'url' => home_url('/skaters/' . ($skater->skateName ?? $skater->userId) . '/')
+                        ]
+                    ];
+                }
+            }
         }
         
         if (!empty($list_items)) {

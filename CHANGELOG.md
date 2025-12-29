@@ -4,8 +4,9 @@
 *   **Enhancement: Semantic City Schema:** Refined the JSON-LD Schema for City Pages to clearly distinguish them from simple lists.
     *   **Type:** City pages are now marked up as `City` (instead of `CollectionPage`) to establish them as the authoritative entity for that location.
     *   **Geo-Coordinates:** Added latitude and longitude to the City schema to boost local SEO signals.
-    *   **Contained Places:** Top skate spots are now nested under the `containsPlace` property, correctly modeling the relationship between the city and its spots.
-*   **Enhancement:** List pages (e.g., `/skatespots/`) retain the `CollectionPage` + `ItemList` schema to target "Top 10" list rankings.
+    *   **Contained Places:** Top skate spots are now nested under the `containsPlace` property.
+*   **Enhancement:** List pages (e.g., `/skatespots/`, `/skaters/`) retain the `CollectionPage` + `ItemList` schema to target "Top 10" list rankings.
+*   **Fix:** Resolved missing `ItemList` schema for the `/skaters/` list page.
 
 = 1.17.14 =
 *   **Feature: Standard SEO Meta Tags:** Expanded the SEO engine to generate standard HTML `<title>`, `<meta name="description">`, and `<link rel="canonical">` tags for all virtual pages.
