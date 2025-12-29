@@ -6,7 +6,8 @@
     *   **Events:** Marked up as `Event` with dates, location, and organizer info.
     *   **Skaters:** Marked up as `Person` with profile images and social links.
     *   **Breadcrumbs:** Added global `BreadcrumbList` schema for all pages to improve site structure understanding.
-    *   **Collections:** City and List pages are now defined as `CollectionPage`.
+    *   **Featured Lists:** City and List pages now include `ItemList` schema, featuring the top ranked spots and upcoming events. This specifically targets "Top 10" style featured snippets in search results.
+    *   **Collections:** Overview pages are defined as `CollectionPage`.
 
 = 1.17.12 =
 *   **Feature: Open Graph for City Updates:** Added dedicated Open Graph support for City Update archive pages and single update posts. Single updates now correctly feature their AI-generated titles, summaries, and featured images when shared on social media.
