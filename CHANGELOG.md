@@ -1,5 +1,13 @@
 # Changelog
 
+= 1.17.13 =
+*   **Feature: JSON-LD Structured Data:** Implemented comprehensive Schema.org markup to boost SEO and enable Rich Snippets in Google search results.
+    *   **Skate Spots:** Marked up as `SportsActivityLocation` with ratings, address, and geo-coordinates.
+    *   **Events:** Marked up as `Event` with dates, location, and organizer info.
+    *   **Skaters:** Marked up as `Person` with profile images and social links.
+    *   **Breadcrumbs:** Added global `BreadcrumbList` schema for all pages to improve site structure understanding.
+    *   **Collections:** City and List pages are now defined as `CollectionPage`.
+
 = 1.17.12 =
 *   **Feature: Open Graph for City Updates:** Added dedicated Open Graph support for City Update archive pages and single update posts. Single updates now correctly feature their AI-generated titles, summaries, and featured images when shared on social media.
 
