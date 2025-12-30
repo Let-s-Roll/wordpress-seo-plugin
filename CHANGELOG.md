@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.17.21 =
+*   **Fix: Social Media Compatibility:** Replaced emojis in Open Graph descriptions with standard bullet separators (`•`). This resolves an issue where strict parsers (like Facebook's) would strip the entire description due to emoji encoding, ensuring consistent previews across all platforms.
+
 = 1.17.20 =
 *   **Enhancement: Emoji-Powered Social Snippets:** Added high-visibility emojis to Open Graph and SEO descriptions. This visually separates key information (Date, Location, Rating) in social media previews where standard line breaks are typically stripped by platforms like Facebook.
 
