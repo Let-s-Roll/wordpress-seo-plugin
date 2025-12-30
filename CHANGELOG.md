@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.17.22 =
+*   **Enhancement: Restore Emoji Descriptions:** Reverted the decision to use plain bullet points for social descriptions. We have restored high-visibility emojis (📅, 📍, ⭐, 🛼) to maximize visual appeal and engagement on platforms that support them (Discord, Slack, Twitter), accepting that some stricter platforms (Facebook) may strip them.
+
 = 1.17.21 =
 *   **Fix: Social Media Compatibility:** Replaced emojis in Open Graph descriptions with standard bullet separators (`•`). This resolves an issue where strict parsers (like Facebook's) would strip the entire description due to emoji encoding, ensuring consistent previews across all platforms.
 
