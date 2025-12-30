@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.17.18 =
+*   **Fix: Enable Country Page Schema:** Resolved a logic error where the new `Country` schema markup was not being triggered for Country pages. The switch statement now correctly includes the `country` case, ensuring the enhanced JSON-LD is output to the page header.
+
 = 1.17.17 =
 *   **Fix: SEO Module Stability:** Resolved a critical "Undefined Function" error caused by a race condition in the SEO metadata file loading.
 *   **Refactor:** completely reorganized `includes/seo-metadata.php` to ensure robust function definition before execution.

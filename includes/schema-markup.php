@@ -41,6 +41,7 @@ function lr_output_json_ld_schema() {
         case 'skaters':
             $entity_schema = lr_generate_person_schema($data);
             break;
+        case 'country':
         case 'city':
         case 'list':
             $entity_schema = lr_generate_collection_page_schema($data, $page_details);
