@@ -81,6 +81,10 @@ This file is used to:
 
 This file contains a list of all the known API endpoints that the plugin uses. Before attempting to call a new endpoint, you should consult this file. If the endpoint is not listed, you must assume we don't know its parameters or its response structure.
 
+### `SEO_ARCHITECTURE.md`
+
+A comprehensive guide to the SEO and Open Graph systems implemented in the plugin (v1.17+). Consult this file to understand how metadata, JSON-LD Schema, and social tags are generated for the virtual pages.
+
 ### `CHANGELOG.md`
 
 A human-readable log of all significant changes made to the plugin, organized by version. This **must** be updated before every push.
