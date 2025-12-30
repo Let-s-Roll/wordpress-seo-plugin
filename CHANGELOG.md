@@ -1,5 +1,10 @@
 # Changelog
 
+= 1.17.19 =
+*   **Enhancement: Richer Social Snippets:** Improved the logic for generating `og:description` for Skate Spots and Events.
+    *   **Events:** Now includes date, time, venue address, and a description excerpt.
+    *   **Spots:** Now includes address, star rating, and community review stats.
+
 = 1.17.18 =
 *   **Fix: Enable Country Page Schema:** Resolved a logic error where the new `Country` schema markup was not being triggered for Country pages. The switch statement now correctly includes the `country` case, ensuring the enhanced JSON-LD is output to the page header.
 
