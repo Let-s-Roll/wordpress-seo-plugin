@@ -268,8 +268,39 @@ function lr_generate_person_schema($data) {
  * Generates CollectionPage Schema for Lists/Cities with embedded ItemList
  */
 function lr_generate_collection_page_schema($data, $page_details) {
-    // === 1. CITY PAGE (The Hub) ===
-    if ($page_details['type'] === 'city') {
+    // === 1. COUNTRY PAGE ===
+    if ($page_details['type'] === 'country') {
+        $country_name = $data->name ?? 'Country';
+        
+        $schema = [
+            '@type' => 'Country',
+            'name' => $country_name,
+            'url' => home_url($_SERVER['REQUEST_URI']),
+            'description' => 'Find the best places to roller skate in ' . $country_name . '. Explore popular cities, skate spots, and events.',
+        ];
+
+        // Add Cities as contained places
+        // The $data object for a country page is the array from merged.json which contains 'cities'
+        if (!empty($data->cities)) {
+            $contained_cities = [];
+            foreach ($data->cities as $city_slug => $city_info) {
+                $contained_cities[] = [
+                    '@type' => 'City',
+                    'name' => $city_info['name'],
+                    'url' => home_url('/' . $page_details['country'] . '/' . $city_slug . '/')
+                ];
+            }
+            
+            if (!empty($contained_cities)) {
+                $schema['containsPlace'] = $contained_cities;
+            }
+        }
+        
+        return $schema;
+    }
+
+    // === 2. CITY PAGE (The Hub) ===
+    elseif ($page_details['type'] === 'city') {
         $city_name = $data->name ?? 'City';
         
         $schema = [

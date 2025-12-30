@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.17.16 =
+*   **Enhancement: Country Page Schema:** Upgraded Country pages to use the specific `Country` Schema type. They now list all available cities using the `containsPlace` property, creating a clear semantic hierarchy (Country > City > Spot) for search engines.
+
 = 1.17.15 =
 *   **Enhancement: Semantic City Schema:** Refined the JSON-LD Schema for City Pages to clearly distinguish them from simple lists.
     *   **Type:** City pages are now marked up as `City` (instead of `CollectionPage`) to establish them as the authoritative entity for that location.
