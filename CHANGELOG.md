@@ -1,5 +1,10 @@
 # Changelog
 
+= 1.17.17 =
+*   **Fix: SEO Module Stability:** Resolved a critical "Undefined Function" error caused by a race condition in the SEO metadata file loading.
+*   **Refactor:** completely reorganized `includes/seo-metadata.php` to ensure robust function definition before execution.
+*   **Optimization:** Temporarily disabled aggressive meta tag stripping to ensure maximum compatibility across different server environments.
+
 = 1.17.16 =
 *   **Enhancement: Country Page Schema:** Upgraded Country pages to use the specific `Country` Schema type. They now list all available cities using the `containsPlace` property, creating a clear semantic hierarchy (Country > City > Spot) for search engines.
 
