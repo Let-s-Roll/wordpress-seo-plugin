@@ -1,5 +1,8 @@
 # Changelog
 
+= 1.17.20 =
+*   **Enhancement: Emoji-Powered Social Snippets:** Added high-visibility emojis to Open Graph and SEO descriptions. This visually separates key information (Date, Location, Rating) in social media previews where standard line breaks are typically stripped by platforms like Facebook.
+
 = 1.17.19 =
 *   **Enhancement: Richer Social Snippets:** Improved the logic for generating `og:description` for Skate Spots and Events.
     *   **Events:** Now includes date, time, venue address, and a description excerpt.

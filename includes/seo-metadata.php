@@ -138,18 +138,21 @@ function lr_get_seo_description($data) {
         case 'list': return 'Check out the full list of items in ' . ($data->name ?? 'this city') . '.';
         case 'update_list': return 'Stay up to date with skating news in ' . ($data->name ?? 'this city') . '.';
         case 'update_post': return wp_trim_words(esc_html($data->post_summary ?? ''), 25, '...');
-        case 'skaters': if (!empty($data->publicBio)) return wp_trim_words(esc_html($data->publicBio), 25, '...'); return 'Check out this profile.';
+        case 'skaters': 
+            $bio = !empty($data->publicBio) ? wp_trim_words(esc_html($data->publicBio), 25, '...') : 'A skater on Let\'s Roll.';
+            return '🛼 ' . ($data->skateName ?? $data->firstName) . ' ' . $bio;
         case 'spots':
             $spot = $data->spotWithAddress ?? null;
             if ($spot) {
                 $parts = [];
-                if (!empty($spot->info->address)) $parts[] = $spot->info->address;
+                if (!empty($spot->info->address)) $parts[] = '📍 ' . $spot->info->address;
                 $ratings_count = $spot->rating->ratingsCount ?? 0;
                 if ($ratings_count > 0) {
                     $avg_rating = round($spot->rating->totalValue / $ratings_count, 1);
-                    $parts[] = 'Rated ' . $avg_rating . ' out of 5 stars by the community.';
+                    $parts[] = '⭐ ' . $avg_rating . '/5 (' . $ratings_count . ' reviews)';
                 }
-                return implode(' ', $parts);
+                $parts[] = '🛼 ' . ($data->totalSkaters ?? 0) . ' skaters visited.';
+                return implode('  ', $parts);
             }
             return 'Rated skate spot. Check details.';
         case 'events':
@@ -157,17 +160,18 @@ function lr_get_seo_description($data) {
                 $parts = [];
                 if (!empty($data->event->startDate)) { 
                     try { 
-                        $parts[] = 'When: ' . (new DateTime($data->event->startDate))->format('F j, Y, g:i A') . '.'; 
+                        $date_obj = new DateTime($data->event->startDate);
+                        $parts[] = '📅 ' . $date_obj->format('M j, Y • g:i A'); 
                     } catch (Exception $e) {} 
                 } 
                 if (!empty($data->event->address)) {
                     $address_obj = json_decode($data->event->address);
-                    if (isset($address_obj->formatted_address)) $parts[] = 'Where: ' . $address_obj->formatted_address . '.';
+                    if (isset($address_obj->formatted_address)) $parts[] = '📍 ' . $address_obj->formatted_address;
                 }
                 if (!empty($data->description)) {
-                    $parts[] = wp_trim_words(esc_html($data->description), 20, '...');
+                    $parts[] = '✨ ' . wp_trim_words(esc_html($data->description), 20, '...');
                 }
-                return implode(' ', $parts);
+                return implode('  ', $parts);
             }
             return 'Upcoming event. Check details.';
         case 'activity': return 'Check out this skate session.';
