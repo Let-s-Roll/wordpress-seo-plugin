@@ -55,9 +55,9 @@ function lr_output_json_ld_schema() {
     // Output the JSON-LD block
     if (!empty($schema_graph)) {
         echo "\n<!-- Let's Roll JSON-LD Schema -->\n";
-        echo '<script type="application/ld+json">\n';
+        echo '<script type="application/ld+json">';
         echo json_encode(['@context' => 'https://schema.org', '@graph' => $schema_graph], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-        echo "\n</script>\n";
+        echo "</script>\n";
         echo "<!-- End Let's Roll Schema -->\n\n";
     }
 }

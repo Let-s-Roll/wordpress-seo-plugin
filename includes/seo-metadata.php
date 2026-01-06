@@ -243,6 +243,9 @@ function lr_process_final_html_for_seo($buffer) {
 
 function lr_start_html_buffer_for_seo() {
     if (!is_admin() && lr_get_page_details_from_uri()) {
+        // Disable AIOSEO Schema to prevent conflicts and GSC errors
+        add_filter('aioseo_schema_disable', '__return_true');
+        
         ob_start('lr_process_final_html_for_seo');
     }
 }

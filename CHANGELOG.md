@@ -1,5 +1,10 @@
 # Changelog
 
+= 1.17.23 =
+*   **Fix: Google Search Console Parsing Errors:** Resolved two issues causing "Unparsable structured data" errors in GSC:
+    *   Removed invalid newline characters from the JSON-LD script tag output.
+    *   **Disable AIOSEO Schema:** Added a filter to automatically disable All in One SEO's schema generation on virtual pages. This prevents duplicate JSON-LD blocks and conflicting schema types (e.g., AIOSEO outputting a generic `CollectionPage` vs. our specific `SportsActivityLocation`), ensuring Google only indexes the correct, high-quality data.
+
 = 1.17.22 =
 *   **Enhancement: Restore Emoji Descriptions:** Reverted the decision to use plain bullet points for social descriptions. We have restored high-visibility emojis (📅, 📍, ⭐, 🛼) to maximize visual appeal and engagement on platforms that support them (Discord, Slack, Twitter), accepting that some stricter platforms (Facebook) may strip them.
 
