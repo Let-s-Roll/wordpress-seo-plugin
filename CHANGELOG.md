@@ -1,5 +1,10 @@
 # Changelog
 
+= 1.17.24 =
+*   **Fix: Duplicate Canonical Tags:** Resolved an issue where duplicate `<link rel="canonical">` tags could appear on virtual pages.
+    *   **AIOSEO Integration:** Explicitly disables All in One SEO's canonical URL generation on virtual pages to prevent conflicts.
+    *   **Robust HTML Cleaning:** Improved the regex used to strip existing meta tags, making it order-independent (e.g., handles `<link href="..." rel="canonical">` vs `<link rel="canonical" href="...">`).
+
 = 1.17.23 =
 *   **Fix: Google Search Console Parsing Errors:** Resolved two issues causing "Unparsable structured data" errors in GSC:
     *   Removed invalid newline characters from the JSON-LD script tag output.

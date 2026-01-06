@@ -228,26 +228,37 @@ function lr_generate_seo_meta_tags_html($data) {
     return $tags_html;
 }
 
+function lr_start_html_buffer_for_seo() {
+    if (!is_admin() && lr_get_page_details_from_uri()) {
+        // Disable AIOSEO Schema to prevent conflicts and GSC errors
+        add_filter('aioseo_schema_disable', '__return_true');
+        // Disable AIOSEO Canonical URL
+        add_filter('aioseo_canonical_url', '__return_false');
+        
+        ob_start('lr_process_final_html_for_seo');
+    }
+}
+
 function lr_process_final_html_for_seo($buffer) {
     $data = lr_get_current_page_api_data();
     if (!$data) return $buffer;
     
     $custom_tags_html = lr_generate_seo_meta_tags_html($data);
     
-    // Simplest possible replacement to avoid regex issues for now
+    // Robust cleanup: Remove existing tags regardless of attribute order
+    
+    // Remove Open Graph & Twitter Tags
+    $buffer = preg_replace('/<meta[^>]+(property|name)=["\"](og|twitter):[^"\"]+["\"][^>]*>/i', '', $buffer);
+    
+    // Remove Meta Description
+    $buffer = preg_replace('/<meta[^>]+name=["\"]description["\"][^>]*>/i', '', $buffer);
+    
+    // Remove Canonical Link
+    $buffer = preg_replace('/<link[^>]+rel=["\"]canonical["\"][^>]*>/i', '', $buffer);
+
+    // Inject our new tags
     $buffer = str_replace('<head>', "<head>\n" . $custom_tags_html, $buffer);
     return $buffer;
-}
-
-// --- 3. HOOKS ---
-
-function lr_start_html_buffer_for_seo() {
-    if (!is_admin() && lr_get_page_details_from_uri()) {
-        // Disable AIOSEO Schema to prevent conflicts and GSC errors
-        add_filter('aioseo_schema_disable', '__return_true');
-        
-        ob_start('lr_process_final_html_for_seo');
-    }
 }
 
 function lr_filter_document_title($title) {
